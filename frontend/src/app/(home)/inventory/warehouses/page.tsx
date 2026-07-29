@@ -1,0 +1,172 @@
+"use client";
+
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Containers } from "@/components/Containers";
+import { EntityListCard } from "@/components/card/EntityListCard";
+import { PageHeaderCards } from "@/components/card/PageHeaderCards";
+import { WarehouseStatsCards } from "@/components/card/WarehouseStatsCards";
+import { CreateWarehouseDrawer } from "@/components/drawers/CreateWarehouseDrawer";
+import { WarehousesTableSection } from "@/components/tables/WarehousesTableSection";
+import { Badge } from "@/components/ui/badge";
+import { fetchLocations } from "@/features/locationsSlice";
+import { useEntityCrudHandlers } from "@/hooks/useEntityCrudHandlers";
+import { notifyErrorOnce } from "@/lib/notifyError";
+import {
+  createWarehouseService,
+  deleteWarehouseService,
+  updateWarehouseService,
+} from "@/services/inventory/warehouse.service";
+import { useAppDispatch, useAppSelector } from "@/store/hook";
+import type { CreateWarehousePayload } from "@/types/locations";
+
+export default function InventoryWarehousesPage() {
+  const dispatch = useAppDispatch();
+  const {
+    items: warehouses,
+    fetchStatus,
+    createStatus,
+    error,
+  } = useAppSelector((s) => s.locations);
+
+  const [search, setSearch] = useState("");
+  const lastErrorRef = useRef<string | null>(null);
+
+  const normalizedSearch = useMemo(() => search.trim().toLowerCase(), [search]);
+
+  const filteredWarehouses = useMemo(() => {
+    if (!normalizedSearch) return warehouses;
+    return warehouses.filter((w) =>
+      w.name.toLowerCase().includes(normalizedSearch),
+    );
+  }, [warehouses, normalizedSearch]);
+
+  const totalCapacity = useMemo(() => {
+    return warehouses.reduce((sum, w) => sum + w.maxCapacity, 0);
+  }, [warehouses]);
+
+  const latestWarehouseName = useMemo(
+    () => warehouses[0]?.name ?? "-",
+    [warehouses],
+  );
+
+  const weeklyTrend = useMemo(() => {
+    const now = Date.now();
+    const oneWeekMs = 7 * 24 * 60 * 60 * 1000;
+    const currentWeekStart = now - oneWeekMs;
+    const previousWeekStart = now - oneWeekMs * 2;
+
+    const currentWeekWarehouses = warehouses.filter((warehouse) => {
+      const createdAt = new Date(warehouse.createdAt).getTime();
+      return createdAt >= currentWeekStart;
+    });
+
+    const previousWeekWarehouses = warehouses.filter((warehouse) => {
+      const createdAt = new Date(warehouse.createdAt).getTime();
+      return createdAt >= previousWeekStart && createdAt < currentWeekStart;
+    });
+
+    const currentWeekCount = currentWeekWarehouses.length;
+    const previousWeekCount = previousWeekWarehouses.length;
+    const currentWeekCapacity = currentWeekWarehouses.reduce(
+      (sum, warehouse) => sum + warehouse.maxCapacity,
+      0,
+    );
+    const previousWeekCapacity = previousWeekWarehouses.reduce(
+      (sum, warehouse) => sum + warehouse.maxCapacity,
+      0,
+    );
+
+    return {
+      warehousesDelta: currentWeekCount - previousWeekCount,
+      capacityDelta: currentWeekCapacity - previousWeekCapacity,
+    };
+  }, [warehouses]);
+
+  useEffect(() => {
+    if (fetchStatus === "idle") dispatch(fetchLocations());
+  }, [dispatch, fetchStatus]);
+
+  useEffect(() => {
+    notifyErrorOnce(error, lastErrorRef);
+  }, [error]);
+
+  const createWarehouseAction = useCallback(
+    async (payload: CreateWarehousePayload) => {
+      await createWarehouseService(dispatch, payload);
+    },
+    [dispatch],
+  );
+
+  const updateWarehouseAction = useCallback(
+    async (id: string, payload: Partial<CreateWarehousePayload>) => {
+      await updateWarehouseService(dispatch, id, payload);
+    },
+    [dispatch],
+  );
+
+  const deleteWarehouseAction = useCallback(
+    async (id: string) => {
+      await deleteWarehouseService(dispatch, id);
+    },
+    [dispatch],
+  );
+
+  const {
+    handleCreate: handleCreateWarehouse,
+    handleUpdate: handleUpdateWarehouse,
+    handleDelete: handleDeleteWarehouse,
+  } = useEntityCrudHandlers<
+    CreateWarehousePayload,
+    Partial<CreateWarehousePayload>
+  >({
+    createAction: createWarehouseAction,
+    updateAction: updateWarehouseAction,
+    deleteAction: deleteWarehouseAction,
+    messages: {
+      createSuccess: "เพิ่มคลังสินค้าสำเร็จ",
+      updateSuccess: "อัปเดตคลังสินค้าสำเร็จ",
+      deleteSuccess: "ลบคลังสินค้าสำเร็จ",
+    },
+  });
+
+  return (
+    <Containers>
+      <PageHeaderCards
+        title="คลังสินค้า"
+        description="สร้าง จัดการ และติดตามคลังสินค้าของคุณได้อย่างง่ายดายในที่เดียว"
+      >
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge variant="secondary">{warehouses.length} คลัง</Badge>
+          <Badge variant="outline">ความจุรวม {totalCapacity}</Badge>
+        </div>
+      </PageHeaderCards>
+
+      <WarehouseStatsCards
+        latestWarehouseName={latestWarehouseName}
+        totalCapacity={totalCapacity}
+        warehousesCount={warehouses.length}
+        warehousesDelta={weeklyTrend.warehousesDelta}
+        capacityDelta={weeklyTrend.capacityDelta}
+      />
+
+      <EntityListCard
+        title="รายการคลังสินค้า"
+        description="เพิ่ม ค้นหา แก้ไข และลบข้อมูลคลังสินค้าได้ที่นี่"
+        actions={
+          <CreateWarehouseDrawer
+            isSubmitting={createStatus === "loading"}
+            onCreate={handleCreateWarehouse}
+          />
+        }
+      >
+        <WarehousesTableSection
+          warehouses={filteredWarehouses}
+          search={search}
+          onSearchChange={setSearch}
+          onDeleteWarehouse={handleDeleteWarehouse}
+          onUpdateWarehouse={handleUpdateWarehouse}
+        />
+      </EntityListCard>
+    </Containers>
+  );
+}

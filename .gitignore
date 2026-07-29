@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+bun.lock
+
+# Build & Target outputs
+.next/
+out/
+dist/
+build/
+src-tauri/target/
+
+# Local Environment Files
+.env
+.env.*
+!.env.example
+
+# Large Data & Sample Files
+*.csv
+backend/data/*.csv
+*.sqlite
+*.db
+
+# Logs & OS artifacts
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.DS_Store
+Thumbs.db
