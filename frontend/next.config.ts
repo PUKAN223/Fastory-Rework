@@ -1,7 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  output: "standalone",
+  output: process.env.DOCKER_BUILD ? "standalone" : "export",
+  images: {
+    unoptimized: true,
+  },
   reactCompiler: true,
   typescript: {
     ignoreBuildErrors: true,

@@ -4,10 +4,10 @@
   "version": "1.0.0",
   "identifier": "com.fastory.pos",
   "build": {
-    "frontendDist": "http://localhost:3000",
+    "frontendDist": "../frontend/out",
     "devUrl": "http://localhost:3000",
-    "beforeDevCommand": "cd frontend && bun run dev",
-    "beforeBuildCommand": "cd frontend && bun run build"
+    "beforeDevCommand": "bun --cwd frontend run dev",
+    "beforeBuildCommand": "bun --cwd frontend run build"
   },
   "app": {
     "windows": [
