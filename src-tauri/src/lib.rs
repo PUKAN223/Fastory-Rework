@@ -3,12 +3,12 @@ use std::process::{Child, Command};
 use std::sync::Mutex;
 use tauri::Manager;
 
-struct BackendProcess(Mutex<Option<Child>>);
+struct ProcessManager(Mutex<Vec<Child>>);
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
-        .manage(BackendProcess(Mutex::new(None)))
+        .manage(ProcessManager(Mutex::new(Vec::new())))
         .setup(|app| {
             if cfg!(debug_assertions) {
                 app.handle().plugin(
@@ -18,41 +18,52 @@ pub fn run() {
                 )?;
             }
 
-            // Check if backend port 8080 is already running
-            let is_running = TcpStream::connect("127.0.0.1:8080").is_ok();
-            if !is_running {
-                // Auto-spawn backend server process on startup
+            let mut children = Vec::new();
+
+            // 1. Auto-spawn Backend on Port 8080 if not running
+            if TcpStream::connect("127.0.0.1:8080").is_err() {
                 let mut cmd = Command::new("cmd");
                 #[cfg(windows)]
                 cmd.args(["/C", "bun", "run", "dev"]);
                 #[cfg(not(windows))]
                 cmd.args(["-c", "bun run dev"]);
-
                 cmd.current_dir("../backend");
 
                 if let Ok(child) = cmd.spawn() {
-                    let state = app.state::<BackendProcess>();
-                    match state.0.lock() {
-                        Ok(mut guard) => {
-                            *guard = Some(child);
-                        }
-                        Err(_) => {}
-                    };
+                    children.push(child);
                 }
+            }
+
+            // 2. Auto-spawn Frontend on Port 3000 if not running
+            if TcpStream::connect("127.0.0.1:3000").is_err() {
+                let mut cmd = Command::new("cmd");
+                #[cfg(windows)]
+                cmd.args(["/C", "bun", "run", "dev"]);
+                #[cfg(not(windows))]
+                cmd.args(["-c", "bun run dev"]);
+                cmd.current_dir("../frontend");
+
+                if let Ok(child) = cmd.spawn() {
+                    children.push(child);
+                }
+            }
+
+            if !children.is_empty() {
+                let state = app.state::<ProcessManager>();
+                if let Ok(mut guard) = state.0.lock() {
+                    *guard = children;
+                };
             }
 
             Ok(())
         })
         .on_window_event(|window, event| {
             if let tauri::WindowEvent::Destroyed = event {
-                let state = window.state::<BackendProcess>();
-                match state.0.lock() {
-                    Ok(mut guard) => {
-                        if let Some(mut child) = guard.take() {
-                            let _ = child.kill();
-                        }
+                let state = window.state::<ProcessManager>();
+                if let Ok(mut guard) = state.0.lock() {
+                    for mut child in guard.drain(..) {
+                        let _ = child.kill();
                     }
-                    Err(_) => {}
                 };
             }
         })
