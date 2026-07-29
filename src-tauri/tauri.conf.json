@@ -2,12 +2,12 @@
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "Fastory",
   "version": "1.0.0",
-  "identifier": "com.fastory.app",
+  "identifier": "com.fastory.pos",
   "build": {
     "frontendDist": "http://localhost:3000",
     "devUrl": "http://localhost:3000",
-    "beforeDevCommand": "bun run --cwd frontend dev",
-    "beforeBuildCommand": "bun run --cwd frontend build"
+    "beforeDevCommand": "cd frontend && bun run dev",
+    "beforeBuildCommand": "cd frontend && bun run build"
   },
   "app": {
     "windows": [
