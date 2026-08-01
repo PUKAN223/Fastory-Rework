@@ -83,9 +83,6 @@ export default function POSDisplayPage() {
               </p>
             </div>
           </div>
-          <div className="text-2xl font-bold text-primary tabular-nums">
-            ฿{total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-          </div>
         </div>
 
         <div 
@@ -151,10 +148,6 @@ export default function POSDisplayPage() {
         <div className="flex-1 p-8 flex flex-col justify-center">
           {status === "paying" ? (
             <div className="animate-in fade-in slide-in-from-right-4 duration-500 w-full flex flex-col items-center justify-center text-center">
-              <h2 className="text-2xl font-bold mb-8">ยอดชำระทั้งหมด</h2>
-              <div className="text-6xl font-black text-primary mb-10 tabular-nums">
-                ฿{total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              </div>
 
               {paymentMethod === "promptpay" && promptpayPayload ? (
                 <div className="flex flex-col items-center">
