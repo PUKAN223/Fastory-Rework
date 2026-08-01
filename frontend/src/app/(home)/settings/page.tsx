@@ -722,33 +722,39 @@ NODE_ENV=${envNodeEnv}`;
                       HTTP POST
                     </Badge>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Input
-                      readOnly
-                      value={`${envApiUrl}/api/v1/webhooks/promptpay/${promptpayId.replace(/\D/g, "") || "YOUR_PHONE_NUMBER"}`}
-                      className="h-9 bg-background font-mono text-xs text-foreground"
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="h-9 px-4 shrink-0 text-xs gap-1.5"
-                      onClick={() => {
-                        const url = `${envApiUrl}/api/v1/webhooks/promptpay/${promptpayId.replace(/\D/g, "") || "YOUR_PHONE_NUMBER"}`;
-                        navigator.clipboard.writeText(url);
-                        setCopiedWebhook(true);
-                        toast.success("คัดลอก Webhook URL เรียบร้อยแล้ว");
-                        setTimeout(() => setCopiedWebhook(false), 2000);
-                      }}
-                    >
-                      {copiedWebhook ? (
-                        <Check className="w-3.5 h-3.5 text-emerald-600" />
-                      ) : (
-                        <Copy className="w-3.5 h-3.5" />
-                      )}
-                      {copiedWebhook ? "คัดลอกแล้ว" : "คัดลอก URL"}
-                    </Button>
-                  </div>
+                  {(() => {
+                    const cleanUrl = envApiUrl.replace(/\/$/, "");
+                    const baseUrlWithPort = /:[0-9]+$/.test(cleanUrl) ? cleanUrl : `${cleanUrl}:8080`;
+                    const webhookUrl = `${baseUrlWithPort}/api/v1/webhooks/promptpay/${promptpayId.replace(/\D/g, "") || "YOUR_PHONE_NUMBER"}`;
+                    return (
+                      <div className="flex items-center gap-2">
+                        <Input
+                          readOnly
+                          value={webhookUrl}
+                          className="h-9 bg-background font-mono text-xs text-foreground"
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="h-9 px-4 shrink-0 text-xs gap-1.5"
+                          onClick={() => {
+                            navigator.clipboard.writeText(webhookUrl);
+                            setCopiedWebhook(true);
+                            toast.success("คัดลอก Webhook URL เรียบร้อยแล้ว");
+                            setTimeout(() => setCopiedWebhook(false), 2000);
+                          }}
+                        >
+                          {copiedWebhook ? (
+                            <Check className="w-3.5 h-3.5 text-emerald-600" />
+                          ) : (
+                            <Copy className="w-3.5 h-3.5" />
+                          )}
+                          {copiedWebhook ? "คัดลอกแล้ว" : "คัดลอก URL"}
+                        </Button>
+                      </div>
+                    );
+                  })()}
                   <div className="space-y-2 pt-1 text-[11px] text-muted-foreground leading-relaxed">
                     <p className="font-semibold text-foreground">💡 วิธีการเชื่อมต่อใช้งาน 3 ขั้นตอนง่ายๆ:</p>
                     <ol className="list-decimal list-inside space-y-1 pl-1">
