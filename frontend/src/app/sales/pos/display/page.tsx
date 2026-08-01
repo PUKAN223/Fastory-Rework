@@ -68,7 +68,7 @@ export default function POSDisplayPage() {
   const changeAmount = Math.max(0, amountReceived - total);
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-background text-foreground selection:bg-primary/20">
+    <div className="fixed inset-0 flex h-full w-full overflow-hidden bg-background text-foreground selection:bg-primary/20 overscroll-none select-none">
       {/* Left side: Item List */}
       <div className="flex w-[65%] flex-col border-r border-border/40 bg-card">
         <div className="flex items-center justify-between border-b border-border/40 bg-muted/20 px-6 py-4 shadow-sm">
