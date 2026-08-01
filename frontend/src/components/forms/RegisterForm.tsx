@@ -46,6 +46,48 @@ export function RegisterForm({
   const paramGoogleId = searchParams.get("google_id") || "";
   const paramPicture = searchParams.get("picture") || "";
 
+  const handleGoogleLogin = async () => {
+    const isTauri =
+      typeof window !== "undefined" &&
+      ("__TAURI_INTERNALS__" in window || "__TAURI__" in window);
+
+    if (isTauri) {
+      try {
+        const res = await fetch("/api/auth/google?json=true");
+        const data = await res.json();
+        if (data.url) {
+          const popup = window.open(
+            data.url,
+            "GoogleLogin",
+            "width=500,height=650,top=100,left=100",
+          );
+
+          const interval = setInterval(async () => {
+            try {
+              const checkRes = await fetch("/api/auth/me");
+              if (checkRes.ok) {
+                const checkData = await checkRes.json();
+                if (checkData.user || checkData.authenticated) {
+                  clearInterval(interval);
+                  if (popup && !popup.closed) popup.close();
+                  toast.success("เข้าสู่ระบบด้วย Google สำเร็จ");
+                  router.push("/stores");
+                }
+              }
+            } catch (e) {
+              // Ignore polling errors
+            }
+          }, 1500);
+          return;
+        }
+      } catch (e) {
+        console.error("Google Auth error:", e);
+      }
+    }
+
+    window.location.href = "/api/auth/google";
+  };
+
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -132,9 +174,7 @@ export function RegisterForm({
                       variant="outline"
                       type="button"
                       disabled={registerLoading}
-                      onClick={() => {
-                        window.location.href = "/api/auth/google";
-                      }}
+                      onClick={handleGoogleLogin}
                     >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"

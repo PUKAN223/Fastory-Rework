@@ -22,6 +22,11 @@ export async function GET(req: Request) {
       return NextResponse.redirect(loginUrl);
     }
 
+    const requestUrl = new URL(req.url);
+    if (requestUrl.searchParams.get("json") === "true") {
+      return NextResponse.json({ success: true, url: data.url });
+    }
+
     return NextResponse.redirect(data.url);
   } catch (err: any) {
     const loginUrl = new URL("/login", req.url);

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Minus, Square, Copy, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, RotateCw, Minus, Square, Copy, X } from "lucide-react";
 
 export function WindowControls() {
   const [isTauri, setIsTauri] = useState(false);
@@ -31,6 +31,18 @@ export function WindowControls() {
   }, []);
 
   if (!isTauri) return null;
+
+  const handleBack = () => {
+    window.history.back();
+  };
+
+  const handleForward = () => {
+    window.history.forward();
+  };
+
+  const handleReload = () => {
+    window.location.reload();
+  };
 
   const handleMinimize = async () => {
     try {
@@ -64,15 +76,43 @@ export function WindowControls() {
   return (
     <div
       data-tauri-drag-region
-      className="h-8 w-full bg-card/90 border-b border-border/40 backdrop-blur-md flex items-center justify-between px-3 select-none z-50 shrink-0"
+      className="h-9 w-full bg-card/95 border-b border-border/50 backdrop-blur-md flex items-center justify-between px-3 select-none z-50 shrink-0"
     >
-      {/* Draggable Title / Brand Area */}
+      {/* Left Area: Navigation Controls */}
+      <div className="flex items-center space-x-1 no-drag">
+        <button
+          type="button"
+          onClick={handleBack}
+          className="size-7 inline-flex items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+          title="Back (ย้อนกลับ)"
+        >
+          <ArrowLeft className="size-3.5" />
+        </button>
+        <button
+          type="button"
+          onClick={handleForward}
+          className="size-7 inline-flex items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+          title="Forward (ไปข้างหน้า)"
+        >
+          <ArrowRight className="size-3.5" />
+        </button>
+        <button
+          type="button"
+          onClick={handleReload}
+          className="size-7 inline-flex items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+          title="Reload (รีโหลด)"
+        >
+          <RotateCw className="size-3" />
+        </button>
+      </div>
+
+      {/* Center Draggable Title / Brand Area */}
       <div data-tauri-drag-region className="flex items-center gap-2 text-xs font-semibold text-muted-foreground pointer-events-none">
         <span className="inline-block size-2 rounded-full bg-emerald-500 animate-pulse" />
         <span>Fastory Desktop</span>
       </div>
 
-      {/* Control Buttons */}
+      {/* Right Area: Window Controls (Minimize, Maximize, Close) */}
       <div className="flex items-center space-x-1 no-drag">
         <button
           type="button"
@@ -97,7 +137,7 @@ export function WindowControls() {
         <button
           type="button"
           onClick={handleClose}
-          className="size-7 inline-flex items-center justify-center rounded-md text-muted-foreground hover:bg-destructive hover:text-destructive-foreground transition-colors"
+          className="size-7 inline-flex items-center justify-center rounded-md text-destructive hover:bg-destructive hover:text-destructive-foreground transition-colors"
           title="Close"
         >
           <X className="size-3.5" />
