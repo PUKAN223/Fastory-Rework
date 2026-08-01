@@ -6,6 +6,8 @@ import { Providers } from "@/components/Providers";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
+import { WindowControls } from "@/components/ui/WindowControls";
+
 export const metadata: Metadata = {
   title: "Fastory - ระบบจัดการสินค้า",
   description:
@@ -54,6 +56,7 @@ export default function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
           <Providers>
             <TooltipProvider>
+              <WindowControls />
               {children}
               <Toaster />
             </TooltipProvider>
