@@ -87,7 +87,7 @@ export async function updateProductService(
     updateData.imageId = imageId;
   }
 
-  await dispatch(updateProduct({ id, data: updateData })).unwrap();
+  await dispatch(updateProduct({ id, payload: updateData })).unwrap();
 
   if (parsed.imageDataUrl || parsed.imageId === null) {
     dispatch(fetchImages());

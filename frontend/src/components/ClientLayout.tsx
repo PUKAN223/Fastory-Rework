@@ -138,7 +138,7 @@ export function ClientLayout({
   return (
     <SidebarProvider>
       <AppSidebar />
-      <SidebarInset className="min-w-0 overflow-x-clip">
+      <SidebarInset className="min-w-0 flex flex-col min-h-screen">
         <header className="sticky top-0 z-10 flex h-14 shrink-0 items-center justify-between gap-2 border-b border-border/60 bg-background/85 backdrop-blur-md transition-[width,height] ease-linear px-4">
           <div className="flex items-center gap-2 min-w-0">
             <SidebarTrigger className="-ml-1" />
@@ -146,9 +146,9 @@ export function ClientLayout({
               orientation="vertical"
               className="mr-2 data-[orientation=vertical]:h-4"
             />
-            <Breadcrumb>
-              <BreadcrumbList>
-                <BreadcrumbItem className="hidden md:block">
+            <Breadcrumb className="min-w-0">
+              <BreadcrumbList className="flex-nowrap overflow-x-auto no-scrollbar whitespace-nowrap">
+                <BreadcrumbItem className="hidden md:block shrink-0">
                   <BreadcrumbLink href="/dashboard" className="flex items-center gap-1">
                     <AppLogo size={20} className="text-xs font-semibold" />
                   </BreadcrumbLink>
@@ -163,8 +163,8 @@ export function ClientLayout({
 
                   return (
                     <React.Fragment key={href}>
-                      {index > 0 && <BreadcrumbSeparator />}
-                      <BreadcrumbItem>
+                      {index > 0 && <BreadcrumbSeparator className="shrink-0" />}
+                      <BreadcrumbItem className="shrink-0">
                         {isLast ? (
                           <BreadcrumbPage className="font-medium text-foreground">
                             {label}
@@ -181,21 +181,9 @@ export function ClientLayout({
               </BreadcrumbList>
             </Breadcrumb>
           </div>
-
-          {/* Active Store Indicator */}
-          {activeStore && (
-            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-2 px-2.5 py-1 rounded-lg border border-border/60 bg-muted/30 text-xs font-medium text-foreground select-none">
-                <span className="size-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-                <span className="truncate max-w-[130px] sm:max-w-[200px]">
-                  {activeStore.name}
-                </span>
-              </div>
-            </div>
-          )}
         </header>
         <div
-          className={`flex min-w-0 flex-1 flex-col gap-5 overflow-x-clip ${pathname === "/sales/pos" ? "p-2 pt-2" : "p-4 sm:p-6 pt-4 sm:pt-6"}`}
+          className={`flex min-w-0 flex-1 flex-col gap-5 overflow-x-clip pb-[env(safe-area-inset-bottom)] ${pathname === "/sales/pos" ? "p-2 pt-2" : "p-4 sm:p-6 pt-4 sm:pt-6"}`}
         >
           {!hasAccess ? (
             <div className="flex min-h-[70vh] flex-col items-center justify-center p-6 text-center">

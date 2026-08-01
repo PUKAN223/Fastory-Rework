@@ -118,17 +118,17 @@ export default function OrdersPage() {
         title="รายการออเดอร์"
         description="ค้นหาและดูรายละเอียดรายการออเดอร์ทั้งหมด"
       >
-        <div className="rounded-md border">
+        <div className="rounded-md border overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>เลขที่ออเดอร์</TableHead>
-                <TableHead>วันที่-เวลา</TableHead>
-                <TableHead>พนักงานขาย</TableHead>
-                <TableHead>วิธีชำระเงิน</TableHead>
-                <TableHead className="text-right">ยอดรวม (บาท)</TableHead>
-                <TableHead>สถานะ</TableHead>
-                <TableHead className="text-right">จัดการ</TableHead>
+                <TableHead className="whitespace-nowrap">เลขที่ออเดอร์</TableHead>
+                <TableHead className="hidden md:table-cell whitespace-nowrap">วันที่-เวลา</TableHead>
+                <TableHead className="hidden lg:table-cell whitespace-nowrap">พนักงานขาย</TableHead>
+                <TableHead className="hidden sm:table-cell whitespace-nowrap">วิธีชำระเงิน</TableHead>
+                <TableHead className="text-right whitespace-nowrap">ยอดรวม (บาท)</TableHead>
+                <TableHead className="whitespace-nowrap">สถานะ</TableHead>
+                <TableHead className="text-right whitespace-nowrap">จัดการ</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -149,19 +149,19 @@ export default function OrdersPage() {
                       order.status === "voided" ? "bg-muted/30 opacity-70" : ""
                     }
                   >
-                    <TableCell className="font-medium">
+                    <TableCell className="font-medium whitespace-nowrap">
                       {order.orderNumber}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="hidden md:table-cell whitespace-nowrap">
                       <div className="flex items-center text-muted-foreground text-sm">
                         <Calendar className="mr-2 h-4 w-4" />
                         {new Date(order.createdAt).toLocaleString("th-TH")}
                       </div>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="hidden lg:table-cell whitespace-nowrap">
                       {order.creator?.username || "Unknown"}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="hidden sm:table-cell whitespace-nowrap">
                       {order.paymentMethod === "cash" ? (
                         <Badge
                           variant="outline"
@@ -375,19 +375,19 @@ export default function OrdersPage() {
                     รายการสินค้า ({orderToView.items?.length || 0})
                   </h4>
                 </div>
-                <div className="rounded-xl border overflow-hidden bg-card shadow-xs">
+                <div className="rounded-xl border overflow-x-auto bg-card shadow-xs">
                   <Table className="text-xs">
                     <TableHeader className="bg-muted/40">
                       <TableRow>
-                        <TableHead className="font-semibold">สินค้า</TableHead>
-                        <TableHead className="font-semibold">SKU</TableHead>
-                        <TableHead className="text-center font-semibold">
+                        <TableHead className="font-semibold whitespace-nowrap">สินค้า</TableHead>
+                        <TableHead className="font-semibold whitespace-nowrap">SKU</TableHead>
+                        <TableHead className="text-center font-semibold whitespace-nowrap">
                           จำนวน
                         </TableHead>
-                        <TableHead className="text-right font-semibold">
+                        <TableHead className="text-right font-semibold whitespace-nowrap">
                           ราคา/ชิ้น
                         </TableHead>
-                        <TableHead className="text-right font-semibold">
+                        <TableHead className="text-right font-semibold whitespace-nowrap">
                           รวม
                         </TableHead>
                       </TableRow>
@@ -395,13 +395,13 @@ export default function OrdersPage() {
                     <TableBody>
                       {orderToView.items?.map((item) => (
                         <TableRow key={item.id} className="hover:bg-muted/30">
-                          <TableCell className="font-medium text-foreground">
+                          <TableCell className="font-medium text-foreground whitespace-nowrap">
                             {item.productName}
                           </TableCell>
-                          <TableCell className="text-muted-foreground font-mono text-[11px]">
+                          <TableCell className="text-muted-foreground font-mono text-[11px] whitespace-nowrap">
                             {item.productSku || "-"}
                           </TableCell>
-                          <TableCell className="text-center font-semibold">
+                          <TableCell className="text-center font-semibold whitespace-nowrap">
                             {item.quantity}
                           </TableCell>
                           <TableCell className="text-right text-muted-foreground">

@@ -362,7 +362,7 @@ export default function DashboardPage() {
       {/* Bottom row: Low Stock + Recent Movements */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
         {/* Low Stock Alerts */}
-        <Card className="col-span-3 border-border/60 shadow-none">
+        <Card className="lg:col-span-3 md:col-span-1 border-border/60 shadow-none">
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
               <CardTitle className="flex items-center gap-2 text-rose-600 dark:text-rose-500">
@@ -468,7 +468,7 @@ export default function DashboardPage() {
         </Card>
 
         {/* Recent Movements */}
-        <Card className="col-span-4 border-border/60 shadow-none">
+        <Card className="lg:col-span-4 md:col-span-1 border-border/60 shadow-none">
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
               <CardTitle className="flex items-center gap-2">

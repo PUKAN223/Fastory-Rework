@@ -6,7 +6,7 @@ RUN bun install
 
 COPY frontend/ ./
 
-ARG NEXT_PUBLIC_BASE_URL=http://localhost:8080
+ARG NEXT_PUBLIC_BASE_URL=http://inventory-project.ddns.net
 ENV NEXT_PUBLIC_BASE_URL=${NEXT_PUBLIC_BASE_URL}
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production

@@ -1,0 +1,3 @@
+{$DOMAIN:inventory-project.ddns.net} {
+	reverse_proxy frontend:3000
+}

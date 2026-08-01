@@ -25,13 +25,26 @@ export default function POSDisplayPage() {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const bc = new BroadcastChannel("pos-sync");
-    bc.onmessage = (event) => {
-      if (event.data?.type === "SYNC_STATE") {
-        setState(event.data.payload);
+    let isMounted = true;
+    const fetchState = async () => {
+      try {
+        const response = await fetch("/api/sales/pos-sync");
+        const data = await response.json();
+        if (data.success && data.state && isMounted) {
+          setState(data.state);
+        }
+      } catch (error) {
+        console.error("Failed to sync POS state:", error);
       }
     };
-    return () => bc.close();
+
+    fetchState();
+    const interval = setInterval(fetchState, 1000); // Poll every second
+
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
   }, []);
 
   // Auto-scroll to bottom of the list when cartItems change

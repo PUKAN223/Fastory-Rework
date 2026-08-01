@@ -184,79 +184,82 @@ export function CategoriesTableSection({
             </Empty>
           </div>
         ) : (
-          <Table className="[&_th:first-child]:text-center [&_td:first-child]:text-center">
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-16 text-center">ไอคอน</TableHead>
-                <TableHead>ชื่อหมวดหมู่</TableHead>
-                <TableHead>คำอธิบาย</TableHead>
-                <TableHead className="text-center">สินค้า</TableHead>
-                <TableHead className="whitespace-nowrap">สร้างเมื่อ</TableHead>
-                <TableHead className="text-center whitespace-nowrap">
-                  การกระทำ
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {paginatedCategories.map((category) => (
-                <TableRow key={category.id}>
-                  <TableCell className="text-center align-middle">
-                    <span className="mx-auto inline-flex size-8 items-center justify-center rounded-md border bg-muted/20">
-                      <Icon className="size-4" name={category.icon} />
-                    </span>
-                  </TableCell>
-                  <TableCell className="truncate font-medium">
-                    {category.name}
-                  </TableCell>
-                  <TableCell className="truncate">
-                    {category.description.length === 0
-                      ? "ไม่มีคำอธิบาย"
-                      : category.description}
-                  </TableCell>
-                  <TableCell className="text-center">
-                    <Badge variant="outline">{category.productCount}</Badge>
-                  </TableCell>
-                  <TableCell className="truncate whitespace-nowrap">
-                    {new Date(category.createdAt).toLocaleString("th-TH", {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </TableCell>
-                  <TableCell className="text-center whitespace-nowrap">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          disabled={deletingCategoryId === category.id}
-                          size="icon"
-                          variant="ghost"
-                        >
-                          <Ellipsis className="size-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem
-                          onSelect={() => handleEditOpen(category)}
-                        >
-                          แก้ไข
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onSelect={() => handleDeleteOpen(category)}
-                          variant="destructive"
-                        >
-                          {deletingCategoryId === category.id
-                            ? "กำลังลบ..."
-                            : "ลบ"}
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
+          <div className="overflow-x-auto">
+            <Table className="[&_th:first-child]:text-center [&_td:first-child]:text-center">
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-16 text-center">ไอคอน</TableHead>
+                  <TableHead className="whitespace-nowrap">ชื่อหมวดหมู่</TableHead>
+                  <TableHead className="hidden sm:table-cell">คำอธิบาย</TableHead>
+                  <TableHead className="text-center">สินค้า</TableHead>
+                  <TableHead className="whitespace-nowrap hidden md:table-cell">สร้างเมื่อ</TableHead>
+                  <TableHead className="text-center whitespace-nowrap">
+                    การกระทำ
+                  </TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+            <TableBody>
+
+                {paginatedCategories.map((category) => (
+                  <TableRow key={category.id}>
+                    <TableCell className="text-center align-middle">
+                      <span className="mx-auto inline-flex size-8 items-center justify-center rounded-md border bg-muted/20">
+                        <Icon className="size-4" name={category.icon} />
+                      </span>
+                    </TableCell>
+                    <TableCell className="truncate font-medium">
+                      {category.name}
+                    </TableCell>
+                    <TableCell className="truncate hidden sm:table-cell">
+                      {category.description.length === 0
+                        ? "ไม่มีคำอธิบาย"
+                        : category.description}
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <Badge variant="outline">{category.productCount}</Badge>
+                    </TableCell>
+                    <TableCell className="truncate whitespace-nowrap hidden md:table-cell">
+                      {new Date(category.createdAt).toLocaleString("th-TH", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </TableCell>
+                    <TableCell className="text-center whitespace-nowrap">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            disabled={deletingCategoryId === category.id}
+                            size="icon"
+                            variant="ghost"
+                          >
+                            <Ellipsis className="size-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem
+                            onSelect={() => handleEditOpen(category)}
+                          >
+                            แก้ไข
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onSelect={() => handleDeleteOpen(category)}
+                            variant="destructive"
+                          >
+                            {deletingCategoryId === category.id
+                              ? "กำลังลบ..."
+                              : "ลบ"}
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         )}
 
         {/* Pagination Controls */}

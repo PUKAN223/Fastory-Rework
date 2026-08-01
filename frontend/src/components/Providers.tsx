@@ -45,10 +45,22 @@ function AuthBootstrap() {
   return null;
 }
 
+function PwaBootstrap() {
+  React.useEffect(() => {
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/sw.js").catch((err) => {
+        console.error("Service worker registration failed", err);
+      });
+    }
+  }, []);
+  return null;
+}
+
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <Provider store={store}>
       <AuthBootstrap />
+      <PwaBootstrap />
       {children}
     </Provider>
   );

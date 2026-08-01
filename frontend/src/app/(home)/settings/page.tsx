@@ -221,7 +221,7 @@ NODE_ENV=${envNodeEnv}`;
 
       {/* Navigation Tabs - Monochrome & Clean */}
       <div className="border-b border-border/80">
-        <nav className="flex gap-1" aria-label="การตั้งค่า">
+        <nav className="flex gap-1 overflow-x-auto no-scrollbar" aria-label="การตั้งค่า">
           {SETTINGS_TABS.map((tab) => {
             const isActive = activeTab === tab.id;
             const Icon = tab.icon;
@@ -231,7 +231,7 @@ NODE_ENV=${envNodeEnv}`;
                 type="button"
                 onClick={() => setActiveTab(tab.id)}
                 className={cn(
-                  "relative flex items-center gap-2 px-4 py-2.5 text-xs font-medium transition-colors hover:text-foreground cursor-pointer select-none",
+                  "relative flex items-center gap-2 px-4 py-2.5 text-xs font-medium transition-colors hover:text-foreground cursor-pointer select-none whitespace-nowrap",
                   isActive
                     ? "text-foreground font-semibold after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-foreground"
                     : "text-muted-foreground",

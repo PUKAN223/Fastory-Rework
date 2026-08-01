@@ -130,6 +130,7 @@ export default function StaffPage() {
   const [permissions, setPermissions] = useState<Record<string, boolean>>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const staffMembers = useMemo(() => {
     return items.filter((m: any) => {
@@ -219,16 +220,17 @@ export default function StaffPage() {
 
   const handleDelete = async (id: number) => {
     if (!activeStoreId) return;
-    setDeletingId(id);
+    setIsDeleting(true);
     try {
       await dispatch(
         deleteMember({ storeId: activeStoreId, memberId: id }),
       ).unwrap();
       toast.success("ลบพนักงานสำเร็จ");
+      setDeletingId(null);
     } catch (err: any) {
       toast.error(err || "ไม่สามารถลบพนักงานได้");
     } finally {
-      setDeletingId(null);
+      setIsDeleting(false);
     }
   };
 
@@ -445,8 +447,8 @@ export default function StaffPage() {
                   <TableRow>
                     <TableHead>พนักงาน</TableHead>
                     <TableHead>ตำแหน่ง</TableHead>
-                    <TableHead>สิทธิ์ใช้งาน (Permissions)</TableHead>
-                    <TableHead>วันที่เข้าร่วม</TableHead>
+                    <TableHead className="hidden sm:table-cell">สิทธิ์ใช้งาน (Permissions)</TableHead>
+                    <TableHead className="hidden md:table-cell">วันที่เข้าร่วม</TableHead>
                     <TableHead className="text-right">จัดการ</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -491,7 +493,7 @@ export default function StaffPage() {
                             {m.jobTitle || m.job_title || "พนักงาน"}
                           </Badge>
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="hidden sm:table-cell">
                           <span className="text-xs text-muted-foreground flex items-center gap-1.5">
                             <Badge
                               variant="secondary"
@@ -503,7 +505,7 @@ export default function StaffPage() {
                             </Badge>
                           </span>
                         </TableCell>
-                        <TableCell className="whitespace-nowrap text-xs text-muted-foreground">
+                        <TableCell className="whitespace-nowrap text-xs text-muted-foreground hidden md:table-cell">
                           {(() => {
                             const rawDate = m.createdAt || m.created_at;
                             const date = rawDate ? new Date(rawDate) : null;
@@ -534,7 +536,7 @@ export default function StaffPage() {
                               </>
                             }
                             onConfirm={() => handleDelete(m.id)}
-                            isDeleting={deletingId === m.id}
+                            isDeleting={isDeleting && deletingId === m.id}
                             confirmLabel="ลบพนักงาน"
                             trigger={
                               <Button

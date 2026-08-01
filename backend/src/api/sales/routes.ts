@@ -4,6 +4,11 @@ import { z } from "zod";
 import { requireStorePermission, getAuthSession } from "../auth/permissions";
 import generatePayload from "promptpay-qr";
 
+// In-memory store for POS sessions
+// Key: storeId
+const posSessions = new Map<number, any>();
+
+
 class SalesRoutes extends BaseRouter {
   public override getRouter() {
     const router = super.getRouter();
@@ -25,6 +30,15 @@ class SalesRoutes extends BaseRouter {
             orderBy: { created_at: "desc" }
           });
           return { success: true, orders };
+        })
+        .get("/pos-sync", async (req) => {
+          const storeId = Number((req as any).params.storeId);
+          return { success: true, state: posSessions.get(storeId) || null };
+        })
+        .post("/pos-sync", async (req) => {
+          const storeId = Number((req as any).params.storeId);
+          posSessions.set(storeId, req.body);
+          return { success: true };
         })
     );
 

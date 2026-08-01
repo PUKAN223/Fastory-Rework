@@ -446,15 +446,15 @@ export function ProductsTableSection({
                     />
                   </TableHead>
                   <TableHead className="text-center">รูปภาพ</TableHead>
-                  <TableHead className="whitespace-nowrap">SKU</TableHead>
+                  <TableHead className="whitespace-nowrap hidden sm:table-cell">SKU</TableHead>
                   <TableHead>ชื่อสินค้า</TableHead>
-                  <TableHead className="text-center">หมวดหมู่</TableHead>
-                  <TableHead className="text-right">ต้นทุน</TableHead>
+                  <TableHead className="text-center hidden md:table-cell">หมวดหมู่</TableHead>
+                  <TableHead className="text-right hidden lg:table-cell">ต้นทุน</TableHead>
                   <TableHead className="text-right">ราคาขาย</TableHead>
-                  <TableHead className="text-right">กำไร</TableHead>
-                  <TableHead className="text-center">สถานะ</TableHead>
+                  <TableHead className="text-right hidden lg:table-cell">กำไร</TableHead>
+                  <TableHead className="text-center hidden md:table-cell">สถานะ</TableHead>
                   <TableHead className="text-right">สต็อก</TableHead>
-                  <TableHead className="whitespace-nowrap">อัปเดตล่าสุด</TableHead>
+                  <TableHead className="whitespace-nowrap hidden xl:table-cell">อัปเดตล่าสุด</TableHead>
                   <TableHead className="text-center whitespace-nowrap">
                     การกระทำ
                   </TableHead>
@@ -469,31 +469,31 @@ export function ProductsTableSection({
                     <TableCell>
                       <Skeleton className="mx-auto size-10 rounded-md" />
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="hidden sm:table-cell">
                       <Skeleton className="h-4 w-20" />
                     </TableCell>
                     <TableCell>
                       <Skeleton className="h-4 w-40" />
                     </TableCell>
-                    <TableCell className="text-center">
+                    <TableCell className="text-center hidden md:table-cell">
                       <Skeleton className="mx-auto h-6 w-24 rounded-full" />
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-right hidden lg:table-cell">
                       <Skeleton className="ml-auto h-4 w-20" />
                     </TableCell>
                     <TableCell className="text-right">
                       <Skeleton className="ml-auto h-4 w-20" />
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-right hidden lg:table-cell">
                       <Skeleton className="ml-auto h-4 w-20" />
                     </TableCell>
-                    <TableCell className="text-center">
+                    <TableCell className="text-center hidden md:table-cell">
                       <Skeleton className="mx-auto h-6 w-20 rounded-full" />
                     </TableCell>
                     <TableCell className="text-right">
                       <Skeleton className="ml-auto h-4 w-12" />
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="hidden xl:table-cell">
                       <Skeleton className="h-4 w-36" />
                     </TableCell>
                     <TableCell className="text-center">
@@ -565,15 +565,15 @@ export function ProductsTableSection({
                     />
                   </TableHead>
                   <TableHead className="text-center">รูปภาพ</TableHead>
-                  <TableHead className="whitespace-nowrap">SKU</TableHead>
+                  <TableHead className="whitespace-nowrap hidden sm:table-cell">SKU</TableHead>
                   <TableHead>ชื่อสินค้า</TableHead>
-                  <TableHead className="text-center">หมวดหมู่</TableHead>
-                  <TableHead className="text-right">ต้นทุน</TableHead>
+                  <TableHead className="text-center hidden md:table-cell">หมวดหมู่</TableHead>
+                  <TableHead className="text-right hidden lg:table-cell">ต้นทุน</TableHead>
                   <TableHead className="text-right">ราคาขาย</TableHead>
-                  <TableHead className="text-right">กำไร</TableHead>
-                  <TableHead className="text-center">สถานะ</TableHead>
+                  <TableHead className="text-right hidden lg:table-cell">กำไร</TableHead>
+                  <TableHead className="text-center hidden md:table-cell">สถานะ</TableHead>
                   <TableHead className="text-right">สต็อก</TableHead>
-                  <TableHead className="whitespace-nowrap">อัปเดตล่าสุด</TableHead>
+                  <TableHead className="whitespace-nowrap hidden xl:table-cell">อัปเดตล่าสุด</TableHead>
                   <TableHead className="text-center whitespace-nowrap">
                     การกระทำ
                   </TableHead>
@@ -628,28 +628,28 @@ export function ProductsTableSection({
                         )}
                       </TableCell>
 
-                      <TableCell className="font-medium">
+                      <TableCell className="font-medium hidden sm:table-cell">
                         {p.sku || "-"}
                       </TableCell>
-                      <TableCell className="max-w-70 truncate">
+                      <TableCell className="max-w-[150px] sm:max-w-70 truncate">
                         {p.name}
                       </TableCell>
 
-                      <TableCell className="text-center">
+                      <TableCell className="text-center hidden md:table-cell">
                         <Badge variant="outline">{catName}</Badge>
                       </TableCell>
 
-                      <TableCell className="text-right">
+                      <TableCell className="text-right hidden lg:table-cell">
                         {formatCurrency(p.costPrice)}
                       </TableCell>
                       <TableCell className="text-right font-semibold">
                         {formatCurrency(p.sellingPrice)}
                       </TableCell>
-                      <TableCell className="text-right text-emerald-600">
+                      <TableCell className="text-right text-emerald-600 hidden lg:table-cell">
                         {formatCurrency(profit)}
                       </TableCell>
 
-                      <TableCell className="text-center">
+                      <TableCell className="text-center hidden md:table-cell">
                         <div className="flex flex-col items-center gap-1">
                           <Badge variant={p.isActive ? "secondary" : "outline"}>
                             {p.isActive ? "เปิดใช้งาน" : "ปิดใช้งาน"}
@@ -682,7 +682,7 @@ export function ProductsTableSection({
                           )}
                       </TableCell>
 
-                      <TableCell className="whitespace-nowrap">
+                      <TableCell className="whitespace-nowrap hidden xl:table-cell">
                         {formatUpdatedAt(p.updatedAt)}
                       </TableCell>
 

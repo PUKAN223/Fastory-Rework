@@ -158,18 +158,18 @@ export function ProductFormDrawer({
   useEffect(() => {
     if (!open) return;
 
-    setSku(initialValues.sku);
-    setName(initialValues.name);
-    setCategoryId(initialValues.categoryId);
-    setLocationId(initialValues.locationId ?? null);
-    setDescription(initialValues.description);
-    setCostPrice(String(initialValues.costPrice));
-    setSellingPrice(String(initialValues.sellingPrice));
-    setReorderPoint(String(initialValues.reorderPoint ?? 0));
-    setIsActive(initialValues.isActive);
+    setSku(initialValues?.sku ?? "");
+    setName(initialValues?.name ?? "");
+    setCategoryId(initialValues?.categoryId ?? "");
+    setLocationId(initialValues?.locationId ?? null);
+    setDescription(initialValues?.description ?? "");
+    setCostPrice(String(initialValues?.costPrice ?? 0));
+    setSellingPrice(String(initialValues?.sellingPrice ?? 0));
+    setReorderPoint(String(initialValues?.reorderPoint ?? 0));
+    setIsActive(initialValues?.isActive ?? true);
     setImageDataUrl(null);
     setImagePreviewUrl(
-      initialValues.imageUrl ? formatImageSrc(initialValues.imageUrl) : null,
+      initialValues?.imageUrl ? formatImageSrc(initialValues.imageUrl) : null,
     );
     setImageAction("keep");
     setImageInputKey((key) => key + 1);

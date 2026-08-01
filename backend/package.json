@@ -12,7 +12,7 @@
     "seed:amazon": "bun run src/seed/mock-amazon.ts",
     "db:push": "prisma db push",
     "db:generate": "prisma generate",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio --browser none"
   },
   "dependencies": {
     "@google/genai": "^2.13.0",

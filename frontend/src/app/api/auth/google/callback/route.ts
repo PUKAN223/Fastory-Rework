@@ -5,8 +5,9 @@ export async function GET(req: Request) {
   const code = requestUrl.searchParams.get("code");
   const errorParam = requestUrl.searchParams.get("error");
 
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || requestUrl.origin;
   if (errorParam || !code) {
-    const loginUrl = new URL("/login", req.url);
+    const loginUrl = new URL("/login", baseUrl);
     loginUrl.searchParams.set(
       "error",
       errorParam || "Missing Google authorization code",
@@ -28,7 +29,7 @@ export async function GET(req: Request) {
   const isSecureRequest =
     forwardedProto === "https" || requestUrl.protocol === "https:";
 
-  const redirectUri = `${requestUrl.origin}/api/auth/google/callback`;
+  const redirectUri = `${baseUrl}/api/auth/google/callback`;
 
   try {
     const backendRes = await fetch(`${apiBase}/auth/google/callback`, {
@@ -41,7 +42,7 @@ export async function GET(req: Request) {
 
     if (!backendRes.ok || !data.accessToken || !data.refreshToken) {
       if (data.notRegistered) {
-        const registerUrl = new URL("/register", req.url);
+        const registerUrl = new URL("/register", baseUrl);
         registerUrl.searchParams.set("error", "account_not_found");
         if (data.email) registerUrl.searchParams.set("email", data.email);
         if (data.name) registerUrl.searchParams.set("name", data.name);
@@ -51,7 +52,7 @@ export async function GET(req: Request) {
         return NextResponse.redirect(registerUrl);
       }
 
-      const loginUrl = new URL("/login", req.url);
+      const loginUrl = new URL("/login", baseUrl);
       loginUrl.searchParams.set(
         "error",
         data.message || "Failed to authenticate with Google",
@@ -59,7 +60,7 @@ export async function GET(req: Request) {
       return NextResponse.redirect(loginUrl);
     }
 
-    const redirectTarget = new URL("/stores", req.url);
+    const redirectTarget = new URL("/stores", baseUrl);
     const res = NextResponse.redirect(redirectTarget);
 
     res.cookies.set("accessToken", data.accessToken, {
@@ -80,7 +81,7 @@ export async function GET(req: Request) {
 
     return res;
   } catch (err: any) {
-    const loginUrl = new URL("/login", req.url);
+    const loginUrl = new URL("/login", baseUrl);
     loginUrl.searchParams.set(
       "error",
       err?.message || "Google authentication service unavailable",

@@ -1,4 +1,20 @@
 services:
+  caddy:
+    image: caddy:2-alpine
+    container_name: fastory-caddy
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      - DOMAIN=${DOMAIN:-inventory-project.ddns.net}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - frontend
+
   postgres:
     image: postgres:16-alpine
     container_name: fastory-db
@@ -29,6 +45,9 @@ services:
       DIRECT_URL: "postgresql://postgres:postgrespassword@postgres:5432/fastory?schema=public"
       NODE_ENV: production
       GEMINI_API_KEY: "${GEMINI_API_KEY:-}"
+      GOOGLE_CLIENT_ID: "${GOOGLE_CLIENT_ID}"
+      GOOGLE_CLIENT_SECRET: "${GOOGLE_CLIENT_SECRET}"
+      GOOGLE_REDIRECT_URI: "${GOOGLE_REDIRECT_URI}"
     depends_on:
       postgres:
         condition: service_healthy
@@ -37,14 +56,14 @@ services:
     image: kisu221/fastory-web:latest
     container_name: fastory-web
     restart: always
-    ports:
-      - "3000:3000"
     environment:
       PORT: 3000
       API_URL: "http://backend:8080"
-      NEXT_PUBLIC_BASE_URL: "http://localhost:8080"
+      NEXT_PUBLIC_BASE_URL: "https://${DOMAIN:-inventory-project.ddns.net}"
     depends_on:
       - backend
 
 volumes:
   postgres_data:
+  caddy_data:
+  caddy_config:

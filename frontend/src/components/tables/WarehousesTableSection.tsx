@@ -211,19 +211,20 @@ export function WarehousesTableSection({
             </Empty>
           </div>
         ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="text-center">ชื่อคลัง</TableHead>
-                <TableHead>คำอธิบาย</TableHead>
-                <TableHead className="text-center">ความจุ</TableHead>
-                <TableHead className="text-center">สินค้า</TableHead>
-                <TableHead className="whitespace-nowrap">สร้างเมื่อ</TableHead>
-                <TableHead className="text-center whitespace-nowrap">
-                  การกระทำ
-                </TableHead>
-              </TableRow>
-            </TableHeader>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="text-center whitespace-nowrap">ชื่อคลัง</TableHead>
+                  <TableHead className="hidden sm:table-cell">คำอธิบาย</TableHead>
+                  <TableHead className="text-center min-w-[120px]">ความจุ</TableHead>
+                  <TableHead className="text-center hidden md:table-cell">สินค้า</TableHead>
+                  <TableHead className="whitespace-nowrap hidden lg:table-cell">สร้างเมื่อ</TableHead>
+                  <TableHead className="text-center whitespace-nowrap">
+                    การกระทำ
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
             <TableBody>
               {paginatedWarehouses.map((warehouse) => {
                 const stockTotal = warehouse.stockTotal ?? 0;
@@ -240,7 +241,7 @@ export function WarehousesTableSection({
                     <TableCell className="truncate font-medium text-center">
                       {warehouse.name}
                     </TableCell>
-                    <TableCell className="truncate">
+                    <TableCell className="truncate hidden sm:table-cell">
                       {warehouse.description.length === 0
                         ? "ไม่มีคำอธิบาย"
                         : warehouse.description}
@@ -260,12 +261,12 @@ export function WarehousesTableSection({
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell className="text-center">
+                    <TableCell className="text-center hidden md:table-cell">
                       <Badge variant="secondary">
                         {warehouse.productCount ?? 0} รายการ
                       </Badge>
                     </TableCell>
-                    <TableCell className="truncate whitespace-nowrap">
+                    <TableCell className="truncate whitespace-nowrap hidden lg:table-cell">
                       {new Date(warehouse.createdAt).toLocaleString("th-TH", {
                         year: "numeric",
                         month: "long",
@@ -306,7 +307,8 @@ export function WarehousesTableSection({
                 );
               })}
             </TableBody>
-          </Table>
+            </Table>
+          </div>
         )}
 
         {/* Pagination Controls */}

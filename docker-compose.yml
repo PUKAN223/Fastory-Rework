@@ -18,6 +18,9 @@ services:
       - postgres_data:/var/lib/postgresql/data
 
   backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
     image: kisu221/fastory-backend:latest
     container_name: fastory-backend
     restart: always
@@ -34,6 +37,9 @@ services:
         condition: service_healthy
 
   frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
     image: kisu221/fastory-web:latest
     container_name: fastory-web
     restart: always

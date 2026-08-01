@@ -1,5 +1,6 @@
 import React from "react";
 import { cn } from "@/lib/utils";
+import Image from "next/image";
 
 interface AppLogoProps extends React.HTMLAttributes<HTMLDivElement> {
   size?: number;
@@ -21,21 +22,29 @@ export function AppLogo({
       )}
       {...props}
     >
-      <div className="relative flex items-center justify-center shrink-0">
+      <div className="relative flex items-center justify-center shrink-0" style={{ width: size, height: size }}>
         {/* Light Mode Logo */}
-        <img
-          src="/logo-light.png"
-          alt="Fastory Logo"
-          style={{ width: size, height: size }}
-          className="dark:hidden object-contain"
-        />
+        <div className="absolute inset-0 dark:hidden">
+          <Image
+            src="/logo-light.png"
+            alt="Fastory Logo"
+            fill
+            sizes={`${size}px`}
+            priority
+            className="object-contain"
+          />
+        </div>
         {/* Dark Mode Logo */}
-        <img
-          src="/logo-dark.png"
-          alt="Fastory Logo"
-          style={{ width: size, height: size }}
-          className="hidden dark:block object-contain"
-        />
+        <div className="absolute inset-0 hidden dark:block">
+          <Image
+            src="/logo-dark.png"
+            alt="Fastory Logo"
+            fill
+            sizes={`${size}px`}
+            priority
+            className="object-contain"
+          />
+        </div>
       </div>
       {showText && (
         <span className="tracking-tight text-foreground">Fastory</span>
