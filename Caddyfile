@@ -1,3 +1,9 @@
 {$DOMAIN:inventory-project.ddns.net} {
-	reverse_proxy frontend:3000
+	handle /api/v1/* {
+		reverse_proxy backend:8080
+	}
+	
+	handle {
+		reverse_proxy frontend:3000
+	}
 }
