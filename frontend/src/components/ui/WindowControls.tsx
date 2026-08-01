@@ -24,8 +24,30 @@ export function WindowControls() {
         appWindow.onResized(() => {
           appWindow.isMaximized().then(setIsMaximized);
         });
+        
+        // Add data attribute to body for tauri specific layout adjustments
+        // We use data-tauri instead of class to prevent Next.js from stripping it on navigation
+        document.body.setAttribute("data-tauri", "true");
+        
+        // Add F11 fullscreen listener
+        const handleKeyDown = async (e: KeyboardEvent) => {
+          if (e.key === "F11") {
+            e.preventDefault();
+            try {
+              const isFullscreen = await appWindow.isFullscreen();
+              await appWindow.setFullscreen(!isFullscreen);
+            } catch (err) {
+              console.error("Failed to toggle fullscreen", err);
+            }
+          }
+        };
+        window.addEventListener("keydown", handleKeyDown);
+        
+        // Clean up
+        return () => window.removeEventListener("keydown", handleKeyDown);
       }).catch(() => {
         // Fallback if plugin fails
+        document.body.setAttribute("data-tauri", "true");
       });
     }
   }, []);
@@ -76,7 +98,7 @@ export function WindowControls() {
   return (
     <div
       data-tauri-drag-region
-      className="h-9 w-full bg-card/95 border-b border-border/50 backdrop-blur-md flex items-center justify-between px-3 select-none z-50 shrink-0"
+      className="fixed top-0 left-0 right-0 h-9 bg-card/95 border-b border-border/50 backdrop-blur-md flex items-center justify-between px-3 select-none z-[9999] shrink-0"
     >
       {/* Left Area: Navigation Controls */}
       <div className="flex items-center space-x-1 no-drag">
@@ -108,7 +130,6 @@ export function WindowControls() {
 
       {/* Center Draggable Title / Brand Area */}
       <div data-tauri-drag-region className="flex items-center gap-2 text-xs font-semibold text-muted-foreground pointer-events-none">
-        <span className="inline-block size-2 rounded-full bg-emerald-500 animate-pulse" />
         <span>Fastory Desktop</span>
       </div>
 

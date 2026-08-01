@@ -233,4 +233,52 @@
   img {
     -webkit-user-drag: none;
   }
+
+  /* Hide scrollbar for elements with no-scrollbar */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
 }
+
+/* Tauri specific styles to fix persistent scrollbars and layout */
+body[data-tauri="true"] {
+  height: 100vh !important;
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+  box-sizing: border-box !important;
+}
+
+body[data-tauri="true"] [data-slot="sidebar-wrapper"] {
+  min-height: 0 !important;
+  height: calc(100vh - 2.25rem) !important;
+  margin-top: 2.25rem !important;
+  flex: 1 1 0% !important;
+}
+
+body[data-tauri="true"] [data-slot="sidebar-inset"] {
+  overflow-y: auto !important;
+  min-height: 0 !important;
+}
+
+body[data-tauri="true"] [data-slot="sidebar-container"] {
+  top: 2.25rem !important; /* height of WindowControls (h-9) */
+  height: calc(100vh - 2.25rem) !important;
+}
+
+/* Push Drawers, Sheets, and Dialogs down so WindowControls is clear */
+body[data-tauri="true"] [data-slot="drawer-overlay"],
+body[data-tauri="true"] [data-slot="drawer-content"][data-vaul-drawer-direction="right"],
+body[data-tauri="true"] [data-slot="drawer-content"][data-vaul-drawer-direction="left"],
+body[data-tauri="true"] [data-slot="drawer-content"][data-vaul-drawer-direction="top"],
+body[data-tauri="true"] [data-slot="sheet-overlay"],
+body[data-tauri="true"] [data-slot="sheet-content"] {
+  top: 2.25rem !important;
+  height: calc(100vh - 2.25rem) !important;
+}
+
+
