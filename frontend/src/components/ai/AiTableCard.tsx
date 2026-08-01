@@ -37,7 +37,12 @@ export const AiTableCard: React.FC<AiTableCardProps> = ({
   // Normalize headers and rows in case AI outputs array of objects or 1D array
   const safeHeaders = useMemo(() => {
     if (headers && headers.length > 0) return headers;
-    if (rows && rows.length > 0 && typeof rows[0] === "object" && !Array.isArray(rows[0])) {
+    if (
+      rows &&
+      rows.length > 0 &&
+      typeof rows[0] === "object" &&
+      !Array.isArray(rows[0])
+    ) {
       return Object.keys(rows[0]);
     }
     return [];
@@ -59,7 +64,11 @@ export const AiTableCard: React.FC<AiTableCardProps> = ({
     if (!searchQuery.trim()) return safeRows;
     const query = searchQuery.toLowerCase();
     return safeRows.filter((row) =>
-      row.some((cell: any) => String(cell ?? "").toLowerCase().includes(query))
+      row.some((cell: any) =>
+        String(cell ?? "")
+          .toLowerCase()
+          .includes(query),
+      ),
     );
   }, [safeRows, searchQuery]);
 

@@ -5,6 +5,10 @@
     "test": "bun test",
     "dev": "bun run --watch src/index.ts",
     "seed": "bun run src/seed/index.ts",
+    "seed:categories": "bun run src/seed/categories.ts",
+    "seed:locations": "bun run src/seed/locations.ts",
+    "seed:products": "bun run src/seed/products.ts",
+    "seed:lotus": "bun run src/seed/lotus-products.ts",
     "seed:amazon": "bun run src/seed/mock-amazon.ts",
     "db:push": "prisma db push",
     "db:generate": "prisma generate",
@@ -22,6 +26,7 @@
     "prisma": "^7.4.0",
     "prizma": "^0.0.22",
     "promptpay-qr": "^0.5.0",
+    "sharp": "^0.35.3",
     "zod": "^4.3.6"
   },
   "devDependencies": {

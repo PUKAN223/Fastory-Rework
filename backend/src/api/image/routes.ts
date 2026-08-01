@@ -2,6 +2,36 @@ import BaseRouter from "../../class/BaseRouter";
 import { prisma } from "../../db/client";
 import { z } from "zod";
 import { requireAuth, requirePermission } from "../auth/permissions";
+import sharp from "sharp";
+
+async function optimizeImage(inputUrl: string): Promise<string> {
+  if (inputUrl.startsWith("http://") || inputUrl.startsWith("https://")) {
+    return inputUrl;
+  }
+
+  let base64Data = inputUrl;
+
+  if (inputUrl.startsWith("data:")) {
+    const commaIndex = inputUrl.indexOf(",");
+    if (commaIndex !== -1) {
+      base64Data = inputUrl.substring(commaIndex + 1);
+    }
+  }
+
+  try {
+    const buffer = Buffer.from(base64Data, "base64");
+    const optimizedBuffer = await sharp(buffer)
+      .resize({ width: 800, height: 800, fit: "inside", withoutEnlargement: true })
+      .webp({ quality: 80 })
+      .toBuffer();
+
+    const optimizedBase64 = optimizedBuffer.toString("base64");
+    return `data:image/webp;base64,${optimizedBase64}`;
+  } catch (error) {
+    console.error("Failed to optimize image:", error);
+    return inputUrl;
+  }
+}
 
 const base64Pattern =
   /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/;
@@ -50,9 +80,11 @@ class ImagesRoutes extends BaseRouter {
             };
           }
 
+          const optimizedUrl = await optimizeImage(parsed.data.url.trim());
+
           const image = await prisma.images.create({
             data: {
-              url: parsed.data.url.trim(),
+              url: optimizedUrl,
             },
           });
 
@@ -104,10 +136,15 @@ class ImagesRoutes extends BaseRouter {
           }
 
           try {
+            let updatedUrl = parsed.data.url?.trim();
+            if (updatedUrl) {
+              updatedUrl = await optimizeImage(updatedUrl);
+            }
+
             const image = await prisma.images.update({
               where: { id },
               data: {
-                url: parsed.data.url?.trim(),
+                url: updatedUrl,
               },
             });
             return { success: true, image };

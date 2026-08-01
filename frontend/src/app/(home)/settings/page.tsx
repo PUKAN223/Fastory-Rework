@@ -27,6 +27,7 @@ import {
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+
 import { Containers } from "@/components/Containers";
 import { PageHeaderCards } from "@/components/card/PageHeaderCards";
 import { Badge } from "@/components/ui/badge";
@@ -56,13 +57,13 @@ import { deleteStore, updateStore } from "@/features/storeSlice";
 import { cn } from "@/lib/utils";
 import { useAppDispatch, useAppSelector } from "@/store/hook";
 
-type SettingsTab = "general" | "receipt" | "env" | "danger";
+type SettingsTab = "general" | "receipt" | "integrations" | "danger";
 
 const SETTINGS_TABS = [
-  { id: "general" as SettingsTab, label: "ข้อมูลทั่วไป", icon: Store },
-  { id: "receipt" as SettingsTab, label: "การตั้งค่าใบเสร็จ", icon: ReceiptText },
-  { id: "env" as SettingsTab, label: "ตั้งค่าระบบ (.env)", icon: Sliders },
-  { id: "danger" as SettingsTab, label: "ตั้งค่าขั้นสูง", icon: ShieldAlert },
+  { id: "general" as SettingsTab, label: "ข้อมูลร้านค้า", icon: Store },
+  { id: "receipt" as SettingsTab, label: "รูปแบบใบเสร็จ", icon: ReceiptText },
+  { id: "integrations" as SettingsTab, label: "รับเงินโอน (PromptPay)", icon: QrCode },
+  { id: "danger" as SettingsTab, label: "การจัดการร้านค้า", icon: ShieldAlert },
 ];
 
 export default function SettingsPage() {
@@ -76,7 +77,6 @@ export default function SettingsPage() {
     [stores, activeStoreId],
   );
 
-  // Active Tab State (Underline style matching Inventory Layout)
   const [activeTab, setActiveTab] = useState<SettingsTab>("general");
 
   // Form states
@@ -90,8 +90,10 @@ export default function SettingsPage() {
   // Saving & Deleting UI states
   const [isSaving, setIsSaving] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState("");
+  const [deletePassword, setDeletePassword] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
   const [copiedSlug, setCopiedSlug] = useState(false);
+  const [copiedWebhook, setCopiedWebhook] = useState(false);
 
   // .env Form states
   const [envApiUrl, setEnvApiUrl] = useState(
@@ -144,11 +146,20 @@ export default function SettingsPage() {
   };
 
   const handleDeleteStore = async () => {
-    if (!activeStore || deleteConfirmText !== activeStore.name) return;
+    if (
+      !activeStore ||
+      deleteConfirmText !== activeStore.name ||
+      !deletePassword.trim()
+    )
+      return;
     setIsDeleting(true);
     try {
-      await dispatch(deleteStore({ id: activeStore.id })).unwrap();
+      await dispatch(
+        deleteStore({ id: activeStore.id, password: deletePassword }),
+      ).unwrap();
       toast.success("ร้านค้าถูกลบออกจากระบบแล้ว");
+      setDeleteConfirmText("");
+      setDeletePassword("");
       router.push("/dashboard");
     } catch (e: any) {
       toast.error(typeof e === "string" ? e : "เกิดข้อผิดพลาดในการลบร้านค้า");
@@ -189,22 +200,28 @@ NODE_ENV=${envNodeEnv}`;
       {/* Header */}
       <PageHeaderCards
         title="การตั้งค่าร้านค้า"
-        description="จัดการข้อมูลร้านค้า ช่องทางชำระเงิน การออกใบเสร็จรับเงิน และความปลอดภัยของระบบ"
+        description="จัดการข้อมูลร้านค้า ช่องทางชำระเงิน การออกใบเสร็จรับเงิน และตัวแปรระบบ"
       >
         <div className="flex items-center gap-2">
-          <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20 px-3 py-1 font-medium text-xs gap-1.5">
-            <ShieldCheck className="w-3.5 h-3.5" />
+          <Badge
+            variant="outline"
+            className="bg-muted/40 font-mono text-xs text-muted-foreground border-border px-2.5 py-1 font-normal gap-1.5"
+          >
+            <ShieldCheck className="w-3.5 h-3.5 text-muted-foreground" />
             {activeStore.jobTitle || "Owner"}
           </Badge>
-          <Badge variant="secondary" className="px-3 py-1 text-xs">
+          <Badge
+            variant="outline"
+            className="px-2.5 py-1 font-mono text-xs font-normal border-border"
+          >
             ID: #{activeStore.id}
           </Badge>
         </div>
       </PageHeaderCards>
 
-      {/* Underline Tabs matching Inventory Layout design */}
-      <div className="border-b border-border/60">
-        <nav className="flex gap-1 px-0" aria-label="การตั้งค่าร้านค้า">
+      {/* Navigation Tabs - Monochrome & Clean */}
+      <div className="border-b border-border/80">
+        <nav className="flex gap-1" aria-label="การตั้งค่า">
           {SETTINGS_TABS.map((tab) => {
             const isActive = activeTab === tab.id;
             const Icon = tab.icon;
@@ -214,22 +231,13 @@ NODE_ENV=${envNodeEnv}`;
                 type="button"
                 onClick={() => setActiveTab(tab.id)}
                 className={cn(
-                  "relative flex items-center gap-2 px-4 py-3 text-sm font-medium transition-colors hover:text-foreground cursor-pointer",
+                  "relative flex items-center gap-2 px-4 py-2.5 text-xs font-medium transition-colors hover:text-foreground cursor-pointer select-none",
                   isActive
-                    ? "text-foreground font-semibold after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-primary"
+                    ? "text-foreground font-semibold after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-foreground"
                     : "text-muted-foreground",
                 )}
               >
-                <Icon
-                  className={cn(
-                    "w-4 h-4",
-                    isActive
-                      ? tab.id === "danger"
-                        ? "text-rose-500"
-                        : "text-primary"
-                      : "text-muted-foreground",
-                  )}
-                />
+                <Icon className="w-3.5 h-3.5 text-muted-foreground" />
                 {tab.label}
               </button>
             );
@@ -242,20 +250,23 @@ NODE_ENV=${envNodeEnv}`;
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start pt-2">
           {/* Main Form */}
           <div className="lg:col-span-8 space-y-6">
-            <Card className="border-border/60 shadow-xs">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg font-bold">
-                  <Building2 className="w-5 h-5 text-primary" />
+            <Card className="border border-border/80 shadow-none">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-base font-semibold text-foreground flex items-center gap-2">
+                  <Building2 className="w-4 h-4 text-muted-foreground" />
                   ข้อมูลพื้นฐานร้านค้า
                 </CardTitle>
-                <CardDescription>
-                  กำหนดชื่อร้าน คำอธิบาย และข้อมูลติดต่อหลักสำหรับแสดงในระบบ
+                <CardDescription className="text-xs">
+                  กำหนดชื่อร้าน คำอธิบาย และหมายเลขติดต่อหลักสำหรับใช้งานในระบบ
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-5">
+              <CardContent className="space-y-4 text-xs">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="store-name" className="font-semibold text-xs">
+                  <div className="space-y-1.5">
+                    <Label
+                      htmlFor="store-name"
+                      className="font-medium text-xs text-foreground"
+                    >
                       ชื่อร้านค้า <span className="text-destructive">*</span>
                     </Label>
                     <Input
@@ -263,12 +274,15 @@ NODE_ENV=${envNodeEnv}`;
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       placeholder="เช่น Fastory Flagship Store"
-                      className="h-10"
+                      className="h-9 text-xs"
                     />
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="store-slug" className="font-semibold text-xs">
+                  <div className="space-y-1.5">
+                    <Label
+                      htmlFor="store-slug"
+                      className="font-medium text-xs text-foreground"
+                    >
                       Store Slug (URL Identifier)
                     </Label>
                     <div className="flex gap-2">
@@ -276,28 +290,31 @@ NODE_ENV=${envNodeEnv}`;
                         id="store-slug"
                         value={activeStore.slug || ""}
                         disabled
-                        className="h-10 bg-muted/40 font-mono text-xs"
+                        className="h-9 bg-muted/40 font-mono text-xs"
                       />
                       <Button
                         type="button"
                         variant="outline"
                         size="icon"
-                        className="h-10 w-10 shrink-0"
+                        className="h-9 w-9 shrink-0"
                         onClick={handleCopySlug}
                         title="คัดลอก Slug"
                       >
                         {copiedSlug ? (
-                          <Check className="w-4 h-4 text-emerald-500" />
+                          <Check className="w-3.5 h-3.5 text-foreground" />
                         ) : (
-                          <Copy className="w-4 h-4" />
+                          <Copy className="w-3.5 h-3.5 text-muted-foreground" />
                         )}
                       </Button>
                     </div>
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="store-desc" className="font-semibold text-xs">
+                <div className="space-y-1.5">
+                  <Label
+                    htmlFor="store-desc"
+                    className="font-medium text-xs text-foreground"
+                  >
                     รายละเอียดร้านค้า / สโลแกน
                   </Label>
                   <Textarea
@@ -306,137 +323,108 @@ NODE_ENV=${envNodeEnv}`;
                     onChange={(e) => setDescription(e.target.value)}
                     placeholder="อธิบายเกี่ยวกับร้านค้า สินค้าที่ขาย หรือสาขา..."
                     rows={3}
-                    className="resize-none"
+                    className="resize-none text-xs"
                   />
                 </div>
 
-                <div className="pt-2 border-t space-y-4">
-                  <div className="flex items-center gap-2 text-sm font-semibold">
-                    <CreditCard className="w-4 h-4 text-emerald-500" />
-                    ช่องทางรับชำระเงิน (PromptPay POS)
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="store-promptpay" className="font-semibold text-xs">
-                        หมายเลขพร้อมเพย์ (PromptPay ID)
-                      </Label>
-                      <Input
-                        id="store-promptpay"
-                        value={promptpayId}
-                        onChange={(e) => setPromptpayId(e.target.value)}
-                        placeholder="เบอร์โทรศัพท์ (08X-XXX-XXXX) หรือ Tax ID 13 หลัก"
-                        className="h-10 font-mono"
-                      />
-                      <p className="text-[11px] text-muted-foreground">
-                        ใช้สำหรับการสร้าง Dynamic QR Code ชำระเงินที่หน้า POS
-                      </p>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="store-taxid-gen" className="font-semibold text-xs">
-                        เลขประจำตัวผู้เสียภาษี (Tax ID)
-                      </Label>
-                      <Input
-                        id="store-taxid-gen"
-                        value={receiptTaxId}
-                        onChange={(e) => setReceiptTaxId(e.target.value)}
-                        placeholder="เลข 13 หลัก"
-                        className="h-10 font-mono"
-                      />
-                      <p className="text-[11px] text-muted-foreground">
-                        สำหรับแสดงบนใบเสร็จรับเงินอย่างย่อ/เต็มรูปแบบ
-                      </p>
-                    </div>
+                <div className="pt-3 border-t border-border/60 space-y-4">
+                  <div className="space-y-1.5">
+                    <Label
+                      htmlFor="store-taxid-gen"
+                      className="font-medium text-xs text-foreground"
+                    >
+                      เลขประจำตัวผู้เสียภาษี (Tax ID / VAT Reg.)
+                    </Label>
+                    <Input
+                      id="store-taxid-gen"
+                      value={receiptTaxId}
+                      onChange={(e) => setReceiptTaxId(e.target.value)}
+                      placeholder="เลข 13 หลัก เช่น 0105558012345"
+                      className="h-9 font-mono text-xs max-w-sm"
+                    />
+                    <p className="text-[11px] text-muted-foreground">
+                      สำหรับใช้แสดงบนใบเสร็จรับเงินอย่างเป็นทางการของร้านค้า
+                    </p>
                   </div>
                 </div>
               </CardContent>
-              <CardFooter className="border-t bg-muted/20 px-6 py-4 flex justify-between items-center">
-                <span className="text-xs text-muted-foreground flex items-center gap-1.5">
-                  <Info className="w-3.5 h-3.5" />
-                  กดบันทึกเพื่ออัปเดตข้อมูลไปยังเครื่อง POS ทั้งหมด
+              <CardFooter className="border-t border-border/60 bg-muted/20 px-6 py-3.5 flex justify-between items-center">
+                <span className="text-[11px] text-muted-foreground flex items-center gap-1.5">
+                  <Info className="w-3.5 h-3.5 shrink-0" />
+                  กดบันทึกเพื่ออัปเดตข้อมูลไปยังเครื่อง POS
                 </span>
                 <Button
                   onClick={handleSaveProfile}
                   disabled={isSaving || !name.trim()}
-                  className="px-6 font-medium shadow-xs"
+                  size="sm"
+                  className="px-5 text-xs font-medium"
                 >
-                  <Save className="w-4 h-4 mr-2" />
-                  {isSaving ? "กำลังบันทึก..." : "บันทึกเปลี่ยนแปลง"}
+                  <Save className="w-3.5 h-3.5 mr-1.5" />
+                  {isSaving ? "กำลังบันทึก..." : "บันทึกการเปลี่ยนแปลง"}
                 </Button>
               </CardFooter>
             </Card>
           </div>
 
-          {/* Side Card: Store Stats Overview */}
+          {/* Side Overview Card */}
           <div className="lg:col-span-4 space-y-6">
-            <Card className="border-border/60 shadow-xs bg-linear-to-b from-card to-muted/30">
+            <Card className="border border-border/80 shadow-none bg-card">
               <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
-                  ข้อมูลภาพรวมร้านค้า
+                <CardTitle className="text-xs font-mono font-medium text-muted-foreground uppercase tracking-wider">
+                  Store Overview
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center gap-3 p-3 rounded-xl bg-background border">
-                  <div className="size-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary font-bold text-lg">
+              <CardContent className="space-y-4 text-xs">
+                <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30 border border-border/60">
+                  <div className="size-9 rounded-md bg-foreground text-background flex items-center justify-center font-bold text-base shrink-0">
                     {activeStore.name.slice(0, 1).toUpperCase()}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="font-semibold text-sm truncate">
+                    <div className="font-medium text-xs truncate text-foreground">
                       {activeStore.name}
                     </div>
-                    <div className="text-xs text-muted-foreground truncate font-mono">
+                    <div className="text-[11px] text-muted-foreground truncate font-mono">
                       slug: {activeStore.slug}
                     </div>
                   </div>
-                  <Badge variant={activeStore.is_active ? "default" : "secondary"}>
-                    {activeStore.is_active ? "เปิดใช้งาน" : "ปิดใช้งาน"}
+                  <Badge
+                    variant="outline"
+                    className="font-mono text-[10px] border-border text-foreground"
+                  >
+                    {activeStore.is_active ? "Active" : "Disabled"}
                   </Badge>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="p-3.5 rounded-xl border bg-background space-y-1">
-                    <div className="text-xs text-muted-foreground flex items-center gap-1">
+                  <div className="p-3 rounded-lg border border-border/60 bg-muted/20 space-y-1">
+                    <div className="text-[11px] text-muted-foreground flex items-center gap-1">
                       <Package className="w-3.5 h-3.5" />
-                      จำนวนสินค้า
+                      สินค้าทั้งหมด
                     </div>
-                    <div className="text-xl font-bold">
+                    <div className="text-lg font-bold text-foreground">
                       {activeStore.productCount ?? 0}
                     </div>
                   </div>
-                  <div className="p-3.5 rounded-xl border bg-background space-y-1">
-                    <div className="text-xs text-muted-foreground flex items-center gap-1">
+                  <div className="p-3 rounded-lg border border-border/60 bg-muted/20 space-y-1">
+                    <div className="text-[11px] text-muted-foreground flex items-center gap-1">
                       <Users className="w-3.5 h-3.5" />
-                      พนักงานทั้งหมด
+                      สมาชิกทีม
                     </div>
-                    <div className="text-xl font-bold">
+                    <div className="text-lg font-bold text-foreground">
                       {activeStore.memberCount ?? 1}
                     </div>
                   </div>
                 </div>
 
-                <div
-                  className={cn(
-                    "p-3.5 rounded-xl border text-xs space-y-2",
-                    promptpayId
-                      ? "bg-emerald-500/5 border-emerald-500/20"
-                      : "bg-amber-500/5 border-amber-500/20",
-                  )}
-                >
-                  <div
-                    className={cn(
-                      "font-medium flex items-center gap-1.5",
-                      promptpayId
-                        ? "text-emerald-600 dark:text-emerald-400"
-                        : "text-amber-600 dark:text-amber-400",
-                    )}
-                  >
-                    <QrCode className="w-4 h-4" />
+                <div className="p-3 rounded-lg border border-border/60 bg-muted/20 text-xs space-y-1.5">
+                  <div className="font-medium flex items-center gap-1.5 text-foreground">
+                    <QrCode className="w-3.5 h-3.5 text-muted-foreground" />
                     {promptpayId ? "พร้อมเพย์พร้อมใช้งาน" : "ยังไม่ได้ตั้งค่าพร้อมเพย์"}
                   </div>
-                  <p className="text-muted-foreground leading-relaxed">
+                  <p className="text-muted-foreground text-[11px] leading-relaxed">
                     {promptpayId
-                      ? `เปิดรับชำระผ่าน PromptPay เบอร์/เลข: ${promptpayId}`
-                      : "ยังไม่ได้ระบุหมายเลข PromptPay สำหรับสร้าง QR Code ชำระเงินที่หน้า POS"}
+                      ? `เปิดรับชำระผ่าน PromptPay (${promptpayId})`
+                      : "ระบุหมายเลข PromptPay เพื่อสร้าง QR Code ที่ POS"}
                   </p>
                 </div>
               </CardContent>
@@ -450,19 +438,22 @@ NODE_ENV=${envNodeEnv}`;
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start pt-2">
           {/* Form */}
           <div className="lg:col-span-7 space-y-6">
-            <Card className="border-border/60 shadow-xs">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg font-bold">
-                  <ReceiptText className="w-5 h-5 text-blue-500" />
+            <Card className="border border-border/80 shadow-none">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-base font-semibold text-foreground flex items-center gap-2">
+                  <ReceiptText className="w-4 h-4 text-muted-foreground" />
                   ออกแบบใบเสร็จรับเงิน (Receipt Layout)
                 </CardTitle>
-                <CardDescription>
-                  ปรับแต่งข้อความส่วนหัว ข้อความส่วนท้าย และข้อมูลภาษีที่จะพิมพ์ลงบนใบเสร็จสลิป
+                <CardDescription className="text-xs">
+                  ปรับแต่งข้อความส่วนหัว ข้อความส่วนท้าย และข้อมูลภาษีบนสลิปใบเสร็จ
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-5">
-                <div className="space-y-2">
-                  <Label htmlFor="receipt-header" className="font-semibold text-xs">
+              <CardContent className="space-y-4 text-xs">
+                <div className="space-y-1.5">
+                  <Label
+                    htmlFor="receipt-header"
+                    className="font-medium text-xs text-foreground"
+                  >
                     ข้อความส่วนหัวใบเสร็จ (Header)
                   </Label>
                   <Textarea
@@ -478,8 +469,11 @@ NODE_ENV=${envNodeEnv}`;
                   </p>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="receipt-tax" className="font-semibold text-xs">
+                <div className="space-y-1.5">
+                  <Label
+                    htmlFor="receipt-tax"
+                    className="font-medium text-xs text-foreground"
+                  >
                     เลขประจำตัวผู้เสียภาษี (Tax ID / VAT Reg.)
                   </Label>
                   <Input
@@ -487,12 +481,15 @@ NODE_ENV=${envNodeEnv}`;
                     value={receiptTaxId}
                     onChange={(e) => setReceiptTaxId(e.target.value)}
                     placeholder="เช่น 0105558012345"
-                    className="h-10 font-mono"
+                    className="h-9 font-mono text-xs"
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="receipt-footer" className="font-semibold text-xs">
+                <div className="space-y-1.5">
+                  <Label
+                    htmlFor="receipt-footer"
+                    className="font-medium text-xs text-foreground"
+                  >
                     ข้อความส่วนท้ายใบเสร็จ (Footer)
                   </Label>
                   <Textarea
@@ -504,20 +501,21 @@ NODE_ENV=${envNodeEnv}`;
                     className="resize-none font-mono text-xs"
                   />
                   <p className="text-[11px] text-muted-foreground">
-                    แสดงล่างสุดของใบเสร็จ เหมาะสำหรับใส่คำขอบคุณหรือเงื่อนไขการรับประกัน
+                    แสดงล่างสุดของใบเสร็จ เหมาะสำหรับคำขอบคุณหรือเงื่อนไขบริการ
                   </p>
                 </div>
               </CardContent>
-              <CardFooter className="border-t bg-muted/20 px-6 py-4 flex justify-between items-center">
-                <span className="text-xs text-muted-foreground">
+              <CardFooter className="border-t border-border/60 bg-muted/20 px-6 py-3.5 flex justify-between items-center">
+                <span className="text-[11px] text-muted-foreground">
                   รองรับเครื่องพิมพ์สลิปความร้อน 58mm และ 80mm
                 </span>
                 <Button
                   onClick={handleSaveProfile}
                   disabled={isSaving || !name.trim()}
-                  className="px-6 font-medium shadow-xs"
+                  size="sm"
+                  className="px-5 text-xs font-medium"
                 >
-                  <Save className="w-4 h-4 mr-2" />
+                  <Save className="w-3.5 h-3.5 mr-1.5" />
                   {isSaving ? "กำลังบันทึก..." : "บันทึกรูปแบบใบเสร็จ"}
                 </Button>
               </CardFooter>
@@ -526,22 +524,24 @@ NODE_ENV=${envNodeEnv}`;
 
           {/* Thermal Receipt Preview Side */}
           <div className="lg:col-span-5">
-            <div className="sticky top-6 space-y-4">
+            <div className="sticky top-6 space-y-3">
               <div className="flex items-center justify-between">
-                <h3 className="font-semibold text-sm flex items-center gap-2">
-                  <Printer className="w-4 h-4 text-blue-500" />
-                  ตัวอย่างใบเสร็จจริง (Thermal Print Preview)
+                <h3 className="font-semibold text-xs text-foreground flex items-center gap-1.5">
+                  <Printer className="w-3.5 h-3.5 text-muted-foreground" />
+                  ตัวอย่างใบเสร็จจริง (Thermal Slip Preview)
                 </h3>
-                <Badge variant="outline" className="text-[10px] font-mono">
+                <Badge
+                  variant="outline"
+                  className="text-[10px] font-mono border-border"
+                >
                   80mm Standard
                 </Badge>
               </div>
 
-              {/* Photorealistic Slip Preview */}
-              <div className="relative bg-white text-slate-900 p-6 rounded-t-lg shadow-xl font-mono text-xs border border-gray-200 mx-auto max-w-[320px] select-none">
-                {/* Top Zigzag Pattern */}
+              {/* Monochrome Slip Preview */}
+              <div className="relative bg-white text-slate-900 p-6 rounded-t-lg shadow-sm font-mono text-xs border border-gray-200 mx-auto max-w-[320px] select-none">
                 <div className="text-center mb-4 space-y-1">
-                  <h2 className="font-bold text-base tracking-wide uppercase">
+                  <h2 className="font-bold text-sm tracking-wide uppercase">
                     {name || "ชื่อร้านค้าของคุณ"}
                   </h2>
                   {receiptHeader ? (
@@ -571,7 +571,7 @@ NODE_ENV=${envNodeEnv}`;
                   </div>
                   <div className="flex justify-between">
                     <span>เลขที่:</span>
-                    <span>#POS-20260728-001</span>
+                    <span>#POS-20260730-001</span>
                   </div>
                 </div>
 
@@ -621,7 +621,7 @@ NODE_ENV=${envNodeEnv}`;
                   </div>
                 )}
 
-                {/* Receipt Bottom Zigzag Cut Visual */}
+                {/* Bottom Zigzag */}
                 <div className="absolute -bottom-2 left-0 right-0 h-3 bg-white [clip-path:polygon(0_0,5%_100%,10%_0,15%_100%,20%_0,25%_100%,30%_0,35%_100%,40%_0,45%_100%,50%_0,55%_100%,60%_0,65%_100%,70%_0,75%_100%,80%_0,85%_100%,90%_0,95%_100%,100%_0)]"></div>
               </div>
             </div>
@@ -629,161 +629,154 @@ NODE_ENV=${envNodeEnv}`;
         </div>
       )}
 
-      {/* Tab Content 3: Environment / System (.env) Settings */}
-      {activeTab === "env" && (
+      {/* Tab Content 3: Integrations & PromptPay */}
+      {activeTab === "integrations" && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start pt-2">
           <div className="lg:col-span-8 space-y-6">
-            <Card className="border-border/60 shadow-xs">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg font-bold">
-                  <Sliders className="w-5 h-5 text-primary" />
-                  การตั้งค่าตัวแปรระบบ (Environment Variables - .env)
+            {/* PromptPay Setting Card */}
+            <Card className="border border-border/80 shadow-none">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-base font-semibold text-foreground flex items-center gap-2">
+                  <QrCode className="w-4 h-4 text-primary" />
+                  บัญชีรับเงินพร้อมเพย์ (PromptPay Account)
                 </CardTitle>
-                <CardDescription>
-                  จัดการค่าพารามิเตอร์การเชื่อมต่อเซิร์ฟเวอร์ คีย์บริการปัญญาประดิษฐ์ และพอร์ตสำหรับระบบ
+                <CardDescription className="text-xs">
+                  กำหนดหมายเลขพร้อมเพย์สำหรับสร้าง Dynamic QR Code ชำระเงินที่หน้าร้าน POS
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-5">
-                <div className="space-y-2">
-                  <Label htmlFor="env-api-url" className="font-semibold text-xs flex items-center gap-1.5">
-                    <Terminal className="w-3.5 h-3.5 text-muted-foreground" />
-                    API_URL (URL เซิร์ฟเวอร์ Backend)
-                  </Label>
-                  <Input
-                    id="env-api-url"
-                    value={envApiUrl}
-                    onChange={(e) => setEnvApiUrl(e.target.value)}
-                    placeholder="http://localhost:8080"
-                    className="font-mono text-xs"
-                  />
-                  <p className="text-[11px] text-muted-foreground">
-                    ที่อยู่สำหรับเรียกใช้ API ของ Backend เช่น http://localhost:8080 หรือ https://api.yourdomain.com
-                  </p>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="env-public-url" className="font-semibold text-xs flex items-center gap-1.5">
-                    <FileCode className="w-3.5 h-3.5 text-muted-foreground" />
-                    NEXT_PUBLIC_BASE_URL (URL สำหรับเว็บหน้าบ้าน)
-                  </Label>
-                  <Input
-                    id="env-public-url"
-                    value={envPublicBaseUrl}
-                    onChange={(e) => setEnvPublicBaseUrl(e.target.value)}
-                    placeholder="http://localhost:8080"
-                    className="font-mono text-xs"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="env-gemini-key" className="font-semibold text-xs flex items-center gap-1.5">
-                    <Key className="w-3.5 h-3.5 text-primary" />
-                    GEMINI_API_KEY (คีย์บริการ Google Gemini AI)
-                  </Label>
-                  <div className="relative">
-                    <Input
-                      id="env-gemini-key"
-                      type={showGeminiKey ? "text" : "password"}
-                      value={envGeminiKey}
-                      onChange={(e) => setEnvGeminiKey(e.target.value)}
-                      placeholder="AQ.Ab8RN6LxMP200..."
-                      className="font-mono text-xs pr-10"
-                    />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="absolute right-0 top-0 h-full px-3 text-muted-foreground hover:text-foreground"
-                      onClick={() => setShowGeminiKey(!showGeminiKey)}
+              <CardContent className="space-y-4 text-xs">
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <Label
+                      htmlFor="store-promptpay-input"
+                      className="font-medium text-xs text-foreground"
                     >
-                      {showGeminiKey ? (
-                        <EyeOff className="w-4 h-4" />
-                      ) : (
-                        <Eye className="w-4 h-4" />
-                      )}
-                    </Button>
+                      หมายเลขพร้อมเพย์ (เบอร์โทรศัพท์ หรือ Tax ID 13 หลัก)
+                    </Label>
+                    {promptpayId ? (
+                      <Badge
+                        variant="outline"
+                        className="text-[10px] text-emerald-600 bg-emerald-500/10 border-emerald-500/30 gap-1 font-normal"
+                      >
+                        <Check className="w-3 h-3" /> พร้อมใช้งานที่หน้า POS
+                      </Badge>
+                    ) : (
+                      <Badge
+                        variant="outline"
+                        className="text-[10px] text-amber-600 bg-amber-500/10 border-amber-500/30 font-normal"
+                      >
+                        ยังไม่ได้กรอกหมายเลข
+                      </Badge>
+                    )}
                   </div>
+                  <Input
+                    id="store-promptpay-input"
+                    value={promptpayId}
+                    onChange={(e) => setPromptpayId(e.target.value)}
+                    placeholder="เช่น 0812345678 หรือ 0105558012345"
+                    className="h-9 font-mono text-xs"
+                  />
                   <p className="text-[11px] text-muted-foreground">
-                    API Key สำหรับเปิดใช้งานฟีเจอร์ AI Assistant ช่วยวิเคราะห์ยอดขายและจัดการสต็อก
+                    เมื่อกรอกแล้ว ระบบหน้าร้าน (POS) จะสร้าง QR Code สแกนจ่ายตามยอดเงินให้อัตโนมัติ
                   </p>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="env-port" className="font-semibold text-xs">
-                      PORT (พอร์ตเซิร์ฟเวอร์)
-                    </Label>
-                    <Input
-                      id="env-port"
-                      value={envPort}
-                      onChange={(e) => setEnvPort(e.target.value)}
-                      placeholder="8080"
-                      className="font-mono text-xs"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="env-node-env" className="font-semibold text-xs">
-                      NODE_ENV (โหมดระบบ)
-                    </Label>
-                    <Input
-                      id="env-node-env"
-                      value={envNodeEnv}
-                      onChange={(e) => setEnvNodeEnv(e.target.value)}
-                      placeholder="production"
-                      className="font-mono text-xs"
-                    />
-                  </div>
                 </div>
               </CardContent>
-              <CardFooter className="border-t border-border/40 px-6 py-4 flex flex-col sm:flex-row gap-3 justify-between items-center bg-muted/20">
+              <CardFooter className="border-t border-border/60 bg-muted/20 px-6 py-3.5 flex justify-between items-center">
+                <span className="text-[11px] text-muted-foreground flex items-center gap-1.5">
+                  <Info className="w-3.5 h-3.5 shrink-0" />
+                  การเปลี่ยนแปลงจะมีผลต่อหน้า POS ทันที
+                </span>
                 <Button
-                  type="button"
-                  variant="outline"
+                  onClick={handleSaveProfile}
+                  disabled={isSaving || !name.trim()}
                   size="sm"
-                  onClick={handleCopyEnv}
-                  className="gap-2 text-xs w-full sm:w-auto"
+                  className="px-5 text-xs font-medium"
                 >
-                  {copiedEnv ? (
-                    <Check className="w-3.5 h-3.5 text-emerald-500" />
-                  ) : (
-                    <Copy className="w-3.5 h-3.5" />
-                  )}
-                  คัดลอกไฟล์ .env
-                </Button>
-
-                <Button
-                  type="button"
-                  onClick={handleSaveEnvConfig}
-                  size="sm"
-                  className="gap-2 font-semibold shadow-xs text-xs w-full sm:w-auto"
-                >
-                  <Save className="w-3.5 h-3.5" />
-                  บันทึกการตั้งค่า .env
+                  <Save className="w-3.5 h-3.5 mr-1.5" />
+                  {isSaving ? "กำลังบันทึก..." : "บันทึกข้อมูลพร้อมเพย์"}
                 </Button>
               </CardFooter>
             </Card>
+
+            {/* Auto-check Webhook Card */}
+            <Card className="border border-border/80 shadow-none">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-base font-semibold text-foreground flex items-center gap-2">
+                  <Terminal className="w-4 h-4 text-emerald-600" />
+                  ระบบตรวจรับเงินโอนอัตโนมัติ (PromptPay Auto-Check)
+                </CardTitle>
+                <CardDescription className="text-xs">
+                  เชื่อมต่อกับแอปพลิเคชันแจ้งเตือนยอดโอนเงินบนมือถือ เพื่อให้อนุมัติออเดอร์หน้าร้าน POS ให้อัตโนมัติ
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4 text-xs">
+                <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="font-semibold text-foreground flex items-center gap-1.5 text-xs">
+                      🔗 URL สำหรับรับสัญญาณเงินโอน (Webhook Endpoint)
+                    </span>
+                    <Badge
+                      variant="outline"
+                      className="text-[10px] font-mono border-emerald-500/30 text-emerald-600"
+                    >
+                      HTTP POST
+                    </Badge>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      readOnly
+                      value={`${envApiUrl}/api/v1/webhooks/promptpay/${promptpayId.replace(/\D/g, "") || "YOUR_PHONE_NUMBER"}`}
+                      className="h-9 bg-background font-mono text-xs text-foreground"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="h-9 px-4 shrink-0 text-xs gap-1.5"
+                      onClick={() => {
+                        const url = `${envApiUrl}/api/v1/webhooks/promptpay/${promptpayId.replace(/\D/g, "") || "YOUR_PHONE_NUMBER"}`;
+                        navigator.clipboard.writeText(url);
+                        setCopiedWebhook(true);
+                        toast.success("คัดลอก Webhook URL เรียบร้อยแล้ว");
+                        setTimeout(() => setCopiedWebhook(false), 2000);
+                      }}
+                    >
+                      {copiedWebhook ? (
+                        <Check className="w-3.5 h-3.5 text-emerald-600" />
+                      ) : (
+                        <Copy className="w-3.5 h-3.5" />
+                      )}
+                      {copiedWebhook ? "คัดลอกแล้ว" : "คัดลอก URL"}
+                    </Button>
+                  </div>
+                  <div className="space-y-2 pt-1 text-[11px] text-muted-foreground leading-relaxed">
+                    <p className="font-semibold text-foreground">💡 วิธีการเชื่อมต่อใช้งาน 3 ขั้นตอนง่ายๆ:</p>
+                    <ol className="list-decimal list-inside space-y-1 pl-1">
+                      <li>กรอกหมายเลขพร้อมเพย์ด้านบน แล้วกด **บันทึก**</li>
+                      <li>คัดลอก **URL** ด้านบน ไปใส่ในแอปพลิเคชันแจ้งเตือนโอนเงินบนโทรศัพท์มือถือประจำร้าน</li>
+                      <li>เมื่อมีลูกค้าสแกนโอนเงิน หน้าขายสินค้า (POS) จะอนุมัติและปิด QR Code ให้อัตโนมัติทันที</li>
+                    </ol>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
 
+          {/* Side Info Overview */}
           <div className="lg:col-span-4 space-y-6">
-            <Card className="border-border/60 shadow-xs">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-base font-bold">
-                  <Info className="w-4 h-4 text-primary" />
-                  คำแนะนำการตั้งค่า .env
+            <Card className="border border-border/80 shadow-none bg-muted/10">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                  <Info className="w-3.5 h-3.5 text-primary" />
+                  เกี่ยวกับระบบรับเงินโอน
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4 text-xs text-muted-foreground leading-relaxed">
+              <CardContent className="space-y-3 text-xs text-muted-foreground leading-relaxed">
                 <p>
-                  ไฟล์ <code>.env</code> ใช้สำหรับเก็บค่ากำหนดค่าความปลอดภัยและการเชื่อมต่อระบบทั้งบน Web Server (Docker) และบนโปรแกรม Desktop (.exe)
+                  ระบบจะใช้หมายเลขพร้อมเพย์ของร้านและยอดยืนยันจากแอปยิงสัญญาณในการจับคู่ออเดอร์
                 </p>
-                <div className="p-3 rounded-lg bg-muted/40 border border-border/50 font-mono text-[11px] space-y-1 text-foreground">
-                  <div>API_URL=http://localhost:8080</div>
-                  <div>PORT=8080</div>
-                  <div>NODE_ENV=production</div>
-                </div>
                 <p>
-                  กดปุ่ม <strong>"คัดลอกไฟล์ .env"</strong> เพื่อนำข้อความตัวแปรไปวางในไฟล์ <code>.env</code> หรือใน <code>docker-compose.yml</code> ได้ทันที
+                  หากไม่มีแอปยิงสัญญาณอัตโนมัติ พนักงานยังคงตรวจเช็กเงินเข้าจากแอปธนาคารแล้วอนุมัติออเดอร์ในหน้า POS ได้ตามปกติ
                 </p>
               </CardContent>
             </Card>
@@ -791,73 +784,100 @@ NODE_ENV=${envNodeEnv}`;
         </div>
       )}
 
-      {/* Tab Content 3: Advanced / Danger Zone */}
+
+      {/* Tab Content 4: Danger Zone */}
       {activeTab === "danger" && (
         <div className="grid grid-cols-1 gap-6 pt-2">
-          <Card className="border-rose-500/30 bg-rose-500/5 shadow-xs">
-            <CardHeader>
-              <CardTitle className="text-rose-600 dark:text-rose-400 flex items-center gap-2 text-lg font-bold">
-                <ShieldAlert className="w-5 h-5" />
+          <Card className="border border-border/80 shadow-none bg-card">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-foreground flex items-center gap-2 text-base font-semibold">
+                <ShieldAlert className="w-4 h-4 text-muted-foreground" />
                 เขตพื้นที่อันตราย (Danger Zone)
               </CardTitle>
-              <CardDescription>
-                การดำเนินการในหน้านี้จะส่งผลกระทบอย่างถาวรต่อร้านค้าและข้อมูลทั้งหมดในระบบ
+              <CardDescription className="text-xs">
+                การดำเนินการในส่วนนี้ส่งผลกระทบถาวรต่อร้านค้าและข้อมูลระบบ
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="p-4 rounded-xl bg-background border border-rose-500/20 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <CardContent className="space-y-4 text-xs">
+              <div className="p-4 rounded-lg border border-border/60 bg-muted/20 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="space-y-1">
-                  <h4 className="font-semibold text-sm text-foreground flex items-center gap-2">
-                    <AlertTriangle className="w-4 h-4 text-rose-500" />
+                  <h4 className="font-medium text-xs text-foreground flex items-center gap-1.5">
+                    <AlertTriangle className="w-3.5 h-3.5 text-muted-foreground" />
                     ลบร้านค้านี้อย่างถาวร (Delete Store)
                   </h4>
-                  <p className="text-xs text-muted-foreground max-w-xl leading-relaxed">
-                    เมื่อทำการลบร้านค้า <strong>{activeStore.name}</strong> ข้อมูลสินค้าทั้งหมด ({activeStore.productCount ?? 0} รายการ), ประวัติยอดขาย, สต็อก และสมาชิกพนักงาน จะถูกลบทิ้งจากฐานข้อมูลทันทีและไม่สามารถกู้คืนได้
+                  <p className="text-[11px] text-muted-foreground max-w-xl leading-relaxed">
+                    เมื่อทำการลบร้านค้า <strong>{activeStore.name}</strong>{" "}
+                    ข้อมูลสินค้าทั้งหมด ({activeStore.productCount ?? 0} รายการ),
+                    ประวัติยอดขาย, สต็อก และสมาชิกทีมจะถูกลบออกจากฐานข้อมูลอย่างถาวร
                   </p>
                 </div>
 
-                {/* Base UI DialogTrigger with render prop */}
                 <AlertDialog>
                   <AlertDialogTrigger
                     render={
-                      <Button variant="destructive" className="shrink-0 font-medium shadow-xs">
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        className="shrink-0 text-xs font-medium h-8 px-4"
+                      >
                         ลบร้านค้าถาวร
                       </Button>
                     }
                   />
                   <AlertDialogContent className="sm:max-w-md">
                     <AlertDialogHeader className="p-6 pb-2">
-                      <AlertDialogTitle className="text-rose-600 dark:text-rose-400 flex items-center gap-2">
-                        <AlertTriangle className="w-5 h-5" />
+                      <AlertDialogTitle className="text-base font-bold text-foreground flex items-center gap-2">
+                        <AlertTriangle className="w-4 h-4 text-destructive" />
                         ยืนยันการลบร้านค้าถาวร
                       </AlertDialogTitle>
-                      <AlertDialogDescription className="pt-2">
-                        การลบร้านค้า <strong>{activeStore.name}</strong> จะลบข้อมูลสินค้า สต็อก รายการขาย ทั้งหมดถาวรและไม่สามารถยกเลิกได้
+                      <AlertDialogDescription className="pt-2 text-xs">
+                        การลบร้านค้า <strong>{activeStore.name}</strong>{" "}
+                        จะลบข้อมูลสินค้า สต็อก รายการขาย ทั้งหมดถาวรและไม่สามารถยกเลิกได้
                       </AlertDialogDescription>
                     </AlertDialogHeader>
 
-                    <div className="px-6 py-4 space-y-3">
-                      <Label className="text-xs font-semibold">
-                        กรุณาพิมพ์ชื่อร้านค้า{" "}
-                        <span className="font-bold text-foreground font-mono bg-muted px-1.5 py-0.5 rounded">
-                          {activeStore.name}
-                        </span>{" "}
-                        เพื่อยืนยันการลบ:
-                      </Label>
-                      <Input
-                        value={deleteConfirmText}
-                        onChange={(e) => setDeleteConfirmText(e.target.value)}
-                        placeholder={activeStore.name}
-                        className="font-mono text-sm"
-                      />
+                    <div className="px-6 py-3 space-y-3 text-xs">
+                      <div className="space-y-1.5">
+                        <Label className="text-xs font-medium text-foreground">
+                          1. พิมพ์ชื่อร้านค้า{" "}
+                          <span className="font-mono font-semibold bg-muted px-1.5 py-0.5 rounded border">
+                            {activeStore.name}
+                          </span>{" "}
+                          เพื่อยืนยัน:
+                        </Label>
+                        <Input
+                          value={deleteConfirmText}
+                          onChange={(e) => setDeleteConfirmText(e.target.value)}
+                          placeholder={activeStore.name}
+                          className="font-mono text-xs h-9"
+                        />
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <Label className="text-xs font-medium text-foreground">
+                          2. กรอกรหัสผ่านของคุณเพื่อยืนยันการลบ:
+                        </Label>
+                        <Input
+                          type="password"
+                          value={deletePassword}
+                          onChange={(e) => setDeletePassword(e.target.value)}
+                          placeholder="รหัสผ่านบัญชีผู้ใช้ของคุณ"
+                          className="font-mono text-xs h-9"
+                        />
+                      </div>
                     </div>
 
-                    <AlertDialogFooter className="gap-3 sm:gap-3">
+                    <AlertDialogFooter className="gap-2 sm:gap-2 p-6 pt-2">
                       <AlertDialogClose
                         render={
                           <Button
                             variant="outline"
-                            onClick={() => setDeleteConfirmText("")}
+                            size="sm"
+                            onClick={() => {
+                              setDeleteConfirmText("");
+                              setDeletePassword("");
+                            }}
+                            className="text-xs"
                           >
                             ยกเลิก
                           </Button>
@@ -865,13 +885,16 @@ NODE_ENV=${envNodeEnv}`;
                       />
                       <Button
                         variant="destructive"
+                        size="sm"
                         disabled={
-                          deleteConfirmText !== activeStore.name || isDeleting
+                          deleteConfirmText !== activeStore.name ||
+                          !deletePassword.trim() ||
+                          isDeleting
                         }
                         onClick={handleDeleteStore}
-                        className="font-semibold"
+                        className="text-xs font-medium"
                       >
-                        {isDeleting ? "กำลังลบ..." : "ฉันเข้าใจผลกระทบ ยืนยันลบร้าน"}
+                        {isDeleting ? "กำลังลบ..." : "ยืนยันลบร้านค้าถาวร"}
                       </Button>
                     </AlertDialogFooter>
                   </AlertDialogContent>

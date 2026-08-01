@@ -1,6 +1,7 @@
 import {
   createLocation,
   deleteLocation,
+  forceDeleteLocation,
   updateLocation,
 } from "@/features/locationsSlice";
 import type { AppDispatch } from "@/store";
@@ -26,4 +27,11 @@ export async function deleteWarehouseService(
   id: string,
 ) {
   await dispatch(deleteLocation(id)).unwrap();
+}
+
+export async function forceDeleteWarehouseService(
+  dispatch: AppDispatch,
+  id: string,
+) {
+  await dispatch(forceDeleteLocation(id)).unwrap();
 }

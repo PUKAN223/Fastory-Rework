@@ -1,4 +1,5 @@
 import { prisma } from "../db/client"
+import { seedCategories } from "./categories"
 
 const p = prisma;
 
@@ -112,29 +113,14 @@ async function main() {
     create: { store_id: store.id, user_id: staff.id, job_title: "Staff", permissions: { "pos:access": true } }
   })
 
-  const cat1 = await p.categories.create({
-    data: {
-      store_id: store.id,
-      name: "อุปกรณ์คอมพิวเตอร์",
-      description: "ของไอทีต่าง ๆ"
-    }
-  })
+  // Seed categories using dedicated module
+  const createdCategories = await seedCategories(store.id);
 
-  const cat2 = await p.categories.create({
-    data: {
-      store_id: store.id,
-      name: "อาหารและเครื่องดื่ม",
-      description: "ของกินของใช้"
-    }
-  })
-
-  const cat3 = await p.categories.create({
-    data: {
-      store_id: store.id,
-      name: "ของใช้ทั่วไป",
-      description: "ของใช้ในชีวิตประจำวัน"
-    }
-  })
+  const catMap = new Map(createdCategories.map(c => [c.name, c.id]));
+  const defaultCatId = createdCategories[0].id;
+  const snackCatId = catMap.get("โปรขนม อาหาร") || defaultCatId;
+  const drinkCatId = catMap.get("น้ำ เครื่องดื่มและผงชงดื่ม") || defaultCatId;
+  const homeCatId = catMap.get("ของใช้ในบ้าน") || defaultCatId;
 
   const products = await Promise.all([
     p.products.create({
@@ -142,7 +128,7 @@ async function main() {
         store_id: store.id,
         sku: "TH-KEY-001",
         name: "คีย์บอร์ดเกมมิ่ง RGB",
-        category_id: cat1.id,
+        category_id: catMap.get("อุปกรณ์อิเล็กทรอนิกส์") || defaultCatId,
         cost_price: 450,
         selling_price: 890,
         image_id: img1.id,
@@ -154,7 +140,7 @@ async function main() {
         store_id: store.id,
         sku: "TH-MOU-002",
         name: "เมาส์เกมมิ่ง DPI สูง",
-        category_id: cat1.id,
+        category_id: catMap.get("อุปกรณ์อิเล็กทรอนิกส์") || defaultCatId,
         cost_price: 200,
         selling_price: 490,
         image_id: img2.id,
@@ -166,7 +152,7 @@ async function main() {
         store_id: store.id,
         sku: "TH-FOOD-003",
         name: "มาม่ารสต้มยำกุ้ง",
-        category_id: cat2.id,
+        category_id: snackCatId,
         cost_price: 6,
         selling_price: 10,
         image_id: img3.id,
@@ -178,7 +164,7 @@ async function main() {
         store_id: store.id,
         sku: "TH-DRINK-004",
         name: "โค้กกระป๋อง",
-        category_id: cat2.id,
+        category_id: drinkCatId,
         cost_price: 12,
         selling_price: 20,
         image_id: img2.id,
@@ -190,7 +176,7 @@ async function main() {
         store_id: store.id,
         sku: "TH-HOME-005",
         name: "ทิชชู่แพ็ค 6 ม้วน",
-        category_id: cat3.id,
+        category_id: homeCatId,
         cost_price: 40,
         selling_price: 79,
         image_id: img1.id,
@@ -209,7 +195,7 @@ async function main() {
     }))
   })
 
-  console.log("Seed data created")
+  console.log(`✅ Main seed completed with ${createdCategories.length} categories!`)
 }
 
 main()

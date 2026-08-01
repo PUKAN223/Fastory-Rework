@@ -7,7 +7,7 @@ class CategoriesRoutes extends BaseRouter {
   public override getRouter() {
     const router = super.getRouter();
 
-    router.guard({ beforeHandle: requireStorePermission("categories:read") }, (app) =>
+    router.guard({ beforeHandle: requireStorePermission("categories:read", "sales:write", "sales:read") }, (app) =>
       app
         .get("/", async (req) => {
           const storeId = Number((req as any).params.storeId);

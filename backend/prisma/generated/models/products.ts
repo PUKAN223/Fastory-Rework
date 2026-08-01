@@ -30,6 +30,7 @@ export type ProductsAvgAggregateOutputType = {
   id: number | null
   store_id: number | null
   category_id: number | null
+  location_id: number | null
   cost_price: runtime.Decimal | null
   selling_price: runtime.Decimal | null
   image_id: number | null
@@ -41,6 +42,7 @@ export type ProductsSumAggregateOutputType = {
   id: number | null
   store_id: number | null
   category_id: number | null
+  location_id: number | null
   cost_price: runtime.Decimal | null
   selling_price: runtime.Decimal | null
   image_id: number | null
@@ -53,6 +55,7 @@ export type ProductsMinAggregateOutputType = {
   store_id: number | null
   sku: string | null
   category_id: number | null
+  location_id: number | null
   name: string | null
   description: string | null
   cost_price: runtime.Decimal | null
@@ -71,6 +74,7 @@ export type ProductsMaxAggregateOutputType = {
   store_id: number | null
   sku: string | null
   category_id: number | null
+  location_id: number | null
   name: string | null
   description: string | null
   cost_price: runtime.Decimal | null
@@ -89,6 +93,7 @@ export type ProductsCountAggregateOutputType = {
   store_id: number
   sku: number
   category_id: number
+  location_id: number
   name: number
   description: number
   cost_price: number
@@ -108,6 +113,7 @@ export type ProductsAvgAggregateInputType = {
   id?: true
   store_id?: true
   category_id?: true
+  location_id?: true
   cost_price?: true
   selling_price?: true
   image_id?: true
@@ -119,6 +125,7 @@ export type ProductsSumAggregateInputType = {
   id?: true
   store_id?: true
   category_id?: true
+  location_id?: true
   cost_price?: true
   selling_price?: true
   image_id?: true
@@ -131,6 +138,7 @@ export type ProductsMinAggregateInputType = {
   store_id?: true
   sku?: true
   category_id?: true
+  location_id?: true
   name?: true
   description?: true
   cost_price?: true
@@ -149,6 +157,7 @@ export type ProductsMaxAggregateInputType = {
   store_id?: true
   sku?: true
   category_id?: true
+  location_id?: true
   name?: true
   description?: true
   cost_price?: true
@@ -167,6 +176,7 @@ export type ProductsCountAggregateInputType = {
   store_id?: true
   sku?: true
   category_id?: true
+  location_id?: true
   name?: true
   description?: true
   cost_price?: true
@@ -272,6 +282,7 @@ export type ProductsGroupByOutputType = {
   store_id: number
   sku: string
   category_id: number
+  location_id: number | null
   name: string
   description: string | null
   cost_price: runtime.Decimal
@@ -313,6 +324,7 @@ export type productsWhereInput = {
   store_id?: Prisma.IntFilter<"products"> | number
   sku?: Prisma.StringFilter<"products"> | string
   category_id?: Prisma.IntFilter<"products"> | number
+  location_id?: Prisma.IntNullableFilter<"products"> | number | null
   name?: Prisma.StringFilter<"products"> | string
   description?: Prisma.StringNullableFilter<"products"> | string | null
   cost_price?: Prisma.DecimalFilter<"products"> | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -326,6 +338,7 @@ export type productsWhereInput = {
   stock_updated_at?: Prisma.DateTimeFilter<"products"> | Date | string
   stores?: Prisma.XOR<Prisma.StoresScalarRelationFilter, Prisma.storesWhereInput>
   categories?: Prisma.XOR<Prisma.CategoriesScalarRelationFilter, Prisma.categoriesWhereInput>
+  location?: Prisma.XOR<Prisma.LocationsNullableScalarRelationFilter, Prisma.locationsWhereInput> | null
   images?: Prisma.XOR<Prisma.ImagesNullableScalarRelationFilter, Prisma.imagesWhereInput> | null
   product_stock_movements?: Prisma.Product_stock_movementsListRelationFilter
   order_items?: Prisma.Order_itemsListRelationFilter
@@ -336,6 +349,7 @@ export type productsOrderByWithRelationInput = {
   store_id?: Prisma.SortOrder
   sku?: Prisma.SortOrder
   category_id?: Prisma.SortOrder
+  location_id?: Prisma.SortOrderInput | Prisma.SortOrder
   name?: Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
   cost_price?: Prisma.SortOrder
@@ -349,6 +363,7 @@ export type productsOrderByWithRelationInput = {
   stock_updated_at?: Prisma.SortOrder
   stores?: Prisma.storesOrderByWithRelationInput
   categories?: Prisma.categoriesOrderByWithRelationInput
+  location?: Prisma.locationsOrderByWithRelationInput
   images?: Prisma.imagesOrderByWithRelationInput
   product_stock_movements?: Prisma.product_stock_movementsOrderByRelationAggregateInput
   order_items?: Prisma.order_itemsOrderByRelationAggregateInput
@@ -363,6 +378,7 @@ export type productsWhereUniqueInput = Prisma.AtLeast<{
   store_id?: Prisma.IntFilter<"products"> | number
   sku?: Prisma.StringFilter<"products"> | string
   category_id?: Prisma.IntFilter<"products"> | number
+  location_id?: Prisma.IntNullableFilter<"products"> | number | null
   name?: Prisma.StringFilter<"products"> | string
   description?: Prisma.StringNullableFilter<"products"> | string | null
   cost_price?: Prisma.DecimalFilter<"products"> | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -376,6 +392,7 @@ export type productsWhereUniqueInput = Prisma.AtLeast<{
   stock_updated_at?: Prisma.DateTimeFilter<"products"> | Date | string
   stores?: Prisma.XOR<Prisma.StoresScalarRelationFilter, Prisma.storesWhereInput>
   categories?: Prisma.XOR<Prisma.CategoriesScalarRelationFilter, Prisma.categoriesWhereInput>
+  location?: Prisma.XOR<Prisma.LocationsNullableScalarRelationFilter, Prisma.locationsWhereInput> | null
   images?: Prisma.XOR<Prisma.ImagesNullableScalarRelationFilter, Prisma.imagesWhereInput> | null
   product_stock_movements?: Prisma.Product_stock_movementsListRelationFilter
   order_items?: Prisma.Order_itemsListRelationFilter
@@ -386,6 +403,7 @@ export type productsOrderByWithAggregationInput = {
   store_id?: Prisma.SortOrder
   sku?: Prisma.SortOrder
   category_id?: Prisma.SortOrder
+  location_id?: Prisma.SortOrderInput | Prisma.SortOrder
   name?: Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
   cost_price?: Prisma.SortOrder
@@ -412,6 +430,7 @@ export type productsScalarWhereWithAggregatesInput = {
   store_id?: Prisma.IntWithAggregatesFilter<"products"> | number
   sku?: Prisma.StringWithAggregatesFilter<"products"> | string
   category_id?: Prisma.IntWithAggregatesFilter<"products"> | number
+  location_id?: Prisma.IntNullableWithAggregatesFilter<"products"> | number | null
   name?: Prisma.StringWithAggregatesFilter<"products"> | string
   description?: Prisma.StringNullableWithAggregatesFilter<"products"> | string | null
   cost_price?: Prisma.DecimalWithAggregatesFilter<"products"> | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -439,6 +458,7 @@ export type productsCreateInput = {
   stock_updated_at?: Date | string
   stores: Prisma.storesCreateNestedOneWithoutProductsInput
   categories: Prisma.categoriesCreateNestedOneWithoutProductsInput
+  location?: Prisma.locationsCreateNestedOneWithoutProductsInput
   images?: Prisma.imagesCreateNestedOneWithoutProductsInput
   product_stock_movements?: Prisma.product_stock_movementsCreateNestedManyWithoutProductsInput
   order_items?: Prisma.order_itemsCreateNestedManyWithoutProductInput
@@ -449,6 +469,7 @@ export type productsUncheckedCreateInput = {
   store_id: number
   sku: string
   category_id: number
+  location_id?: number | null
   name: string
   description?: string | null
   cost_price?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -478,6 +499,7 @@ export type productsUpdateInput = {
   stock_updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   stores?: Prisma.storesUpdateOneRequiredWithoutProductsNestedInput
   categories?: Prisma.categoriesUpdateOneRequiredWithoutProductsNestedInput
+  location?: Prisma.locationsUpdateOneWithoutProductsNestedInput
   images?: Prisma.imagesUpdateOneWithoutProductsNestedInput
   product_stock_movements?: Prisma.product_stock_movementsUpdateManyWithoutProductsNestedInput
   order_items?: Prisma.order_itemsUpdateManyWithoutProductNestedInput
@@ -488,6 +510,7 @@ export type productsUncheckedUpdateInput = {
   store_id?: Prisma.IntFieldUpdateOperationsInput | number
   sku?: Prisma.StringFieldUpdateOperationsInput | string
   category_id?: Prisma.IntFieldUpdateOperationsInput | number
+  location_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cost_price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -508,6 +531,7 @@ export type productsCreateManyInput = {
   store_id: number
   sku: string
   category_id: number
+  location_id?: number | null
   name: string
   description?: string | null
   cost_price?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -540,6 +564,7 @@ export type productsUncheckedUpdateManyInput = {
   store_id?: Prisma.IntFieldUpdateOperationsInput | number
   sku?: Prisma.StringFieldUpdateOperationsInput | string
   category_id?: Prisma.IntFieldUpdateOperationsInput | number
+  location_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cost_price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -573,6 +598,7 @@ export type productsCountOrderByAggregateInput = {
   store_id?: Prisma.SortOrder
   sku?: Prisma.SortOrder
   category_id?: Prisma.SortOrder
+  location_id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   description?: Prisma.SortOrder
   cost_price?: Prisma.SortOrder
@@ -590,6 +616,7 @@ export type productsAvgOrderByAggregateInput = {
   id?: Prisma.SortOrder
   store_id?: Prisma.SortOrder
   category_id?: Prisma.SortOrder
+  location_id?: Prisma.SortOrder
   cost_price?: Prisma.SortOrder
   selling_price?: Prisma.SortOrder
   image_id?: Prisma.SortOrder
@@ -602,6 +629,7 @@ export type productsMaxOrderByAggregateInput = {
   store_id?: Prisma.SortOrder
   sku?: Prisma.SortOrder
   category_id?: Prisma.SortOrder
+  location_id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   description?: Prisma.SortOrder
   cost_price?: Prisma.SortOrder
@@ -620,6 +648,7 @@ export type productsMinOrderByAggregateInput = {
   store_id?: Prisma.SortOrder
   sku?: Prisma.SortOrder
   category_id?: Prisma.SortOrder
+  location_id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   description?: Prisma.SortOrder
   cost_price?: Prisma.SortOrder
@@ -637,6 +666,7 @@ export type productsSumOrderByAggregateInput = {
   id?: Prisma.SortOrder
   store_id?: Prisma.SortOrder
   category_id?: Prisma.SortOrder
+  location_id?: Prisma.SortOrder
   cost_price?: Prisma.SortOrder
   selling_price?: Prisma.SortOrder
   image_id?: Prisma.SortOrder
@@ -733,6 +763,48 @@ export type productsUncheckedUpdateManyWithoutImagesNestedInput = {
   deleteMany?: Prisma.productsScalarWhereInput | Prisma.productsScalarWhereInput[]
 }
 
+export type productsCreateNestedManyWithoutLocationInput = {
+  create?: Prisma.XOR<Prisma.productsCreateWithoutLocationInput, Prisma.productsUncheckedCreateWithoutLocationInput> | Prisma.productsCreateWithoutLocationInput[] | Prisma.productsUncheckedCreateWithoutLocationInput[]
+  connectOrCreate?: Prisma.productsCreateOrConnectWithoutLocationInput | Prisma.productsCreateOrConnectWithoutLocationInput[]
+  createMany?: Prisma.productsCreateManyLocationInputEnvelope
+  connect?: Prisma.productsWhereUniqueInput | Prisma.productsWhereUniqueInput[]
+}
+
+export type productsUncheckedCreateNestedManyWithoutLocationInput = {
+  create?: Prisma.XOR<Prisma.productsCreateWithoutLocationInput, Prisma.productsUncheckedCreateWithoutLocationInput> | Prisma.productsCreateWithoutLocationInput[] | Prisma.productsUncheckedCreateWithoutLocationInput[]
+  connectOrCreate?: Prisma.productsCreateOrConnectWithoutLocationInput | Prisma.productsCreateOrConnectWithoutLocationInput[]
+  createMany?: Prisma.productsCreateManyLocationInputEnvelope
+  connect?: Prisma.productsWhereUniqueInput | Prisma.productsWhereUniqueInput[]
+}
+
+export type productsUpdateManyWithoutLocationNestedInput = {
+  create?: Prisma.XOR<Prisma.productsCreateWithoutLocationInput, Prisma.productsUncheckedCreateWithoutLocationInput> | Prisma.productsCreateWithoutLocationInput[] | Prisma.productsUncheckedCreateWithoutLocationInput[]
+  connectOrCreate?: Prisma.productsCreateOrConnectWithoutLocationInput | Prisma.productsCreateOrConnectWithoutLocationInput[]
+  upsert?: Prisma.productsUpsertWithWhereUniqueWithoutLocationInput | Prisma.productsUpsertWithWhereUniqueWithoutLocationInput[]
+  createMany?: Prisma.productsCreateManyLocationInputEnvelope
+  set?: Prisma.productsWhereUniqueInput | Prisma.productsWhereUniqueInput[]
+  disconnect?: Prisma.productsWhereUniqueInput | Prisma.productsWhereUniqueInput[]
+  delete?: Prisma.productsWhereUniqueInput | Prisma.productsWhereUniqueInput[]
+  connect?: Prisma.productsWhereUniqueInput | Prisma.productsWhereUniqueInput[]
+  update?: Prisma.productsUpdateWithWhereUniqueWithoutLocationInput | Prisma.productsUpdateWithWhereUniqueWithoutLocationInput[]
+  updateMany?: Prisma.productsUpdateManyWithWhereWithoutLocationInput | Prisma.productsUpdateManyWithWhereWithoutLocationInput[]
+  deleteMany?: Prisma.productsScalarWhereInput | Prisma.productsScalarWhereInput[]
+}
+
+export type productsUncheckedUpdateManyWithoutLocationNestedInput = {
+  create?: Prisma.XOR<Prisma.productsCreateWithoutLocationInput, Prisma.productsUncheckedCreateWithoutLocationInput> | Prisma.productsCreateWithoutLocationInput[] | Prisma.productsUncheckedCreateWithoutLocationInput[]
+  connectOrCreate?: Prisma.productsCreateOrConnectWithoutLocationInput | Prisma.productsCreateOrConnectWithoutLocationInput[]
+  upsert?: Prisma.productsUpsertWithWhereUniqueWithoutLocationInput | Prisma.productsUpsertWithWhereUniqueWithoutLocationInput[]
+  createMany?: Prisma.productsCreateManyLocationInputEnvelope
+  set?: Prisma.productsWhereUniqueInput | Prisma.productsWhereUniqueInput[]
+  disconnect?: Prisma.productsWhereUniqueInput | Prisma.productsWhereUniqueInput[]
+  delete?: Prisma.productsWhereUniqueInput | Prisma.productsWhereUniqueInput[]
+  connect?: Prisma.productsWhereUniqueInput | Prisma.productsWhereUniqueInput[]
+  update?: Prisma.productsUpdateWithWhereUniqueWithoutLocationInput | Prisma.productsUpdateWithWhereUniqueWithoutLocationInput[]
+  updateMany?: Prisma.productsUpdateManyWithWhereWithoutLocationInput | Prisma.productsUpdateManyWithWhereWithoutLocationInput[]
+  deleteMany?: Prisma.productsScalarWhereInput | Prisma.productsScalarWhereInput[]
+}
+
 export type productsCreateNestedManyWithoutStoresInput = {
   create?: Prisma.XOR<Prisma.productsCreateWithoutStoresInput, Prisma.productsUncheckedCreateWithoutStoresInput> | Prisma.productsCreateWithoutStoresInput[] | Prisma.productsUncheckedCreateWithoutStoresInput[]
   connectOrCreate?: Prisma.productsCreateOrConnectWithoutStoresInput | Prisma.productsCreateOrConnectWithoutStoresInput[]
@@ -824,6 +896,7 @@ export type productsCreateWithoutCategoriesInput = {
   updated_at?: Date | string
   stock_updated_at?: Date | string
   stores: Prisma.storesCreateNestedOneWithoutProductsInput
+  location?: Prisma.locationsCreateNestedOneWithoutProductsInput
   images?: Prisma.imagesCreateNestedOneWithoutProductsInput
   product_stock_movements?: Prisma.product_stock_movementsCreateNestedManyWithoutProductsInput
   order_items?: Prisma.order_itemsCreateNestedManyWithoutProductInput
@@ -833,6 +906,7 @@ export type productsUncheckedCreateWithoutCategoriesInput = {
   id?: number
   store_id: number
   sku: string
+  location_id?: number | null
   name: string
   description?: string | null
   cost_price?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -882,6 +956,7 @@ export type productsScalarWhereInput = {
   store_id?: Prisma.IntFilter<"products"> | number
   sku?: Prisma.StringFilter<"products"> | string
   category_id?: Prisma.IntFilter<"products"> | number
+  location_id?: Prisma.IntNullableFilter<"products"> | number | null
   name?: Prisma.StringFilter<"products"> | string
   description?: Prisma.StringNullableFilter<"products"> | string | null
   cost_price?: Prisma.DecimalFilter<"products"> | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -909,6 +984,7 @@ export type productsCreateWithoutImagesInput = {
   stock_updated_at?: Date | string
   stores: Prisma.storesCreateNestedOneWithoutProductsInput
   categories: Prisma.categoriesCreateNestedOneWithoutProductsInput
+  location?: Prisma.locationsCreateNestedOneWithoutProductsInput
   product_stock_movements?: Prisma.product_stock_movementsCreateNestedManyWithoutProductsInput
   order_items?: Prisma.order_itemsCreateNestedManyWithoutProductInput
 }
@@ -918,6 +994,7 @@ export type productsUncheckedCreateWithoutImagesInput = {
   store_id: number
   sku: string
   category_id: number
+  location_id?: number | null
   name: string
   description?: string | null
   cost_price?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -958,6 +1035,71 @@ export type productsUpdateManyWithWhereWithoutImagesInput = {
   data: Prisma.XOR<Prisma.productsUpdateManyMutationInput, Prisma.productsUncheckedUpdateManyWithoutImagesInput>
 }
 
+export type productsCreateWithoutLocationInput = {
+  sku: string
+  name: string
+  description?: string | null
+  cost_price?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  selling_price?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  is_active?: boolean
+  stock_on_hand?: number
+  reorder_point?: number
+  created_at?: Date | string
+  updated_at?: Date | string
+  stock_updated_at?: Date | string
+  stores: Prisma.storesCreateNestedOneWithoutProductsInput
+  categories: Prisma.categoriesCreateNestedOneWithoutProductsInput
+  images?: Prisma.imagesCreateNestedOneWithoutProductsInput
+  product_stock_movements?: Prisma.product_stock_movementsCreateNestedManyWithoutProductsInput
+  order_items?: Prisma.order_itemsCreateNestedManyWithoutProductInput
+}
+
+export type productsUncheckedCreateWithoutLocationInput = {
+  id?: number
+  store_id: number
+  sku: string
+  category_id: number
+  name: string
+  description?: string | null
+  cost_price?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  selling_price?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  image_id?: number | null
+  is_active?: boolean
+  stock_on_hand?: number
+  reorder_point?: number
+  created_at?: Date | string
+  updated_at?: Date | string
+  stock_updated_at?: Date | string
+  product_stock_movements?: Prisma.product_stock_movementsUncheckedCreateNestedManyWithoutProductsInput
+  order_items?: Prisma.order_itemsUncheckedCreateNestedManyWithoutProductInput
+}
+
+export type productsCreateOrConnectWithoutLocationInput = {
+  where: Prisma.productsWhereUniqueInput
+  create: Prisma.XOR<Prisma.productsCreateWithoutLocationInput, Prisma.productsUncheckedCreateWithoutLocationInput>
+}
+
+export type productsCreateManyLocationInputEnvelope = {
+  data: Prisma.productsCreateManyLocationInput | Prisma.productsCreateManyLocationInput[]
+  skipDuplicates?: boolean
+}
+
+export type productsUpsertWithWhereUniqueWithoutLocationInput = {
+  where: Prisma.productsWhereUniqueInput
+  update: Prisma.XOR<Prisma.productsUpdateWithoutLocationInput, Prisma.productsUncheckedUpdateWithoutLocationInput>
+  create: Prisma.XOR<Prisma.productsCreateWithoutLocationInput, Prisma.productsUncheckedCreateWithoutLocationInput>
+}
+
+export type productsUpdateWithWhereUniqueWithoutLocationInput = {
+  where: Prisma.productsWhereUniqueInput
+  data: Prisma.XOR<Prisma.productsUpdateWithoutLocationInput, Prisma.productsUncheckedUpdateWithoutLocationInput>
+}
+
+export type productsUpdateManyWithWhereWithoutLocationInput = {
+  where: Prisma.productsScalarWhereInput
+  data: Prisma.XOR<Prisma.productsUpdateManyMutationInput, Prisma.productsUncheckedUpdateManyWithoutLocationInput>
+}
+
 export type productsCreateWithoutStoresInput = {
   sku: string
   name: string
@@ -971,6 +1113,7 @@ export type productsCreateWithoutStoresInput = {
   updated_at?: Date | string
   stock_updated_at?: Date | string
   categories: Prisma.categoriesCreateNestedOneWithoutProductsInput
+  location?: Prisma.locationsCreateNestedOneWithoutProductsInput
   images?: Prisma.imagesCreateNestedOneWithoutProductsInput
   product_stock_movements?: Prisma.product_stock_movementsCreateNestedManyWithoutProductsInput
   order_items?: Prisma.order_itemsCreateNestedManyWithoutProductInput
@@ -980,6 +1123,7 @@ export type productsUncheckedCreateWithoutStoresInput = {
   id?: number
   sku: string
   category_id: number
+  location_id?: number | null
   name: string
   description?: string | null
   cost_price?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1035,6 +1179,7 @@ export type productsCreateWithoutProduct_stock_movementsInput = {
   stock_updated_at?: Date | string
   stores: Prisma.storesCreateNestedOneWithoutProductsInput
   categories: Prisma.categoriesCreateNestedOneWithoutProductsInput
+  location?: Prisma.locationsCreateNestedOneWithoutProductsInput
   images?: Prisma.imagesCreateNestedOneWithoutProductsInput
   order_items?: Prisma.order_itemsCreateNestedManyWithoutProductInput
 }
@@ -1044,6 +1189,7 @@ export type productsUncheckedCreateWithoutProduct_stock_movementsInput = {
   store_id: number
   sku: string
   category_id: number
+  location_id?: number | null
   name: string
   description?: string | null
   cost_price?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1088,6 +1234,7 @@ export type productsUpdateWithoutProduct_stock_movementsInput = {
   stock_updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   stores?: Prisma.storesUpdateOneRequiredWithoutProductsNestedInput
   categories?: Prisma.categoriesUpdateOneRequiredWithoutProductsNestedInput
+  location?: Prisma.locationsUpdateOneWithoutProductsNestedInput
   images?: Prisma.imagesUpdateOneWithoutProductsNestedInput
   order_items?: Prisma.order_itemsUpdateManyWithoutProductNestedInput
 }
@@ -1097,6 +1244,7 @@ export type productsUncheckedUpdateWithoutProduct_stock_movementsInput = {
   store_id?: Prisma.IntFieldUpdateOperationsInput | number
   sku?: Prisma.StringFieldUpdateOperationsInput | string
   category_id?: Prisma.IntFieldUpdateOperationsInput | number
+  location_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cost_price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1125,6 +1273,7 @@ export type productsCreateWithoutOrder_itemsInput = {
   stock_updated_at?: Date | string
   stores: Prisma.storesCreateNestedOneWithoutProductsInput
   categories: Prisma.categoriesCreateNestedOneWithoutProductsInput
+  location?: Prisma.locationsCreateNestedOneWithoutProductsInput
   images?: Prisma.imagesCreateNestedOneWithoutProductsInput
   product_stock_movements?: Prisma.product_stock_movementsCreateNestedManyWithoutProductsInput
 }
@@ -1134,6 +1283,7 @@ export type productsUncheckedCreateWithoutOrder_itemsInput = {
   store_id: number
   sku: string
   category_id: number
+  location_id?: number | null
   name: string
   description?: string | null
   cost_price?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1178,6 +1328,7 @@ export type productsUpdateWithoutOrder_itemsInput = {
   stock_updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   stores?: Prisma.storesUpdateOneRequiredWithoutProductsNestedInput
   categories?: Prisma.categoriesUpdateOneRequiredWithoutProductsNestedInput
+  location?: Prisma.locationsUpdateOneWithoutProductsNestedInput
   images?: Prisma.imagesUpdateOneWithoutProductsNestedInput
   product_stock_movements?: Prisma.product_stock_movementsUpdateManyWithoutProductsNestedInput
 }
@@ -1187,6 +1338,7 @@ export type productsUncheckedUpdateWithoutOrder_itemsInput = {
   store_id?: Prisma.IntFieldUpdateOperationsInput | number
   sku?: Prisma.StringFieldUpdateOperationsInput | string
   category_id?: Prisma.IntFieldUpdateOperationsInput | number
+  location_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cost_price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1205,6 +1357,7 @@ export type productsCreateManyCategoriesInput = {
   id?: number
   store_id: number
   sku: string
+  location_id?: number | null
   name: string
   description?: string | null
   cost_price?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1231,6 +1384,7 @@ export type productsUpdateWithoutCategoriesInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   stock_updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   stores?: Prisma.storesUpdateOneRequiredWithoutProductsNestedInput
+  location?: Prisma.locationsUpdateOneWithoutProductsNestedInput
   images?: Prisma.imagesUpdateOneWithoutProductsNestedInput
   product_stock_movements?: Prisma.product_stock_movementsUpdateManyWithoutProductsNestedInput
   order_items?: Prisma.order_itemsUpdateManyWithoutProductNestedInput
@@ -1240,6 +1394,7 @@ export type productsUncheckedUpdateWithoutCategoriesInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   store_id?: Prisma.IntFieldUpdateOperationsInput | number
   sku?: Prisma.StringFieldUpdateOperationsInput | string
+  location_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cost_price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1259,6 +1414,7 @@ export type productsUncheckedUpdateManyWithoutCategoriesInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   store_id?: Prisma.IntFieldUpdateOperationsInput | number
   sku?: Prisma.StringFieldUpdateOperationsInput | string
+  location_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cost_price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1277,6 +1433,7 @@ export type productsCreateManyImagesInput = {
   store_id: number
   sku: string
   category_id: number
+  location_id?: number | null
   name: string
   description?: string | null
   cost_price?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1303,6 +1460,7 @@ export type productsUpdateWithoutImagesInput = {
   stock_updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   stores?: Prisma.storesUpdateOneRequiredWithoutProductsNestedInput
   categories?: Prisma.categoriesUpdateOneRequiredWithoutProductsNestedInput
+  location?: Prisma.locationsUpdateOneWithoutProductsNestedInput
   product_stock_movements?: Prisma.product_stock_movementsUpdateManyWithoutProductsNestedInput
   order_items?: Prisma.order_itemsUpdateManyWithoutProductNestedInput
 }
@@ -1312,6 +1470,7 @@ export type productsUncheckedUpdateWithoutImagesInput = {
   store_id?: Prisma.IntFieldUpdateOperationsInput | number
   sku?: Prisma.StringFieldUpdateOperationsInput | string
   category_id?: Prisma.IntFieldUpdateOperationsInput | number
+  location_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cost_price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1331,6 +1490,7 @@ export type productsUncheckedUpdateManyWithoutImagesInput = {
   store_id?: Prisma.IntFieldUpdateOperationsInput | number
   sku?: Prisma.StringFieldUpdateOperationsInput | string
   category_id?: Prisma.IntFieldUpdateOperationsInput | number
+  location_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cost_price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1343,10 +1503,86 @@ export type productsUncheckedUpdateManyWithoutImagesInput = {
   stock_updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
+export type productsCreateManyLocationInput = {
+  id?: number
+  store_id: number
+  sku: string
+  category_id: number
+  name: string
+  description?: string | null
+  cost_price?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  selling_price?: runtime.Decimal | runtime.DecimalJsLike | number | string
+  image_id?: number | null
+  is_active?: boolean
+  stock_on_hand?: number
+  reorder_point?: number
+  created_at?: Date | string
+  updated_at?: Date | string
+  stock_updated_at?: Date | string
+}
+
+export type productsUpdateWithoutLocationInput = {
+  sku?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cost_price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  selling_price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  stock_on_hand?: Prisma.IntFieldUpdateOperationsInput | number
+  reorder_point?: Prisma.IntFieldUpdateOperationsInput | number
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  stock_updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  stores?: Prisma.storesUpdateOneRequiredWithoutProductsNestedInput
+  categories?: Prisma.categoriesUpdateOneRequiredWithoutProductsNestedInput
+  images?: Prisma.imagesUpdateOneWithoutProductsNestedInput
+  product_stock_movements?: Prisma.product_stock_movementsUpdateManyWithoutProductsNestedInput
+  order_items?: Prisma.order_itemsUpdateManyWithoutProductNestedInput
+}
+
+export type productsUncheckedUpdateWithoutLocationInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  store_id?: Prisma.IntFieldUpdateOperationsInput | number
+  sku?: Prisma.StringFieldUpdateOperationsInput | string
+  category_id?: Prisma.IntFieldUpdateOperationsInput | number
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cost_price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  selling_price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  image_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  stock_on_hand?: Prisma.IntFieldUpdateOperationsInput | number
+  reorder_point?: Prisma.IntFieldUpdateOperationsInput | number
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  stock_updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  product_stock_movements?: Prisma.product_stock_movementsUncheckedUpdateManyWithoutProductsNestedInput
+  order_items?: Prisma.order_itemsUncheckedUpdateManyWithoutProductNestedInput
+}
+
+export type productsUncheckedUpdateManyWithoutLocationInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  store_id?: Prisma.IntFieldUpdateOperationsInput | number
+  sku?: Prisma.StringFieldUpdateOperationsInput | string
+  category_id?: Prisma.IntFieldUpdateOperationsInput | number
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cost_price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  selling_price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  image_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  stock_on_hand?: Prisma.IntFieldUpdateOperationsInput | number
+  reorder_point?: Prisma.IntFieldUpdateOperationsInput | number
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  stock_updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
 export type productsCreateManyStoresInput = {
   id?: number
   sku: string
   category_id: number
+  location_id?: number | null
   name: string
   description?: string | null
   cost_price?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1373,6 +1609,7 @@ export type productsUpdateWithoutStoresInput = {
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   stock_updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   categories?: Prisma.categoriesUpdateOneRequiredWithoutProductsNestedInput
+  location?: Prisma.locationsUpdateOneWithoutProductsNestedInput
   images?: Prisma.imagesUpdateOneWithoutProductsNestedInput
   product_stock_movements?: Prisma.product_stock_movementsUpdateManyWithoutProductsNestedInput
   order_items?: Prisma.order_itemsUpdateManyWithoutProductNestedInput
@@ -1382,6 +1619,7 @@ export type productsUncheckedUpdateWithoutStoresInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   sku?: Prisma.StringFieldUpdateOperationsInput | string
   category_id?: Prisma.IntFieldUpdateOperationsInput | number
+  location_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cost_price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1401,6 +1639,7 @@ export type productsUncheckedUpdateManyWithoutStoresInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   sku?: Prisma.StringFieldUpdateOperationsInput | string
   category_id?: Prisma.IntFieldUpdateOperationsInput | number
+  location_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cost_price?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -1459,6 +1698,7 @@ export type productsSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   store_id?: boolean
   sku?: boolean
   category_id?: boolean
+  location_id?: boolean
   name?: boolean
   description?: boolean
   cost_price?: boolean
@@ -1472,6 +1712,7 @@ export type productsSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   stock_updated_at?: boolean
   stores?: boolean | Prisma.storesDefaultArgs<ExtArgs>
   categories?: boolean | Prisma.categoriesDefaultArgs<ExtArgs>
+  location?: boolean | Prisma.products$locationArgs<ExtArgs>
   images?: boolean | Prisma.products$imagesArgs<ExtArgs>
   product_stock_movements?: boolean | Prisma.products$product_stock_movementsArgs<ExtArgs>
   order_items?: boolean | Prisma.products$order_itemsArgs<ExtArgs>
@@ -1483,6 +1724,7 @@ export type productsSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exte
   store_id?: boolean
   sku?: boolean
   category_id?: boolean
+  location_id?: boolean
   name?: boolean
   description?: boolean
   cost_price?: boolean
@@ -1496,6 +1738,7 @@ export type productsSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exte
   stock_updated_at?: boolean
   stores?: boolean | Prisma.storesDefaultArgs<ExtArgs>
   categories?: boolean | Prisma.categoriesDefaultArgs<ExtArgs>
+  location?: boolean | Prisma.products$locationArgs<ExtArgs>
   images?: boolean | Prisma.products$imagesArgs<ExtArgs>
 }, ExtArgs["result"]["products"]>
 
@@ -1504,6 +1747,7 @@ export type productsSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exte
   store_id?: boolean
   sku?: boolean
   category_id?: boolean
+  location_id?: boolean
   name?: boolean
   description?: boolean
   cost_price?: boolean
@@ -1517,6 +1761,7 @@ export type productsSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exte
   stock_updated_at?: boolean
   stores?: boolean | Prisma.storesDefaultArgs<ExtArgs>
   categories?: boolean | Prisma.categoriesDefaultArgs<ExtArgs>
+  location?: boolean | Prisma.products$locationArgs<ExtArgs>
   images?: boolean | Prisma.products$imagesArgs<ExtArgs>
 }, ExtArgs["result"]["products"]>
 
@@ -1525,6 +1770,7 @@ export type productsSelectScalar = {
   store_id?: boolean
   sku?: boolean
   category_id?: boolean
+  location_id?: boolean
   name?: boolean
   description?: boolean
   cost_price?: boolean
@@ -1538,10 +1784,11 @@ export type productsSelectScalar = {
   stock_updated_at?: boolean
 }
 
-export type productsOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "store_id" | "sku" | "category_id" | "name" | "description" | "cost_price" | "selling_price" | "image_id" | "is_active" | "stock_on_hand" | "reorder_point" | "created_at" | "updated_at" | "stock_updated_at", ExtArgs["result"]["products"]>
+export type productsOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "store_id" | "sku" | "category_id" | "location_id" | "name" | "description" | "cost_price" | "selling_price" | "image_id" | "is_active" | "stock_on_hand" | "reorder_point" | "created_at" | "updated_at" | "stock_updated_at", ExtArgs["result"]["products"]>
 export type productsInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   stores?: boolean | Prisma.storesDefaultArgs<ExtArgs>
   categories?: boolean | Prisma.categoriesDefaultArgs<ExtArgs>
+  location?: boolean | Prisma.products$locationArgs<ExtArgs>
   images?: boolean | Prisma.products$imagesArgs<ExtArgs>
   product_stock_movements?: boolean | Prisma.products$product_stock_movementsArgs<ExtArgs>
   order_items?: boolean | Prisma.products$order_itemsArgs<ExtArgs>
@@ -1550,11 +1797,13 @@ export type productsInclude<ExtArgs extends runtime.Types.Extensions.InternalArg
 export type productsIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   stores?: boolean | Prisma.storesDefaultArgs<ExtArgs>
   categories?: boolean | Prisma.categoriesDefaultArgs<ExtArgs>
+  location?: boolean | Prisma.products$locationArgs<ExtArgs>
   images?: boolean | Prisma.products$imagesArgs<ExtArgs>
 }
 export type productsIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   stores?: boolean | Prisma.storesDefaultArgs<ExtArgs>
   categories?: boolean | Prisma.categoriesDefaultArgs<ExtArgs>
+  location?: boolean | Prisma.products$locationArgs<ExtArgs>
   images?: boolean | Prisma.products$imagesArgs<ExtArgs>
 }
 
@@ -1563,6 +1812,7 @@ export type $productsPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
   objects: {
     stores: Prisma.$storesPayload<ExtArgs>
     categories: Prisma.$categoriesPayload<ExtArgs>
+    location: Prisma.$locationsPayload<ExtArgs> | null
     images: Prisma.$imagesPayload<ExtArgs> | null
     product_stock_movements: Prisma.$product_stock_movementsPayload<ExtArgs>[]
     order_items: Prisma.$order_itemsPayload<ExtArgs>[]
@@ -1572,6 +1822,7 @@ export type $productsPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     store_id: number
     sku: string
     category_id: number
+    location_id: number | null
     name: string
     description: string | null
     cost_price: runtime.Decimal
@@ -1979,6 +2230,7 @@ export interface Prisma__productsClient<T, Null = never, ExtArgs extends runtime
   readonly [Symbol.toStringTag]: "PrismaPromise"
   stores<T extends Prisma.storesDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.storesDefaultArgs<ExtArgs>>): Prisma.Prisma__storesClient<runtime.Types.Result.GetResult<Prisma.$storesPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   categories<T extends Prisma.categoriesDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.categoriesDefaultArgs<ExtArgs>>): Prisma.Prisma__categoriesClient<runtime.Types.Result.GetResult<Prisma.$categoriesPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  location<T extends Prisma.products$locationArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.products$locationArgs<ExtArgs>>): Prisma.Prisma__locationsClient<runtime.Types.Result.GetResult<Prisma.$locationsPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   images<T extends Prisma.products$imagesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.products$imagesArgs<ExtArgs>>): Prisma.Prisma__imagesClient<runtime.Types.Result.GetResult<Prisma.$imagesPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   product_stock_movements<T extends Prisma.products$product_stock_movementsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.products$product_stock_movementsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$product_stock_movementsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   order_items<T extends Prisma.products$order_itemsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.products$order_itemsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$order_itemsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -2015,6 +2267,7 @@ export interface productsFieldRefs {
   readonly store_id: Prisma.FieldRef<"products", 'Int'>
   readonly sku: Prisma.FieldRef<"products", 'String'>
   readonly category_id: Prisma.FieldRef<"products", 'Int'>
+  readonly location_id: Prisma.FieldRef<"products", 'Int'>
   readonly name: Prisma.FieldRef<"products", 'String'>
   readonly description: Prisma.FieldRef<"products", 'String'>
   readonly cost_price: Prisma.FieldRef<"products", 'Decimal'>
@@ -2419,6 +2672,25 @@ export type productsDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Inte
    * Limit how many products to delete.
    */
   limit?: number
+}
+
+/**
+ * products.location
+ */
+export type products$locationArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the locations
+   */
+  select?: Prisma.locationsSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the locations
+   */
+  omit?: Prisma.locationsOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.locationsInclude<ExtArgs> | null
+  where?: Prisma.locationsWhereInput
 }
 
 /**

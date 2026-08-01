@@ -48,10 +48,16 @@ type ProductCategoryOption = {
   name: string;
 };
 
+type ProductLocationOption = {
+  id: string;
+  name: string;
+};
+
 type ProductFormDrawerProps = {
   mode: ProductFormMode;
   open: boolean;
   categories: ProductCategoryOption[];
+  locations?: ProductLocationOption[];
   onOpenChange: (open: boolean) => void;
   onSubmit: (payload: CreateProductPayload) => Promise<boolean> | boolean;
   isSubmitting?: boolean;
@@ -65,6 +71,7 @@ const emptyInitialValues: ProductFormInitialValues = {
   sku: "",
   name: "",
   categoryId: "",
+  locationId: null,
   description: "",
   costPrice: 0,
   sellingPrice: 0,
@@ -78,6 +85,7 @@ export function ProductFormDrawer({
   mode,
   open,
   categories,
+  locations = [],
   onOpenChange,
   onSubmit,
   isSubmitting = false,
@@ -89,6 +97,7 @@ export function ProductFormDrawer({
   const [sku, setSku] = useState("");
   const [name, setName] = useState("");
   const [categoryId, setCategoryId] = useState("");
+  const [locationId, setLocationId] = useState<string | null>(null);
   const [description, setDescription] = useState("");
   const [costPrice, setCostPrice] = useState("0");
   const [sellingPrice, setSellingPrice] = useState("0");
@@ -152,6 +161,7 @@ export function ProductFormDrawer({
     setSku(initialValues.sku);
     setName(initialValues.name);
     setCategoryId(initialValues.categoryId);
+    setLocationId(initialValues.locationId ?? null);
     setDescription(initialValues.description);
     setCostPrice(String(initialValues.costPrice));
     setSellingPrice(String(initialValues.sellingPrice));
@@ -254,6 +264,7 @@ export function ProductFormDrawer({
       sku: trimmedSku,
       name: trimmedName,
       categoryId,
+      locationId: locationId || null,
       description: description.trim(),
       costPrice: parsedCostPrice,
       sellingPrice: parsedSellingPrice,
@@ -341,6 +352,27 @@ export function ProductFormDrawer({
                 </SelectContent>
               </Select>
             </div>
+            {locations.length > 0 && (
+              <div className="space-y-2">
+                <Label>คลังสินค้า</Label>
+                <Select
+                  value={locationId ?? ""}
+                  onValueChange={(v) => setLocationId(v || null)}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="เลือกคลังสินค้า (ไม่จำเป็น)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">ไม่ระบุคลัง</SelectItem>
+                    {locations.map((loc) => (
+                      <SelectItem key={loc.id} value={loc.id}>
+                        {loc.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
             <div className="space-y-2">
               <div className="grid grid-cols-2 gap-5 rounded-lg text-xs">
                 <div className="rounded-md bg-muted/40 p-2">

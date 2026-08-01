@@ -43,6 +43,9 @@ export type UsersMinAggregateOutputType = {
   username: string | null
   email: string | null
   password_hash: string | null
+  google_id: string | null
+  profile_picture: string | null
+  bio: string | null
   profile_image_id: number | null
   role_id: number | null
   is_active: boolean | null
@@ -56,6 +59,9 @@ export type UsersMaxAggregateOutputType = {
   username: string | null
   email: string | null
   password_hash: string | null
+  google_id: string | null
+  profile_picture: string | null
+  bio: string | null
   profile_image_id: number | null
   role_id: number | null
   is_active: boolean | null
@@ -69,6 +75,9 @@ export type UsersCountAggregateOutputType = {
   username: number
   email: number
   password_hash: number
+  google_id: number
+  profile_picture: number
+  bio: number
   profile_image_id: number
   role_id: number
   is_active: number
@@ -96,6 +105,9 @@ export type UsersMinAggregateInputType = {
   username?: true
   email?: true
   password_hash?: true
+  google_id?: true
+  profile_picture?: true
+  bio?: true
   profile_image_id?: true
   role_id?: true
   is_active?: true
@@ -109,6 +121,9 @@ export type UsersMaxAggregateInputType = {
   username?: true
   email?: true
   password_hash?: true
+  google_id?: true
+  profile_picture?: true
+  bio?: true
   profile_image_id?: true
   role_id?: true
   is_active?: true
@@ -122,6 +137,9 @@ export type UsersCountAggregateInputType = {
   username?: true
   email?: true
   password_hash?: true
+  google_id?: true
+  profile_picture?: true
+  bio?: true
   profile_image_id?: true
   role_id?: true
   is_active?: true
@@ -221,7 +239,10 @@ export type UsersGroupByOutputType = {
   id: number
   username: string
   email: string
-  password_hash: string
+  password_hash: string | null
+  google_id: string | null
+  profile_picture: string | null
+  bio: string | null
   profile_image_id: number | null
   role_id: number
   is_active: boolean
@@ -257,7 +278,10 @@ export type usersWhereInput = {
   id?: Prisma.IntFilter<"users"> | number
   username?: Prisma.StringFilter<"users"> | string
   email?: Prisma.StringFilter<"users"> | string
-  password_hash?: Prisma.StringFilter<"users"> | string
+  password_hash?: Prisma.StringNullableFilter<"users"> | string | null
+  google_id?: Prisma.StringNullableFilter<"users"> | string | null
+  profile_picture?: Prisma.StringNullableFilter<"users"> | string | null
+  bio?: Prisma.StringNullableFilter<"users"> | string | null
   profile_image_id?: Prisma.IntNullableFilter<"users"> | number | null
   role_id?: Prisma.IntFilter<"users"> | number
   is_active?: Prisma.BoolFilter<"users"> | boolean
@@ -278,7 +302,10 @@ export type usersOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   username?: Prisma.SortOrder
   email?: Prisma.SortOrder
-  password_hash?: Prisma.SortOrder
+  password_hash?: Prisma.SortOrderInput | Prisma.SortOrder
+  google_id?: Prisma.SortOrderInput | Prisma.SortOrder
+  profile_picture?: Prisma.SortOrderInput | Prisma.SortOrder
+  bio?: Prisma.SortOrderInput | Prisma.SortOrder
   profile_image_id?: Prisma.SortOrderInput | Prisma.SortOrder
   role_id?: Prisma.SortOrder
   is_active?: Prisma.SortOrder
@@ -299,10 +326,13 @@ export type usersWhereUniqueInput = Prisma.AtLeast<{
   id?: number
   username?: string
   email?: string
+  google_id?: string
   AND?: Prisma.usersWhereInput | Prisma.usersWhereInput[]
   OR?: Prisma.usersWhereInput[]
   NOT?: Prisma.usersWhereInput | Prisma.usersWhereInput[]
-  password_hash?: Prisma.StringFilter<"users"> | string
+  password_hash?: Prisma.StringNullableFilter<"users"> | string | null
+  profile_picture?: Prisma.StringNullableFilter<"users"> | string | null
+  bio?: Prisma.StringNullableFilter<"users"> | string | null
   profile_image_id?: Prisma.IntNullableFilter<"users"> | number | null
   role_id?: Prisma.IntFilter<"users"> | number
   is_active?: Prisma.BoolFilter<"users"> | boolean
@@ -317,13 +347,16 @@ export type usersWhereUniqueInput = Prisma.AtLeast<{
   createdOrders?: Prisma.OrdersListRelationFilter
   voidedOrders?: Prisma.OrdersListRelationFilter
   aiChatMessages?: Prisma.Ai_chat_messagesListRelationFilter
-}, "id" | "username" | "email">
+}, "id" | "username" | "email" | "google_id">
 
 export type usersOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   username?: Prisma.SortOrder
   email?: Prisma.SortOrder
-  password_hash?: Prisma.SortOrder
+  password_hash?: Prisma.SortOrderInput | Prisma.SortOrder
+  google_id?: Prisma.SortOrderInput | Prisma.SortOrder
+  profile_picture?: Prisma.SortOrderInput | Prisma.SortOrder
+  bio?: Prisma.SortOrderInput | Prisma.SortOrder
   profile_image_id?: Prisma.SortOrderInput | Prisma.SortOrder
   role_id?: Prisma.SortOrder
   is_active?: Prisma.SortOrder
@@ -344,7 +377,10 @@ export type usersScalarWhereWithAggregatesInput = {
   id?: Prisma.IntWithAggregatesFilter<"users"> | number
   username?: Prisma.StringWithAggregatesFilter<"users"> | string
   email?: Prisma.StringWithAggregatesFilter<"users"> | string
-  password_hash?: Prisma.StringWithAggregatesFilter<"users"> | string
+  password_hash?: Prisma.StringNullableWithAggregatesFilter<"users"> | string | null
+  google_id?: Prisma.StringNullableWithAggregatesFilter<"users"> | string | null
+  profile_picture?: Prisma.StringNullableWithAggregatesFilter<"users"> | string | null
+  bio?: Prisma.StringNullableWithAggregatesFilter<"users"> | string | null
   profile_image_id?: Prisma.IntNullableWithAggregatesFilter<"users"> | number | null
   role_id?: Prisma.IntWithAggregatesFilter<"users"> | number
   is_active?: Prisma.BoolWithAggregatesFilter<"users"> | boolean
@@ -356,7 +392,10 @@ export type usersScalarWhereWithAggregatesInput = {
 export type usersCreateInput = {
   username: string
   email: string
-  password_hash: string
+  password_hash?: string | null
+  google_id?: string | null
+  profile_picture?: string | null
+  bio?: string | null
   is_active?: boolean
   last_login?: Date | string | null
   created_at?: Date | string
@@ -375,7 +414,10 @@ export type usersUncheckedCreateInput = {
   id?: number
   username: string
   email: string
-  password_hash: string
+  password_hash?: string | null
+  google_id?: string | null
+  profile_picture?: string | null
+  bio?: string | null
   profile_image_id?: number | null
   role_id: number
   is_active?: boolean
@@ -393,7 +435,10 @@ export type usersUncheckedCreateInput = {
 export type usersUpdateInput = {
   username?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  password_hash?: Prisma.StringFieldUpdateOperationsInput | string
+  password_hash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  google_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profile_picture?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   last_login?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -412,7 +457,10 @@ export type usersUncheckedUpdateInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   username?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  password_hash?: Prisma.StringFieldUpdateOperationsInput | string
+  password_hash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  google_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profile_picture?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   profile_image_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   role_id?: Prisma.IntFieldUpdateOperationsInput | number
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -431,7 +479,10 @@ export type usersCreateManyInput = {
   id?: number
   username: string
   email: string
-  password_hash: string
+  password_hash?: string | null
+  google_id?: string | null
+  profile_picture?: string | null
+  bio?: string | null
   profile_image_id?: number | null
   role_id: number
   is_active?: boolean
@@ -443,7 +494,10 @@ export type usersCreateManyInput = {
 export type usersUpdateManyMutationInput = {
   username?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  password_hash?: Prisma.StringFieldUpdateOperationsInput | string
+  password_hash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  google_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profile_picture?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   last_login?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -454,7 +508,10 @@ export type usersUncheckedUpdateManyInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   username?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  password_hash?: Prisma.StringFieldUpdateOperationsInput | string
+  password_hash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  google_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profile_picture?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   profile_image_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   role_id?: Prisma.IntFieldUpdateOperationsInput | number
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -478,6 +535,9 @@ export type usersCountOrderByAggregateInput = {
   username?: Prisma.SortOrder
   email?: Prisma.SortOrder
   password_hash?: Prisma.SortOrder
+  google_id?: Prisma.SortOrder
+  profile_picture?: Prisma.SortOrder
+  bio?: Prisma.SortOrder
   profile_image_id?: Prisma.SortOrder
   role_id?: Prisma.SortOrder
   is_active?: Prisma.SortOrder
@@ -497,6 +557,9 @@ export type usersMaxOrderByAggregateInput = {
   username?: Prisma.SortOrder
   email?: Prisma.SortOrder
   password_hash?: Prisma.SortOrder
+  google_id?: Prisma.SortOrder
+  profile_picture?: Prisma.SortOrder
+  bio?: Prisma.SortOrder
   profile_image_id?: Prisma.SortOrder
   role_id?: Prisma.SortOrder
   is_active?: Prisma.SortOrder
@@ -510,6 +573,9 @@ export type usersMinOrderByAggregateInput = {
   username?: Prisma.SortOrder
   email?: Prisma.SortOrder
   password_hash?: Prisma.SortOrder
+  google_id?: Prisma.SortOrder
+  profile_picture?: Prisma.SortOrder
+  bio?: Prisma.SortOrder
   profile_image_id?: Prisma.SortOrder
   role_id?: Prisma.SortOrder
   is_active?: Prisma.SortOrder
@@ -721,7 +787,10 @@ export type usersUpdateOneWithoutVoidedOrdersNestedInput = {
 export type usersCreateWithoutImagesInput = {
   username: string
   email: string
-  password_hash: string
+  password_hash?: string | null
+  google_id?: string | null
+  profile_picture?: string | null
+  bio?: string | null
   is_active?: boolean
   last_login?: Date | string | null
   created_at?: Date | string
@@ -739,7 +808,10 @@ export type usersUncheckedCreateWithoutImagesInput = {
   id?: number
   username: string
   email: string
-  password_hash: string
+  password_hash?: string | null
+  google_id?: string | null
+  profile_picture?: string | null
+  bio?: string | null
   role_id: number
   is_active?: boolean
   last_login?: Date | string | null
@@ -786,7 +858,10 @@ export type usersScalarWhereInput = {
   id?: Prisma.IntFilter<"users"> | number
   username?: Prisma.StringFilter<"users"> | string
   email?: Prisma.StringFilter<"users"> | string
-  password_hash?: Prisma.StringFilter<"users"> | string
+  password_hash?: Prisma.StringNullableFilter<"users"> | string | null
+  google_id?: Prisma.StringNullableFilter<"users"> | string | null
+  profile_picture?: Prisma.StringNullableFilter<"users"> | string | null
+  bio?: Prisma.StringNullableFilter<"users"> | string | null
   profile_image_id?: Prisma.IntNullableFilter<"users"> | number | null
   role_id?: Prisma.IntFilter<"users"> | number
   is_active?: Prisma.BoolFilter<"users"> | boolean
@@ -798,7 +873,10 @@ export type usersScalarWhereInput = {
 export type usersCreateWithoutRolesInput = {
   username: string
   email: string
-  password_hash: string
+  password_hash?: string | null
+  google_id?: string | null
+  profile_picture?: string | null
+  bio?: string | null
   is_active?: boolean
   last_login?: Date | string | null
   created_at?: Date | string
@@ -816,7 +894,10 @@ export type usersUncheckedCreateWithoutRolesInput = {
   id?: number
   username: string
   email: string
-  password_hash: string
+  password_hash?: string | null
+  google_id?: string | null
+  profile_picture?: string | null
+  bio?: string | null
   profile_image_id?: number | null
   is_active?: boolean
   last_login?: Date | string | null
@@ -859,7 +940,10 @@ export type usersUpdateManyWithWhereWithoutRolesInput = {
 export type usersCreateWithoutOwnedStoresInput = {
   username: string
   email: string
-  password_hash: string
+  password_hash?: string | null
+  google_id?: string | null
+  profile_picture?: string | null
+  bio?: string | null
   is_active?: boolean
   last_login?: Date | string | null
   created_at?: Date | string
@@ -877,7 +961,10 @@ export type usersUncheckedCreateWithoutOwnedStoresInput = {
   id?: number
   username: string
   email: string
-  password_hash: string
+  password_hash?: string | null
+  google_id?: string | null
+  profile_picture?: string | null
+  bio?: string | null
   profile_image_id?: number | null
   role_id: number
   is_active?: boolean
@@ -910,7 +997,10 @@ export type usersUpdateToOneWithWhereWithoutOwnedStoresInput = {
 export type usersUpdateWithoutOwnedStoresInput = {
   username?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  password_hash?: Prisma.StringFieldUpdateOperationsInput | string
+  password_hash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  google_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profile_picture?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   last_login?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -928,7 +1018,10 @@ export type usersUncheckedUpdateWithoutOwnedStoresInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   username?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  password_hash?: Prisma.StringFieldUpdateOperationsInput | string
+  password_hash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  google_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profile_picture?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   profile_image_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   role_id?: Prisma.IntFieldUpdateOperationsInput | number
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -945,7 +1038,10 @@ export type usersUncheckedUpdateWithoutOwnedStoresInput = {
 export type usersCreateWithoutAiChatMessagesInput = {
   username: string
   email: string
-  password_hash: string
+  password_hash?: string | null
+  google_id?: string | null
+  profile_picture?: string | null
+  bio?: string | null
   is_active?: boolean
   last_login?: Date | string | null
   created_at?: Date | string
@@ -963,7 +1059,10 @@ export type usersUncheckedCreateWithoutAiChatMessagesInput = {
   id?: number
   username: string
   email: string
-  password_hash: string
+  password_hash?: string | null
+  google_id?: string | null
+  profile_picture?: string | null
+  bio?: string | null
   profile_image_id?: number | null
   role_id: number
   is_active?: boolean
@@ -996,7 +1095,10 @@ export type usersUpdateToOneWithWhereWithoutAiChatMessagesInput = {
 export type usersUpdateWithoutAiChatMessagesInput = {
   username?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  password_hash?: Prisma.StringFieldUpdateOperationsInput | string
+  password_hash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  google_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profile_picture?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   last_login?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1014,7 +1116,10 @@ export type usersUncheckedUpdateWithoutAiChatMessagesInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   username?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  password_hash?: Prisma.StringFieldUpdateOperationsInput | string
+  password_hash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  google_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profile_picture?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   profile_image_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   role_id?: Prisma.IntFieldUpdateOperationsInput | number
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1031,7 +1136,10 @@ export type usersUncheckedUpdateWithoutAiChatMessagesInput = {
 export type usersCreateWithoutStoreMembershipsInput = {
   username: string
   email: string
-  password_hash: string
+  password_hash?: string | null
+  google_id?: string | null
+  profile_picture?: string | null
+  bio?: string | null
   is_active?: boolean
   last_login?: Date | string | null
   created_at?: Date | string
@@ -1049,7 +1157,10 @@ export type usersUncheckedCreateWithoutStoreMembershipsInput = {
   id?: number
   username: string
   email: string
-  password_hash: string
+  password_hash?: string | null
+  google_id?: string | null
+  profile_picture?: string | null
+  bio?: string | null
   profile_image_id?: number | null
   role_id: number
   is_active?: boolean
@@ -1082,7 +1193,10 @@ export type usersUpdateToOneWithWhereWithoutStoreMembershipsInput = {
 export type usersUpdateWithoutStoreMembershipsInput = {
   username?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  password_hash?: Prisma.StringFieldUpdateOperationsInput | string
+  password_hash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  google_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profile_picture?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   last_login?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1100,7 +1214,10 @@ export type usersUncheckedUpdateWithoutStoreMembershipsInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   username?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  password_hash?: Prisma.StringFieldUpdateOperationsInput | string
+  password_hash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  google_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profile_picture?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   profile_image_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   role_id?: Prisma.IntFieldUpdateOperationsInput | number
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1117,7 +1234,10 @@ export type usersUncheckedUpdateWithoutStoreMembershipsInput = {
 export type usersCreateWithoutProductStockMovementsInput = {
   username: string
   email: string
-  password_hash: string
+  password_hash?: string | null
+  google_id?: string | null
+  profile_picture?: string | null
+  bio?: string | null
   is_active?: boolean
   last_login?: Date | string | null
   created_at?: Date | string
@@ -1135,7 +1255,10 @@ export type usersUncheckedCreateWithoutProductStockMovementsInput = {
   id?: number
   username: string
   email: string
-  password_hash: string
+  password_hash?: string | null
+  google_id?: string | null
+  profile_picture?: string | null
+  bio?: string | null
   profile_image_id?: number | null
   role_id: number
   is_active?: boolean
@@ -1168,7 +1291,10 @@ export type usersUpdateToOneWithWhereWithoutProductStockMovementsInput = {
 export type usersUpdateWithoutProductStockMovementsInput = {
   username?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  password_hash?: Prisma.StringFieldUpdateOperationsInput | string
+  password_hash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  google_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profile_picture?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   last_login?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1186,7 +1312,10 @@ export type usersUncheckedUpdateWithoutProductStockMovementsInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   username?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  password_hash?: Prisma.StringFieldUpdateOperationsInput | string
+  password_hash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  google_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profile_picture?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   profile_image_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   role_id?: Prisma.IntFieldUpdateOperationsInput | number
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1203,7 +1332,10 @@ export type usersUncheckedUpdateWithoutProductStockMovementsInput = {
 export type usersCreateWithoutCreatedOrdersInput = {
   username: string
   email: string
-  password_hash: string
+  password_hash?: string | null
+  google_id?: string | null
+  profile_picture?: string | null
+  bio?: string | null
   is_active?: boolean
   last_login?: Date | string | null
   created_at?: Date | string
@@ -1221,7 +1353,10 @@ export type usersUncheckedCreateWithoutCreatedOrdersInput = {
   id?: number
   username: string
   email: string
-  password_hash: string
+  password_hash?: string | null
+  google_id?: string | null
+  profile_picture?: string | null
+  bio?: string | null
   profile_image_id?: number | null
   role_id: number
   is_active?: boolean
@@ -1243,7 +1378,10 @@ export type usersCreateOrConnectWithoutCreatedOrdersInput = {
 export type usersCreateWithoutVoidedOrdersInput = {
   username: string
   email: string
-  password_hash: string
+  password_hash?: string | null
+  google_id?: string | null
+  profile_picture?: string | null
+  bio?: string | null
   is_active?: boolean
   last_login?: Date | string | null
   created_at?: Date | string
@@ -1261,7 +1399,10 @@ export type usersUncheckedCreateWithoutVoidedOrdersInput = {
   id?: number
   username: string
   email: string
-  password_hash: string
+  password_hash?: string | null
+  google_id?: string | null
+  profile_picture?: string | null
+  bio?: string | null
   profile_image_id?: number | null
   role_id: number
   is_active?: boolean
@@ -1294,7 +1435,10 @@ export type usersUpdateToOneWithWhereWithoutCreatedOrdersInput = {
 export type usersUpdateWithoutCreatedOrdersInput = {
   username?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  password_hash?: Prisma.StringFieldUpdateOperationsInput | string
+  password_hash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  google_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profile_picture?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   last_login?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1312,7 +1456,10 @@ export type usersUncheckedUpdateWithoutCreatedOrdersInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   username?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  password_hash?: Prisma.StringFieldUpdateOperationsInput | string
+  password_hash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  google_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profile_picture?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   profile_image_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   role_id?: Prisma.IntFieldUpdateOperationsInput | number
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1340,7 +1487,10 @@ export type usersUpdateToOneWithWhereWithoutVoidedOrdersInput = {
 export type usersUpdateWithoutVoidedOrdersInput = {
   username?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  password_hash?: Prisma.StringFieldUpdateOperationsInput | string
+  password_hash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  google_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profile_picture?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   last_login?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1358,7 +1508,10 @@ export type usersUncheckedUpdateWithoutVoidedOrdersInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   username?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  password_hash?: Prisma.StringFieldUpdateOperationsInput | string
+  password_hash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  google_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profile_picture?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   profile_image_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   role_id?: Prisma.IntFieldUpdateOperationsInput | number
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -1376,7 +1529,10 @@ export type usersCreateManyImagesInput = {
   id?: number
   username: string
   email: string
-  password_hash: string
+  password_hash?: string | null
+  google_id?: string | null
+  profile_picture?: string | null
+  bio?: string | null
   role_id: number
   is_active?: boolean
   last_login?: Date | string | null
@@ -1387,7 +1543,10 @@ export type usersCreateManyImagesInput = {
 export type usersUpdateWithoutImagesInput = {
   username?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  password_hash?: Prisma.StringFieldUpdateOperationsInput | string
+  password_hash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  google_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profile_picture?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   last_login?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1405,7 +1564,10 @@ export type usersUncheckedUpdateWithoutImagesInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   username?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  password_hash?: Prisma.StringFieldUpdateOperationsInput | string
+  password_hash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  google_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profile_picture?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role_id?: Prisma.IntFieldUpdateOperationsInput | number
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   last_login?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1423,7 +1585,10 @@ export type usersUncheckedUpdateManyWithoutImagesInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   username?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  password_hash?: Prisma.StringFieldUpdateOperationsInput | string
+  password_hash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  google_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profile_picture?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   role_id?: Prisma.IntFieldUpdateOperationsInput | number
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   last_login?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1435,7 +1600,10 @@ export type usersCreateManyRolesInput = {
   id?: number
   username: string
   email: string
-  password_hash: string
+  password_hash?: string | null
+  google_id?: string | null
+  profile_picture?: string | null
+  bio?: string | null
   profile_image_id?: number | null
   is_active?: boolean
   last_login?: Date | string | null
@@ -1446,7 +1614,10 @@ export type usersCreateManyRolesInput = {
 export type usersUpdateWithoutRolesInput = {
   username?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  password_hash?: Prisma.StringFieldUpdateOperationsInput | string
+  password_hash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  google_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profile_picture?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   last_login?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1464,7 +1635,10 @@ export type usersUncheckedUpdateWithoutRolesInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   username?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  password_hash?: Prisma.StringFieldUpdateOperationsInput | string
+  password_hash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  google_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profile_picture?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   profile_image_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   last_login?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1482,7 +1656,10 @@ export type usersUncheckedUpdateManyWithoutRolesInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   username?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.StringFieldUpdateOperationsInput | string
-  password_hash?: Prisma.StringFieldUpdateOperationsInput | string
+  password_hash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  google_id?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  profile_picture?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  bio?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   profile_image_id?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   is_active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   last_login?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -1571,6 +1748,9 @@ export type usersSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   username?: boolean
   email?: boolean
   password_hash?: boolean
+  google_id?: boolean
+  profile_picture?: boolean
+  bio?: boolean
   profile_image_id?: boolean
   role_id?: boolean
   is_active?: boolean
@@ -1593,6 +1773,9 @@ export type usersSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   username?: boolean
   email?: boolean
   password_hash?: boolean
+  google_id?: boolean
+  profile_picture?: boolean
+  bio?: boolean
   profile_image_id?: boolean
   role_id?: boolean
   is_active?: boolean
@@ -1608,6 +1791,9 @@ export type usersSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   username?: boolean
   email?: boolean
   password_hash?: boolean
+  google_id?: boolean
+  profile_picture?: boolean
+  bio?: boolean
   profile_image_id?: boolean
   role_id?: boolean
   is_active?: boolean
@@ -1623,6 +1809,9 @@ export type usersSelectScalar = {
   username?: boolean
   email?: boolean
   password_hash?: boolean
+  google_id?: boolean
+  profile_picture?: boolean
+  bio?: boolean
   profile_image_id?: boolean
   role_id?: boolean
   is_active?: boolean
@@ -1631,7 +1820,7 @@ export type usersSelectScalar = {
   updated_at?: boolean
 }
 
-export type usersOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "username" | "email" | "password_hash" | "profile_image_id" | "role_id" | "is_active" | "last_login" | "created_at" | "updated_at", ExtArgs["result"]["users"]>
+export type usersOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "username" | "email" | "password_hash" | "google_id" | "profile_picture" | "bio" | "profile_image_id" | "role_id" | "is_active" | "last_login" | "created_at" | "updated_at", ExtArgs["result"]["users"]>
 export type usersInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   images?: boolean | Prisma.users$imagesArgs<ExtArgs>
   roles?: boolean | Prisma.rolesDefaultArgs<ExtArgs>
@@ -1668,7 +1857,10 @@ export type $usersPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     id: number
     username: string
     email: string
-    password_hash: string
+    password_hash: string | null
+    google_id: string | null
+    profile_picture: string | null
+    bio: string | null
     profile_image_id: number | null
     role_id: number
     is_active: boolean
@@ -2110,6 +2302,9 @@ export interface usersFieldRefs {
   readonly username: Prisma.FieldRef<"users", 'String'>
   readonly email: Prisma.FieldRef<"users", 'String'>
   readonly password_hash: Prisma.FieldRef<"users", 'String'>
+  readonly google_id: Prisma.FieldRef<"users", 'String'>
+  readonly profile_picture: Prisma.FieldRef<"users", 'String'>
+  readonly bio: Prisma.FieldRef<"users", 'String'>
   readonly profile_image_id: Prisma.FieldRef<"users", 'Int'>
   readonly role_id: Prisma.FieldRef<"users", 'Int'>
   readonly is_active: Prisma.FieldRef<"users", 'Boolean'>

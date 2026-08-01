@@ -3,6 +3,8 @@ export type Warehouse = {
   name: string;
   description: string;
   maxCapacity: number;
+  productCount?: number;
+  stockTotal?: number;
   createdAt: string;
   updatedAt: string;
 };

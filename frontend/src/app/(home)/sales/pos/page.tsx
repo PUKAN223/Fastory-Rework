@@ -16,6 +16,7 @@ import {
   Trash2,
   Wallet,
   Clock,
+  MonitorPlay,
 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import type React from "react";
@@ -87,6 +88,7 @@ export default function POSPage() {
   const cartItems = useAppSelector((state) => state.sales.cartItems);
   const paymentMethod = useAppSelector((state) => state.sales.paymentMethod);
   const amountReceived = useAppSelector((state) => state.sales.amountReceived);
+  const discount = useAppSelector((state) => state.sales.discount);
   const checkoutStatus = useAppSelector((state) => state.sales.checkoutStatus);
   const note = useAppSelector((state) => state.sales.note);
 
@@ -131,10 +133,68 @@ export default function POSPage() {
     }
   }, [showCheckoutDialog, showSuccessDialog, showPromptpayDialog]);
 
+  // Derived state for BroadcastChannel
+  const subtotal = cartItems.reduce(
+    (sum, item) => sum + item.product.sellingPrice * item.quantity,
+    0,
+  );
+  const total = subtotal;
+  
+  // Sync POS state to Customer Facing Display (CFD) via BroadcastChannel
+  useEffect(() => {
+    try {
+      const bc = new BroadcastChannel("pos-sync");
+      let status = "shopping";
+      if (showSuccessDialog) {
+        status = "completed";
+      } else if (showPromptpayDialog) {
+        status = "paying";
+      } else if (showCheckoutDialog && paymentMethod === "cash") {
+        status = "paying";
+      }
+
+      bc.postMessage({
+        type: "SYNC_STATE",
+        payload: {
+          cartItems: cartItems.map((item) => ({
+            ...item,
+            imageUrl: item.product.imageId ? imageUrlById[item.product.imageId] : undefined,
+          })),
+          paymentMethod,
+          amountReceived,
+          discount,
+          subtotal,
+          total,
+          status,
+          promptpayPayload,
+        },
+      });
+      return () => bc.close();
+    } catch (error) {
+      console.error("Failed to broadcast state:", error);
+    }
+  }, [
+    cartItems,
+    paymentMethod,
+    amountReceived,
+    discount,
+    subtotal,
+    total,
+    showSuccessDialog,
+    showPromptpayDialog,
+    showCheckoutDialog,
+    promptpayPayload,
+    imageUrlById,
+  ]);
+
   // PromptPay Polling
   useEffect(() => {
     let interval: NodeJS.Timeout;
-    if (showPromptpayDialog && lastOrder && lastOrder.paymentMethod === "promptpay") {
+    if (
+      showPromptpayDialog &&
+      lastOrder &&
+      lastOrder.paymentMethod === "promptpay"
+    ) {
       interval = setInterval(async () => {
         try {
           const res = await fetch(`/api/sales/${lastOrder.id}`);
@@ -213,15 +273,24 @@ export default function POSPage() {
 
   const filteredProducts = useMemo(() => {
     const activeSearch = searchQuery || barcodeInput;
-    return products.filter((p) => {
-      const matchSearch =
-        !activeSearch ||
-        p.name.toLowerCase().includes(activeSearch.toLowerCase()) ||
-        p.sku.toLowerCase().includes(activeSearch.toLowerCase());
-      const matchCategory =
-        selectedCategory === "all" || p.categoryId === selectedCategory;
-      return matchSearch && matchCategory && p.isActive;
-    });
+    return products
+      .filter((p) => {
+        const matchSearch =
+          !activeSearch ||
+          p.name.toLowerCase().includes(activeSearch.toLowerCase()) ||
+          p.sku.toLowerCase().includes(activeSearch.toLowerCase());
+        const matchCategory =
+          selectedCategory === "all" || p.categoryId === selectedCategory;
+        return matchSearch && matchCategory && p.isActive;
+      })
+      .sort((a, b) => {
+        const aHasStock = a.stockOnHand > 0 ? 1 : 0;
+        const bHasStock = b.stockOnHand > 0 ? 1 : 0;
+        if (aHasStock !== bHasStock) {
+          return bHasStock - aHasStock;
+        }
+        return 0;
+      });
   }, [products, searchQuery, barcodeInput, selectedCategory]);
 
   const totalItems = filteredProducts.length;
@@ -233,11 +302,6 @@ export default function POSPage() {
     return filteredProducts.slice(startIndex, startIndex + pageSize);
   }, [filteredProducts, safeCurrentPage, pageSize]);
 
-  const subtotal = cartItems.reduce(
-    (sum, item) => sum + item.product.sellingPrice * item.quantity,
-    0,
-  );
-  const total = subtotal;
   const change =
     paymentMethod === "cash" ? Math.max(0, amountReceived - total) : 0;
 
@@ -283,7 +347,7 @@ export default function POSPage() {
         setShowSuccessDialog(true);
         dispatch(clearCart());
       }
-      
+
       dispatch(fetchProducts());
     } catch (error: any) {
       toast.error(error || "ชำระเงินไม่สำเร็จ");
@@ -326,6 +390,14 @@ export default function POSPage() {
               </Button>
             )}
           </form>
+          <Button
+            variant="outline"
+            className="shrink-0 gap-2 text-primary"
+            onClick={() => window.open("/sales/pos/display", "_blank", "width=1024,height=768")}
+          >
+            <MonitorPlay className="size-4" />
+            เปิดจอลูกค้า
+          </Button>
         </div>
 
         {/* Header Label Row */}
@@ -814,37 +886,68 @@ export default function POSPage() {
       </Dialog>
 
       {/* ===================== PromptPay Dialog ===================== */}
-      <Dialog open={showPromptpayDialog} onOpenChange={(open) => {
-        if (!open) {
-          handleCancelPromptpay(false);
-        } else {
-          setShowPromptpayDialog(open);
-        }
-      }}>
+      <Dialog
+        open={showPromptpayDialog}
+        onOpenChange={(open) => {
+          if (!open) {
+            handleCancelPromptpay(false);
+          } else {
+            setShowPromptpayDialog(open);
+          }
+        }}
+      >
         <DialogContent showCloseButton={true}>
           <DialogPanel>
             <div className="flex flex-col items-center justify-center text-center py-4">
               <QrCode className="size-10 text-primary mb-2" />
               <DialogTitle className="text-xl mb-1">สแกนเพื่อชำระเงิน</DialogTitle>
-              
+
               {/* Countdown Timer Badge */}
               <div className="flex items-center gap-1.5 px-3 py-1 bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-900 rounded-full text-xs font-medium mb-3">
                 <Clock className="size-3.5 animate-pulse" />
-                <span>QR Code หมดอายุใน {String(Math.floor(timeLeft / 60)).padStart(2, "0")}:{String(timeLeft % 60).padStart(2, "0")} นาที</span>
+                <span>
+                  QR Code หมดอายุใน{" "}
+                  {String(Math.floor(timeLeft / 60)).padStart(2, "0")}:
+                  {String(timeLeft % 60).padStart(2, "0")} นาที
+                </span>
               </div>
 
               {promptpayPayload ? (
                 <div className="bg-white p-4 rounded-xl border-2 border-primary/20 shadow-sm mb-3">
-                  <QRCodeSVG value={promptpayPayload} size={200} />
+                  <QRCodeSVG
+                    value={promptpayPayload}
+                    size={220}
+                    level="H"
+                    imageSettings={{
+                      src: "/logo-dark.png",
+                      x: undefined,
+                      y: undefined,
+                      height: 42,
+                      width: 42,
+                      excavate: true,
+                    }}
+                  />
                 </div>
               ) : (
-                <p className="text-destructive mb-4">ไม่สามารถสร้าง QR Code ได้ (กรุณาตั้งค่า PromptPay ในหน้าตั้งค่า)</p>
+                <p className="text-destructive mb-4">
+                  ไม่สามารถสร้าง QR Code ได้ (กรุณาตั้งค่า PromptPay ในหน้าตั้งค่า)
+                </p>
               )}
               <p className="text-muted-foreground text-sm mb-4">
-                ยอดที่ต้องชำระ: <b>฿{Number(lastOrder?.promptpayAmount || lastOrder?.total).toLocaleString(undefined, { minimumFractionDigits: 2 })}</b>
+                ยอดที่ต้องชำระ:{" "}
+                <b>
+                  ฿
+                  {Number(
+                    lastOrder?.promptpayAmount || lastOrder?.total,
+                  ).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                </b>
               </p>
               <div className="flex w-full gap-2 mt-2">
-                <Button variant="outline" className="flex-1" onClick={() => handleCancelPromptpay(false)}>
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => handleCancelPromptpay(false)}
+                >
                   ยกเลิก
                 </Button>
                 <Button

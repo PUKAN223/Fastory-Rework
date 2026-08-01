@@ -52,11 +52,8 @@ export function DataTablePagination({
     >
       {/* "Showing X to Y of Z items" */}
       <div className="text-xs text-muted-foreground">
-        แสดง{" "}
-        <span className="font-medium text-foreground">{startItem}</span>{" "}
-        ถึง{" "}
-        <span className="font-medium text-foreground">{endItem}</span>{" "}
-        จากทั้งหมด{" "}
+        แสดง <span className="font-medium text-foreground">{startItem}</span> ถึง{" "}
+        <span className="font-medium text-foreground">{endItem}</span> จากทั้งหมด{" "}
         <span className="font-medium text-foreground">
           {totalItems.toLocaleString()}
         </span>{" "}

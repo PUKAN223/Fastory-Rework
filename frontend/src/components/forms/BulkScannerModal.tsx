@@ -255,12 +255,21 @@ export function BulkScannerModal({
           ).unwrap(),
         ),
       );
-      const failed = results.filter((r) => r.status === "rejected");
-      const succeeded = results.filter((r) => r.status === "fulfilled");
+      const failed = results.filter(
+        (r): r is PromiseRejectedResult => r.status === "rejected",
+      );
+      const succeeded = results.filter(
+        (r): r is PromiseFulfilledResult<any> => r.status === "fulfilled",
+      );
       if (succeeded.length > 0)
         toast.success(`ปรับสต๊อกสำเร็จ ${succeeded.length} รายการ`);
-      if (failed.length > 0)
-        toast.error(`ปรับสต๊อกไม่สำเร็จ ${failed.length} รายการ`);
+      if (failed.length > 0) {
+        failed.forEach((f) => {
+          const errMsg =
+            typeof f.reason === "string" ? f.reason : "ปรับสต๊อกไม่สำเร็จ";
+          toast.error(errMsg, { duration: 6000 });
+        });
+      }
       // Refresh products stock before closing modal
       await dispatch(fetchProducts())
         .unwrap()
@@ -593,6 +602,7 @@ export function BulkScannerModal({
           sku: prefillSku,
           name: "",
           categoryId: "",
+          locationId: null,
           description: "",
           costPrice: 0,
           sellingPrice: 0,

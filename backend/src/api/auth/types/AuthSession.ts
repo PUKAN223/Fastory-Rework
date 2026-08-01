@@ -4,6 +4,7 @@ export interface AuthSession {
         email: string;
         id: number;
         profile_picture_url: string | null;
+        bio: string | null;
         role: {
             id: number;
             name: string;

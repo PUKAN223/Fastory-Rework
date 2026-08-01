@@ -20,7 +20,7 @@ export async function POST(req: Request) {
   if (!accessToken) {
     return NextResponse.json(
       { success: false, message: "Missing access token" },
-      { status: 401 }
+      { status: 401 },
     );
   }
 
@@ -28,7 +28,7 @@ export async function POST(req: Request) {
   if (!apiBase) {
     return NextResponse.json(
       { success: false, message: "API_URL is not configured" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 
@@ -36,28 +36,31 @@ export async function POST(req: Request) {
   if (!activeStoreId) {
     return NextResponse.json(
       { success: false, message: "No active store selected" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
   const body = await req.json().catch(() => ({}));
 
   try {
-    const r = await fetch(`${apiBase}/stores/${activeStoreId}/ai/confirm-action`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`,
+    const r = await fetch(
+      `${apiBase}/stores/${activeStoreId}/ai/confirm-action`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify(body),
       },
-      body: JSON.stringify(body),
-    });
+    );
 
     const data = await r.json();
     return NextResponse.json(data, { status: r.status });
   } catch {
     return NextResponse.json(
       { success: false, message: "Cannot reach upstream API." },
-      { status: 502 }
+      { status: 502 },
     );
   }
 }

@@ -18,7 +18,12 @@ import {
   Tooltip,
   Legend,
 } from "recharts";
-import { BarChart3, TrendingUp, PieChart as PieIcon, Activity } from "lucide-react";
+import {
+  BarChart3,
+  TrendingUp,
+  PieChart as PieIcon,
+  Activity,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 const DEFAULT_COLORS = [
@@ -57,7 +62,9 @@ export const AiChartCard: React.FC<AiChartCardProps> = ({
     if (data && data.length > 0 && typeof data[0] === "object") {
       const keys = Object.keys(data[0]);
       // Return first key that is not numeric or returns first key
-      return keys.find((k) => typeof data[0][k] === "string") || keys[0] || "name";
+      return (
+        keys.find((k) => typeof data[0][k] === "string") || keys[0] || "name"
+      );
     }
     return "name";
   }, [xKey, data]);
@@ -66,7 +73,9 @@ export const AiChartCard: React.FC<AiChartCardProps> = ({
     if (dataKeys && dataKeys.length > 0) return dataKeys;
     if (data && data.length > 0 && typeof data[0] === "object") {
       const keys = Object.keys(data[0]).filter((k) => k !== safeXKey);
-      const numKeys = keys.filter((k) => typeof data[0][k] === "number" || !isNaN(Number(data[0][k])));
+      const numKeys = keys.filter(
+        (k) => typeof data[0][k] === "number" || !isNaN(Number(data[0][k])),
+      );
       return numKeys.length > 0 ? numKeys : keys.slice(0, 2);
     }
     return ["value"];
@@ -78,7 +87,10 @@ export const AiChartCard: React.FC<AiChartCardProps> = ({
   };
 
   const getColor = (index: number) => {
-    return colors[index % colors.length] || DEFAULT_COLORS[index % DEFAULT_COLORS.length];
+    return (
+      colors[index % colors.length] ||
+      DEFAULT_COLORS[index % DEFAULT_COLORS.length]
+    );
   };
 
   const getIcon = () => {
@@ -129,7 +141,10 @@ export const AiChartCard: React.FC<AiChartCardProps> = ({
             </p>
           </div>
         </div>
-        <Badge variant="outline" className="text-[10px] font-normal uppercase tracking-wider">
+        <Badge
+          variant="outline"
+          className="text-[10px] font-normal uppercase tracking-wider"
+        >
           {getBadgeLabel()}
         </Badge>
       </div>
@@ -139,12 +154,21 @@ export const AiChartCard: React.FC<AiChartCardProps> = ({
         {data && data.length > 0 ? (
           <ResponsiveContainer width="100%" height="100%">
             {chartType === "line" ? (
-              <LineChart data={data} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+              <LineChart
+                data={data}
+                margin={{ top: 10, right: 10, left: -10, bottom: 0 }}
+              >
                 <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
                 <XAxis dataKey={safeXKey} tick={{ fontSize: 11 }} />
-                <YAxis tick={{ fontSize: 11 }} tickFormatter={formatTooltipValue} />
+                <YAxis
+                  tick={{ fontSize: 11 }}
+                  tickFormatter={formatTooltipValue}
+                />
                 <Tooltip
-                  formatter={(val: any, name: any) => [formatTooltipValue(val), name]}
+                  formatter={(val: any, name: any) => [
+                    formatTooltipValue(val),
+                    name,
+                  ]}
                   contentStyle={{
                     backgroundColor: "var(--background)",
                     borderColor: "var(--border)",
@@ -152,7 +176,9 @@ export const AiChartCard: React.FC<AiChartCardProps> = ({
                     fontSize: "12px",
                   }}
                 />
-                <Legend wrapperStyle={{ fontSize: "12px", paddingTop: "8px" }} />
+                <Legend
+                  wrapperStyle={{ fontSize: "12px", paddingTop: "8px" }}
+                />
                 {safeDataKeys.map((key, idx) => (
                   <Line
                     key={key}
@@ -167,20 +193,44 @@ export const AiChartCard: React.FC<AiChartCardProps> = ({
                 ))}
               </LineChart>
             ) : chartType === "area" ? (
-              <AreaChart data={data} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+              <AreaChart
+                data={data}
+                margin={{ top: 10, right: 10, left: -10, bottom: 0 }}
+              >
                 <defs>
                   {safeDataKeys.map((key, idx) => (
-                    <linearGradient key={key} id={`grad-${key}`} x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor={getColor(idx)} stopOpacity={0.4} />
-                      <stop offset="95%" stopColor={getColor(idx)} stopOpacity={0.05} />
+                    <linearGradient
+                      key={key}
+                      id={`grad-${key}`}
+                      x1="0"
+                      y1="0"
+                      x2="0"
+                      y2="1"
+                    >
+                      <stop
+                        offset="5%"
+                        stopColor={getColor(idx)}
+                        stopOpacity={0.4}
+                      />
+                      <stop
+                        offset="95%"
+                        stopColor={getColor(idx)}
+                        stopOpacity={0.05}
+                      />
                     </linearGradient>
                   ))}
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
                 <XAxis dataKey={safeXKey} tick={{ fontSize: 11 }} />
-                <YAxis tick={{ fontSize: 11 }} tickFormatter={formatTooltipValue} />
+                <YAxis
+                  tick={{ fontSize: 11 }}
+                  tickFormatter={formatTooltipValue}
+                />
                 <Tooltip
-                  formatter={(val: any, name: any) => [formatTooltipValue(val), name]}
+                  formatter={(val: any, name: any) => [
+                    formatTooltipValue(val),
+                    name,
+                  ]}
                   contentStyle={{
                     backgroundColor: "var(--background)",
                     borderColor: "var(--border)",
@@ -188,7 +238,9 @@ export const AiChartCard: React.FC<AiChartCardProps> = ({
                     fontSize: "12px",
                   }}
                 />
-                <Legend wrapperStyle={{ fontSize: "12px", paddingTop: "8px" }} />
+                <Legend
+                  wrapperStyle={{ fontSize: "12px", paddingTop: "8px" }}
+                />
                 {safeDataKeys.map((key, idx) => (
                   <Area
                     key={key}
@@ -205,7 +257,10 @@ export const AiChartCard: React.FC<AiChartCardProps> = ({
             ) : chartType === "pie" ? (
               <PieChart margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
                 <Tooltip
-                  formatter={(val: any, name: any) => [formatTooltipValue(val), name]}
+                  formatter={(val: any, name: any) => [
+                    formatTooltipValue(val),
+                    name,
+                  ]}
                   contentStyle={{
                     backgroundColor: "var(--background)",
                     borderColor: "var(--border)",
@@ -213,7 +268,9 @@ export const AiChartCard: React.FC<AiChartCardProps> = ({
                     fontSize: "12px",
                   }}
                 />
-                <Legend wrapperStyle={{ fontSize: "12px", paddingTop: "8px" }} />
+                <Legend
+                  wrapperStyle={{ fontSize: "12px", paddingTop: "8px" }}
+                />
                 <Pie
                   data={data}
                   cx="50%"
@@ -221,7 +278,9 @@ export const AiChartCard: React.FC<AiChartCardProps> = ({
                   outerRadius={80}
                   dataKey={safeDataKeys[0] || "value"}
                   nameKey={safeXKey}
-                  label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                  label={({ name, percent }) =>
+                    `${name}: ${(percent * 100).toFixed(0)}%`
+                  }
                 >
                   {data.map((_, index) => (
                     <Cell key={`cell-${index}`} fill={getColor(index)} />
@@ -230,12 +289,21 @@ export const AiChartCard: React.FC<AiChartCardProps> = ({
               </PieChart>
             ) : (
               /* Bar Chart (Default) */
-              <BarChart data={data} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+              <BarChart
+                data={data}
+                margin={{ top: 10, right: 10, left: -10, bottom: 0 }}
+              >
                 <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
                 <XAxis dataKey={safeXKey} tick={{ fontSize: 11 }} />
-                <YAxis tick={{ fontSize: 11 }} tickFormatter={formatTooltipValue} />
+                <YAxis
+                  tick={{ fontSize: 11 }}
+                  tickFormatter={formatTooltipValue}
+                />
                 <Tooltip
-                  formatter={(val: any, name: any) => [formatTooltipValue(val), name]}
+                  formatter={(val: any, name: any) => [
+                    formatTooltipValue(val),
+                    name,
+                  ]}
                   contentStyle={{
                     backgroundColor: "var(--background)",
                     borderColor: "var(--border)",
@@ -243,7 +311,9 @@ export const AiChartCard: React.FC<AiChartCardProps> = ({
                     fontSize: "12px",
                   }}
                 />
-                <Legend wrapperStyle={{ fontSize: "12px", paddingTop: "8px" }} />
+                <Legend
+                  wrapperStyle={{ fontSize: "12px", paddingTop: "8px" }}
+                />
                 {safeDataKeys.map((key, idx) => (
                   <Bar
                     key={key}

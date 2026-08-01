@@ -60,3 +60,84 @@ export async function GET() {
     stores: body.stores,
   });
 }
+
+export async function PATCH(req: Request) {
+  const accessToken = (await cookies()).get("accessToken")?.value;
+  if (!accessToken) {
+    return NextResponse.json(
+      { success: false, message: "Missing access token" },
+      { status: 401 },
+    );
+  }
+
+  const apiUrl = process.env.API_URL || "http://localhost:8080";
+  const normalizedApiUrl = apiUrl.replace(/\/+$/, "");
+  const apiBase = normalizedApiUrl.endsWith("/api/v1")
+    ? normalizedApiUrl
+    : `${normalizedApiUrl}/api/v1`;
+
+  const body = await req.json();
+
+  try {
+    const r = await fetch(`${apiBase}/users/me`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify(body),
+    });
+
+    const data = await r.json();
+    return NextResponse.json(data, { status: r.status });
+  } catch {
+    return NextResponse.json(
+      { success: false, message: "Cannot reach backend API" },
+      { status: 502 },
+    );
+  }
+}
+
+export async function DELETE(req: Request) {
+  const accessToken = (await cookies()).get("accessToken")?.value;
+  if (!accessToken) {
+    return NextResponse.json(
+      { success: false, message: "Missing access token" },
+      { status: 401 },
+    );
+  }
+
+  const apiUrl = process.env.API_URL || "http://localhost:8080";
+  const normalizedApiUrl = apiUrl.replace(/\/+$/, "");
+  const apiBase = normalizedApiUrl.endsWith("/api/v1")
+    ? normalizedApiUrl
+    : `${normalizedApiUrl}/api/v1`;
+
+  const body = await req.json().catch(() => ({}));
+
+  try {
+    const r = await fetch(`${apiBase}/users/me`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify(body),
+    });
+
+    const data = await r.json();
+    const res = NextResponse.json(data, { status: r.status });
+
+    if (r.ok) {
+      res.cookies.set("accessToken", "", { path: "/", maxAge: 0 });
+      res.cookies.set("refreshToken", "", { path: "/", maxAge: 0 });
+    }
+
+    return res;
+  } catch {
+    return NextResponse.json(
+      { success: false, message: "Cannot reach backend API" },
+      { status: 502 },
+    );
+  }
+}

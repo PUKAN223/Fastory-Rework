@@ -241,6 +241,7 @@ export type locationsWhereInput = {
   created_at?: Prisma.DateTimeFilter<"locations"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"locations"> | Date | string
   stores?: Prisma.XOR<Prisma.StoresScalarRelationFilter, Prisma.storesWhereInput>
+  products?: Prisma.ProductsListRelationFilter
 }
 
 export type locationsOrderByWithRelationInput = {
@@ -252,6 +253,7 @@ export type locationsOrderByWithRelationInput = {
   created_at?: Prisma.SortOrder
   updated_at?: Prisma.SortOrder
   stores?: Prisma.storesOrderByWithRelationInput
+  products?: Prisma.productsOrderByRelationAggregateInput
 }
 
 export type locationsWhereUniqueInput = Prisma.AtLeast<{
@@ -266,6 +268,7 @@ export type locationsWhereUniqueInput = Prisma.AtLeast<{
   created_at?: Prisma.DateTimeFilter<"locations"> | Date | string
   updated_at?: Prisma.DateTimeFilter<"locations"> | Date | string
   stores?: Prisma.XOR<Prisma.StoresScalarRelationFilter, Prisma.storesWhereInput>
+  products?: Prisma.ProductsListRelationFilter
 }, "id">
 
 export type locationsOrderByWithAggregationInput = {
@@ -303,6 +306,7 @@ export type locationsCreateInput = {
   created_at?: Date | string
   updated_at?: Date | string
   stores: Prisma.storesCreateNestedOneWithoutLocationsInput
+  products?: Prisma.productsCreateNestedManyWithoutLocationInput
 }
 
 export type locationsUncheckedCreateInput = {
@@ -313,6 +317,7 @@ export type locationsUncheckedCreateInput = {
   max_capacity?: number
   created_at?: Date | string
   updated_at?: Date | string
+  products?: Prisma.productsUncheckedCreateNestedManyWithoutLocationInput
 }
 
 export type locationsUpdateInput = {
@@ -322,6 +327,7 @@ export type locationsUpdateInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   stores?: Prisma.storesUpdateOneRequiredWithoutLocationsNestedInput
+  products?: Prisma.productsUpdateManyWithoutLocationNestedInput
 }
 
 export type locationsUncheckedUpdateInput = {
@@ -332,6 +338,7 @@ export type locationsUncheckedUpdateInput = {
   max_capacity?: Prisma.IntFieldUpdateOperationsInput | number
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  products?: Prisma.productsUncheckedUpdateManyWithoutLocationNestedInput
 }
 
 export type locationsCreateManyInput = {
@@ -414,6 +421,11 @@ export type locationsOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
 }
 
+export type LocationsNullableScalarRelationFilter = {
+  is?: Prisma.locationsWhereInput | null
+  isNot?: Prisma.locationsWhereInput | null
+}
+
 export type locationsCreateNestedManyWithoutStoresInput = {
   create?: Prisma.XOR<Prisma.locationsCreateWithoutStoresInput, Prisma.locationsUncheckedCreateWithoutStoresInput> | Prisma.locationsCreateWithoutStoresInput[] | Prisma.locationsUncheckedCreateWithoutStoresInput[]
   connectOrCreate?: Prisma.locationsCreateOrConnectWithoutStoresInput | Prisma.locationsCreateOrConnectWithoutStoresInput[]
@@ -456,12 +468,29 @@ export type locationsUncheckedUpdateManyWithoutStoresNestedInput = {
   deleteMany?: Prisma.locationsScalarWhereInput | Prisma.locationsScalarWhereInput[]
 }
 
+export type locationsCreateNestedOneWithoutProductsInput = {
+  create?: Prisma.XOR<Prisma.locationsCreateWithoutProductsInput, Prisma.locationsUncheckedCreateWithoutProductsInput>
+  connectOrCreate?: Prisma.locationsCreateOrConnectWithoutProductsInput
+  connect?: Prisma.locationsWhereUniqueInput
+}
+
+export type locationsUpdateOneWithoutProductsNestedInput = {
+  create?: Prisma.XOR<Prisma.locationsCreateWithoutProductsInput, Prisma.locationsUncheckedCreateWithoutProductsInput>
+  connectOrCreate?: Prisma.locationsCreateOrConnectWithoutProductsInput
+  upsert?: Prisma.locationsUpsertWithoutProductsInput
+  disconnect?: Prisma.locationsWhereInput | boolean
+  delete?: Prisma.locationsWhereInput | boolean
+  connect?: Prisma.locationsWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.locationsUpdateToOneWithWhereWithoutProductsInput, Prisma.locationsUpdateWithoutProductsInput>, Prisma.locationsUncheckedUpdateWithoutProductsInput>
+}
+
 export type locationsCreateWithoutStoresInput = {
   name: string
   description?: string | null
   max_capacity?: number
   created_at?: Date | string
   updated_at?: Date | string
+  products?: Prisma.productsCreateNestedManyWithoutLocationInput
 }
 
 export type locationsUncheckedCreateWithoutStoresInput = {
@@ -471,6 +500,7 @@ export type locationsUncheckedCreateWithoutStoresInput = {
   max_capacity?: number
   created_at?: Date | string
   updated_at?: Date | string
+  products?: Prisma.productsUncheckedCreateNestedManyWithoutLocationInput
 }
 
 export type locationsCreateOrConnectWithoutStoresInput = {
@@ -512,6 +542,60 @@ export type locationsScalarWhereInput = {
   updated_at?: Prisma.DateTimeFilter<"locations"> | Date | string
 }
 
+export type locationsCreateWithoutProductsInput = {
+  name: string
+  description?: string | null
+  max_capacity?: number
+  created_at?: Date | string
+  updated_at?: Date | string
+  stores: Prisma.storesCreateNestedOneWithoutLocationsInput
+}
+
+export type locationsUncheckedCreateWithoutProductsInput = {
+  id?: number
+  store_id: number
+  name: string
+  description?: string | null
+  max_capacity?: number
+  created_at?: Date | string
+  updated_at?: Date | string
+}
+
+export type locationsCreateOrConnectWithoutProductsInput = {
+  where: Prisma.locationsWhereUniqueInput
+  create: Prisma.XOR<Prisma.locationsCreateWithoutProductsInput, Prisma.locationsUncheckedCreateWithoutProductsInput>
+}
+
+export type locationsUpsertWithoutProductsInput = {
+  update: Prisma.XOR<Prisma.locationsUpdateWithoutProductsInput, Prisma.locationsUncheckedUpdateWithoutProductsInput>
+  create: Prisma.XOR<Prisma.locationsCreateWithoutProductsInput, Prisma.locationsUncheckedCreateWithoutProductsInput>
+  where?: Prisma.locationsWhereInput
+}
+
+export type locationsUpdateToOneWithWhereWithoutProductsInput = {
+  where?: Prisma.locationsWhereInput
+  data: Prisma.XOR<Prisma.locationsUpdateWithoutProductsInput, Prisma.locationsUncheckedUpdateWithoutProductsInput>
+}
+
+export type locationsUpdateWithoutProductsInput = {
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  max_capacity?: Prisma.IntFieldUpdateOperationsInput | number
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  stores?: Prisma.storesUpdateOneRequiredWithoutLocationsNestedInput
+}
+
+export type locationsUncheckedUpdateWithoutProductsInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  store_id?: Prisma.IntFieldUpdateOperationsInput | number
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  max_capacity?: Prisma.IntFieldUpdateOperationsInput | number
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
 export type locationsCreateManyStoresInput = {
   id?: number
   name: string
@@ -527,6 +611,7 @@ export type locationsUpdateWithoutStoresInput = {
   max_capacity?: Prisma.IntFieldUpdateOperationsInput | number
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  products?: Prisma.productsUpdateManyWithoutLocationNestedInput
 }
 
 export type locationsUncheckedUpdateWithoutStoresInput = {
@@ -536,6 +621,7 @@ export type locationsUncheckedUpdateWithoutStoresInput = {
   max_capacity?: Prisma.IntFieldUpdateOperationsInput | number
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updated_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  products?: Prisma.productsUncheckedUpdateManyWithoutLocationNestedInput
 }
 
 export type locationsUncheckedUpdateManyWithoutStoresInput = {
@@ -548,6 +634,35 @@ export type locationsUncheckedUpdateManyWithoutStoresInput = {
 }
 
 
+/**
+ * Count Type LocationsCountOutputType
+ */
+
+export type LocationsCountOutputType = {
+  products: number
+}
+
+export type LocationsCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  products?: boolean | LocationsCountOutputTypeCountProductsArgs
+}
+
+/**
+ * LocationsCountOutputType without action
+ */
+export type LocationsCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the LocationsCountOutputType
+   */
+  select?: Prisma.LocationsCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * LocationsCountOutputType without action
+ */
+export type LocationsCountOutputTypeCountProductsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.productsWhereInput
+}
+
 
 export type locationsSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -558,6 +673,8 @@ export type locationsSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
   created_at?: boolean
   updated_at?: boolean
   stores?: boolean | Prisma.storesDefaultArgs<ExtArgs>
+  products?: boolean | Prisma.locations$productsArgs<ExtArgs>
+  _count?: boolean | Prisma.LocationsCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["locations"]>
 
 export type locationsSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -595,6 +712,8 @@ export type locationsSelectScalar = {
 export type locationsOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "store_id" | "name" | "description" | "max_capacity" | "created_at" | "updated_at", ExtArgs["result"]["locations"]>
 export type locationsInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   stores?: boolean | Prisma.storesDefaultArgs<ExtArgs>
+  products?: boolean | Prisma.locations$productsArgs<ExtArgs>
+  _count?: boolean | Prisma.LocationsCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type locationsIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   stores?: boolean | Prisma.storesDefaultArgs<ExtArgs>
@@ -607,6 +726,7 @@ export type $locationsPayload<ExtArgs extends runtime.Types.Extensions.InternalA
   name: "locations"
   objects: {
     stores: Prisma.$storesPayload<ExtArgs>
+    products: Prisma.$productsPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
@@ -1011,6 +1131,7 @@ readonly fields: locationsFieldRefs;
 export interface Prisma__locationsClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   stores<T extends Prisma.storesDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.storesDefaultArgs<ExtArgs>>): Prisma.Prisma__storesClient<runtime.Types.Result.GetResult<Prisma.$storesPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  products<T extends Prisma.locations$productsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.locations$productsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$productsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1440,6 +1561,30 @@ export type locationsDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Int
    * Limit how many locations to delete.
    */
   limit?: number
+}
+
+/**
+ * locations.products
+ */
+export type locations$productsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the products
+   */
+  select?: Prisma.productsSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the products
+   */
+  omit?: Prisma.productsOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.productsInclude<ExtArgs> | null
+  where?: Prisma.productsWhereInput
+  orderBy?: Prisma.productsOrderByWithRelationInput | Prisma.productsOrderByWithRelationInput[]
+  cursor?: Prisma.productsWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ProductsScalarFieldEnum | Prisma.ProductsScalarFieldEnum[]
 }
 
 /**

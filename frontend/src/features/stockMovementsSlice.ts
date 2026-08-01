@@ -8,6 +8,7 @@ type StockMovementsState = {
   items: StockMovement[];
   fetchStatus: AsyncStatus;
   createStatus: AsyncStatus;
+  lastFetched: number | null;
   error: string | null;
 };
 
@@ -15,6 +16,7 @@ const initialState: StockMovementsState = {
   items: [],
   fetchStatus: "idle",
   createStatus: "idle",
+  lastFetched: null,
   error: null,
 };
 
@@ -68,19 +70,23 @@ function normalizeMovement(raw: ApiStockMovement): StockMovement {
 }
 
 async function parseErrorMessage(response: Response, fallback: string) {
-  const body = (await response
-    .clone()
-    .json()
-    .catch(() => ({}))) as {
-    message?: string;
-    error?: string;
-    errors?: any;
-  };
-  console.error("API Error Response body:", body);
-  if (body.errors) {
-    return `${body.message ?? "Validation Error"}: ${JSON.stringify(body.errors)}`;
+  try {
+    const text = await response.text();
+    if (!text) return fallback;
+    try {
+      const body = JSON.parse(text);
+      if (body.message) return body.message;
+      if (body.error) return body.error;
+      if (body.errors) {
+        return `${body.message ?? "Validation Error"}: ${JSON.stringify(body.errors)}`;
+      }
+    } catch {
+      return text;
+    }
+  } catch {
+    return fallback;
   }
-  return body.message ?? body.error ?? fallback;
+  return fallback;
 }
 
 export const fetchMovements = createAsyncThunk<
@@ -151,6 +157,14 @@ export const createMovement = createAsyncThunk<
   }
 });
 
+export function isStockMovementsStale(
+  lastFetched: number | null,
+  maxAgeMs = 15000,
+): boolean {
+  if (lastFetched === null) return true;
+  return Date.now() - lastFetched > maxAgeMs;
+}
+
 const slice = createSlice({
   name: "stockMovements",
   initialState,
@@ -159,6 +173,7 @@ const slice = createSlice({
       state.items = [];
       state.fetchStatus = "idle";
       state.createStatus = "idle";
+      state.lastFetched = null;
       state.error = null;
     },
   },
@@ -170,6 +185,7 @@ const slice = createSlice({
     b.addCase(fetchMovements.fulfilled, (s, a) => {
       s.items = a.payload;
       s.fetchStatus = "succeeded";
+      s.lastFetched = Date.now();
     });
     b.addCase(fetchMovements.rejected, (s, a) => {
       s.fetchStatus = "failed";
@@ -183,6 +199,7 @@ const slice = createSlice({
     b.addCase(createMovement.fulfilled, (s, a) => {
       s.items.unshift(a.payload);
       s.createStatus = "succeeded";
+      s.lastFetched = Date.now();
     });
     b.addCase(createMovement.rejected, (s, a) => {
       s.createStatus = "failed";

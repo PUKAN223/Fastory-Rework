@@ -114,13 +114,18 @@ const initialState: SidebarState = {
           url: "/users/list",
           permission: "settings:read",
         },
+        {
+          title: "ประวัติกิจกรรมพนักงาน",
+          url: "/users/logs",
+          permission: "settings:read",
+        },
       ],
     },
   ],
   navSystem: [
     {
       title: "ผู้ช่วย AI",
-      url: "/ai-assistant",
+      url: "/assistant",
       icon: "sparkles",
       requiresStore: true,
     },

@@ -24,6 +24,7 @@ export interface AuthUser {
   email: string;
   id: number;
   profile_picture_url: string | null;
+  bio: string | null;
   role: {
     id: number;
     name: string;
@@ -111,9 +112,51 @@ export const authMe = createAsyncThunk<AuthUser, void, { rejectValue: string }>(
   },
 );
 
+export const updateProfile = createAsyncThunk<
+  AuthUser,
+  { username?: string; profile_picture?: string | null; bio?: string | null },
+  { rejectValue: string }
+>("auth/updateProfile", async (body, { rejectWithValue }) => {
+  const r = await fetch("/api/auth/me", {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  const data = await jsonSafe<ApiRes<AuthUser>>(r);
+
+  if (!r.ok || !data.success || !data.user) {
+    return rejectWithValue(data.message ?? "Failed to update profile");
+  }
+
+  return data.user;
+});
+
+export const deleteAccount = createAsyncThunk<
+  void,
+  { password?: string; confirmation?: string } | undefined,
+  { rejectValue: string }
+>("auth/deleteAccount", async (body, { rejectWithValue }) => {
+  const r = await fetch("/api/auth/me", {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body ?? {}),
+  });
+  const data = await jsonSafe<{ success?: boolean; message?: string }>(r);
+
+  if (!r.ok || !data.success) {
+    return rejectWithValue(data.message ?? "Failed to delete account");
+  }
+});
+
 export const authRegister = createAsyncThunk<
   AuthUser,
-  { username: string; email: string; password: string },
+  {
+    username: string;
+    email: string;
+    password: string;
+    google_id?: string;
+    profile_picture?: string;
+  },
   { rejectValue: string }
 >("auth/register", async (body, { rejectWithValue }) => {
   const r = await postJson("/api/auth/register", body);
@@ -188,6 +231,14 @@ const slice = createSlice({
     b.addCase(authSignOut.rejected, (s, a) =>
       setGuest(s, a.payload ?? a.error.message ?? "Sign out failed"),
     );
+
+    b.addCase(updateProfile.fulfilled, (s, a) => {
+      if (s.user) {
+        s.user = a.payload;
+      }
+    });
+
+    b.addCase(deleteAccount.fulfilled, (s) => setGuest(s, null));
   },
 });
 

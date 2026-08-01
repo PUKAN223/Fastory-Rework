@@ -20,7 +20,7 @@ export async function GET() {
   if (!accessToken) {
     return NextResponse.json(
       { success: false, message: "Missing access token" },
-      { status: 401 }
+      { status: 401 },
     );
   }
 
@@ -28,7 +28,7 @@ export async function GET() {
   if (!apiBase) {
     return NextResponse.json(
       { success: false, message: "API_URL is not configured" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 
@@ -36,25 +36,25 @@ export async function GET() {
   if (!activeStoreId) {
     return NextResponse.json(
       { success: false, message: "No active store selected" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
   try {
-    const r = await fetch(`${apiBase}/stores/${activeStoreId}/ai/chat/history`, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
+    const r = await fetch(
+      `${apiBase}/stores/${activeStoreId}/ai/chat/history`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+        cache: "no-store",
       },
-      cache: "no-store",
-    });
+    );
 
     const data = await r.json();
     return NextResponse.json(data, { status: r.status });
   } catch {
-    return NextResponse.json(
-      { success: false, messages: [] },
-      { status: 502 }
-    );
+    return NextResponse.json({ success: false, messages: [] }, { status: 502 });
   }
 }

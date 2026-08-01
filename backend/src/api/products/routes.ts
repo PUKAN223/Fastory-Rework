@@ -7,7 +7,7 @@ class ProductsRoutes extends BaseRouter {
   public override getRouter() {
     const router = super.getRouter();
 
-    router.guard({ beforeHandle: requireStorePermission("products:read") }, (app) =>
+    router.guard({ beforeHandle: requireStorePermission("products:read", "sales:write", "sales:read") }, (app) =>
       app
         .get("/", async (req) => {
           const storeId = Number((req as any).params.storeId);
@@ -86,6 +86,7 @@ class ProductsRoutes extends BaseRouter {
           const schema = z.object({
             sku: z.string().min(1),
             category_id: z.number().int().positive(),
+            location_id: z.number().int().positive().nullable().optional(),
             name: z.string().min(1),
             description: z.string().optional(),
             cost_price: z.coerce.number().min(0).optional(),
@@ -113,12 +114,23 @@ class ProductsRoutes extends BaseRouter {
             return { success: false, message: "Category not found in this store" };
           }
 
+          if (parsed.data.location_id != null) {
+            const location = await prisma.locations.findFirst({
+              where: { id: parsed.data.location_id, store_id: storeId },
+            });
+            if (!location) {
+              req.set.status = 400;
+              return { success: false, message: "Location not found in this store" };
+            }
+          }
+
           try {
             const product = await prisma.products.create({
               data: {
                 store_id: storeId,
                 sku: parsed.data.sku,
                 category_id: parsed.data.category_id,
+                location_id: parsed.data.location_id ?? null,
                 name: parsed.data.name,
                 description: parsed.data.description,
                 cost_price: parsed.data.cost_price,
@@ -147,6 +159,7 @@ class ProductsRoutes extends BaseRouter {
           const schema = z.object({
             sku: z.string().min(1).optional(),
             category_id: z.number().int().positive().optional(),
+            location_id: z.number().int().positive().nullable().optional(),
             name: z.string().min(1).optional(),
             description: z.string().optional(),
             cost_price: z.coerce.number().min(0).optional(),
@@ -184,6 +197,36 @@ class ProductsRoutes extends BaseRouter {
             if (!category) {
               req.set.status = 400;
               return { success: false, message: "Category not found in this store" };
+            }
+          }
+
+          // Validate location belongs to this store if provided
+          const newLocationId = parsed.data.location_id !== undefined
+            ? parsed.data.location_id
+            : existing.location_id;
+
+          if (parsed.data.location_id !== undefined && parsed.data.location_id != null) {
+            const location = await prisma.locations.findFirst({
+              where: { id: parsed.data.location_id, store_id: storeId },
+            });
+            if (!location) {
+              req.set.status = 400;
+              return { success: false, message: "Location not found in this store" };
+            }
+
+            // Capacity check: sum all products in the target location (excluding this product)
+            const aggregate = await prisma.products.aggregate({
+              where: { location_id: parsed.data.location_id, id: { not: id } },
+              _sum: { stock_on_hand: true },
+            });
+            const currentTotal = aggregate._sum.stock_on_hand ?? 0;
+            const thisProductStock = existing.stock_on_hand;
+            if (currentTotal + thisProductStock > location.max_capacity) {
+              req.set.status = 400;
+              return {
+                success: false,
+                message: `ความจุที่เก็บสินค้า "${location.name}" ไม่เพียงพอ (ใช้ ${currentTotal + thisProductStock}/${location.max_capacity})`,
+              };
             }
           }
 

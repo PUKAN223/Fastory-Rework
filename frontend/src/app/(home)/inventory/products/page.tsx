@@ -8,6 +8,7 @@ import { Containers } from "@/components/Containers";
 import { EntityListCard } from "@/components/card/EntityListCard";
 import { PageHeaderCards } from "@/components/card/PageHeaderCards";
 import { ProductStatsCards } from "@/components/card/ProductStatsCards";
+import { ProductsCharts } from "@/components/charts/ProductsCharts";
 import { BulkScannerModal } from "@/components/forms/BulkScannerModal";
 import { ProductFormDrawer } from "@/components/forms/ProductFormDrawer";
 import { ProductsTableSection } from "@/components/tables/ProductsTableSection";
@@ -25,10 +26,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { fetchCategories } from "@/features/categoriesSlice";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { fetchCategories, isCategoriesStale } from "@/features/categoriesSlice";
 import { fetchImages } from "@/features/imageSlice";
-import { fetchLocations } from "@/features/locationsSlice";
-import { fetchProducts } from "@/features/productsSlice";
+import { fetchLocations, isLocationsStale } from "@/features/locationsSlice";
+import { fetchProducts, isProductsStale } from "@/features/productsSlice";
 import { useEntityCrudHandlers } from "@/hooks/useEntityCrudHandlers";
 import { notifyErrorOnce } from "@/lib/notifyError";
 import {
@@ -161,6 +163,12 @@ export default function InventoryProductsPage() {
     [categories],
   );
 
+  const locationOptions = useMemo(
+    () =>
+      locations.map((location) => ({ id: location.id, name: location.name })),
+    [locations],
+  );
+
   const imageUrlById = useMemo(
     () =>
       images.reduce<Record<string, string>>((acc, image) => {
@@ -170,17 +178,30 @@ export default function InventoryProductsPage() {
     [images],
   );
 
-  useEffect(() => {
-    if (fetchStatus === "idle") {
-      dispatch(fetchProducts());
-    }
-  }, [dispatch, fetchStatus]);
+  const productsLastFetched = useAppSelector(
+    (state) => state.products.lastFetched,
+  );
+  const categoriesLastFetched = useAppSelector(
+    (state) => state.categories.lastFetched,
+  );
+  const locationsLastFetched = useAppSelector(
+    (state) => state.locations.lastFetched,
+  );
 
   useEffect(() => {
-    if (categoriesFetchStatus === "idle") {
+    if (fetchStatus === "idle" || isProductsStale(productsLastFetched)) {
+      dispatch(fetchProducts());
+    }
+  }, [dispatch, fetchStatus, productsLastFetched]);
+
+  useEffect(() => {
+    if (
+      categoriesFetchStatus === "idle" ||
+      isCategoriesStale(categoriesLastFetched)
+    ) {
       dispatch(fetchCategories());
     }
-  }, [categoriesFetchStatus, dispatch]);
+  }, [categoriesFetchStatus, dispatch, categoriesLastFetched]);
 
   useEffect(() => {
     if (fetchStatus === "succeeded" && imagesFetchStatus === "idle") {
@@ -189,10 +210,13 @@ export default function InventoryProductsPage() {
   }, [dispatch, fetchStatus, imagesFetchStatus]);
 
   useEffect(() => {
-    if (locationsFetchStatus === "idle") {
+    if (
+      locationsFetchStatus === "idle" ||
+      isLocationsStale(locationsLastFetched)
+    ) {
       dispatch(fetchLocations());
     }
-  }, [dispatch, locationsFetchStatus]);
+  }, [dispatch, locationsFetchStatus, locationsLastFetched]);
 
   useEffect(() => {
     notifyErrorOnce(error, lastErrorRef);
@@ -255,126 +279,146 @@ export default function InventoryProductsPage() {
       <div className="space-y-4 overflow-x-hidden">
         <PageHeaderCards
           title="สินค้า"
-          description="จัดการข้อมูลสินค้า เพิ่ม ลบ หรือแก้ไขรายละเอียดต่างๆ ของสินค้าได้ที่นี่"
+          description="จัดการข้อมูลสินค้า เพิ่ม ลบ หรือแก้ไขรายละเอียดต่างæ ของสินค้าได้ที่นี่"
         >
           <Badge variant="outline">สินค้าทั้งหมด {products.length} รายการ</Badge>
         </PageHeaderCards>
 
-        <ProductStatsCards
-          productsCount={products.length}
-          activeProductsCount={activeProductsCount}
-          totalProductsValue={totalProductsValue}
-          latestProductName={latestProductName}
-          lowStockCount={lowStockCount}
-          productsDelta={weeklyTrend.countDelta}
-          activeDelta={weeklyTrend.activeDelta}
-          valueDelta={weeklyTrend.valueDelta}
-        />
+        <Tabs defaultValue="products">
+          <TabsList className="mb-2">
+            <TabsTrigger value="products">สินค้า</TabsTrigger>
+            <TabsTrigger value="stats">สถิติสินค้า</TabsTrigger>
+          </TabsList>
 
-        {(categories.length === 0 || locations.length === 0) && (
-          <Alert variant="warning" className="animate-fade-in">
-            <AlertTriangle className="size-4 text-warning" />
-            <AlertTitle className="text-sm font-semibold text-warning-foreground">
-              ตรวจพบข้อมูลระบบไม่ครบถ้วน
-            </AlertTitle>
-            <AlertDescription className="text-xs text-muted-foreground flex flex-col sm:flex-row sm:items-center gap-3 mt-1.5">
-              <span>
-                คุณต้องสร้าง{" "}
-                {categories.length === 0 && (
-                  <strong className="text-foreground">หมวดหมู่สินค้า</strong>
-                )}
-                {categories.length === 0 && locations.length === 0 && " และ "}
-                {locations.length === 0 && (
-                  <strong className="text-foreground">คลังสินค้า</strong>
-                )}{" "}
-                ก่อนเพื่อเริ่มระบบการจัดการสแกนและสแกนสต็อกสินค้า
-              </span>
-              <AlertAction className="flex gap-2 shrink-0 sm:ml-auto">
-                {categories.length === 0 && (
-                  <Button
-                    size="xs"
-                    variant="outline"
-                    className="h-7 text-[10px]"
-                    asChild
-                  >
-                    <Link href="/inventory/categories">สร้างหมวดหมู่</Link>
-                  </Button>
-                )}
-                {locations.length === 0 && (
-                  <Button
-                    size="xs"
-                    variant="outline"
-                    className="h-7 text-[10px]"
-                    asChild
-                  >
-                    <Link href="/inventory/warehouses">สร้างคลังสินค้า</Link>
-                  </Button>
-                )}
-              </AlertAction>
-            </AlertDescription>
-          </Alert>
-        )}
+          <TabsContent value="products" className="space-y-4">
+            {(categories.length === 0 || locations.length === 0) && (
+              <Alert variant="warning" className="animate-fade-in">
+                <AlertTriangle className="size-4 text-warning" />
+                <AlertTitle className="text-sm font-semibold text-warning-foreground">
+                  ตรวจพบข้อมูลระบบไม่ครบถ้วน
+                </AlertTitle>
+                <AlertDescription className="text-xs text-muted-foreground flex flex-col sm:flex-row sm:items-center gap-3 mt-1.5">
+                  <span>
+                    คุณต้องสร้าง{" "}
+                    {categories.length === 0 && (
+                      <strong className="text-foreground">หมวดหมู่สินค้า</strong>
+                    )}
+                    {categories.length === 0 &&
+                      locations.length === 0 &&
+                      " และ "}
+                    {locations.length === 0 && (
+                      <strong className="text-foreground">คลังสินค้า</strong>
+                    )}{" "}
+                    ก่อนเพื่อเริ่มระบบการจัดการสแกนและสแกนสต็อกสินค้า
+                  </span>
+                  <AlertAction className="flex gap-2 shrink-0 sm:ml-auto">
+                    {categories.length === 0 && (
+                      <Button
+                        size="xs"
+                        variant="outline"
+                        className="h-7 text-[10px]"
+                        asChild
+                      >
+                        <Link href="/inventory/categories">สร้างหมวดหมู่</Link>
+                      </Button>
+                    )}
+                    {locations.length === 0 && (
+                      <Button
+                        size="xs"
+                        variant="outline"
+                        className="h-7 text-[10px]"
+                        asChild
+                      >
+                        <Link href="/inventory/warehouses">สร้างคลังสินค้า</Link>
+                      </Button>
+                    )}
+                  </AlertAction>
+                </AlertDescription>
+              </Alert>
+            )}
 
-        <EntityListCard
-          title="รายการสินค้า"
-          description="เพิ่ม ค้นหา แก้ไข และลบข้อมูลสินค้าได้ที่นี่"
-          contentClassName="overflow-x-hidden"
-          actions={
-            <div className="flex">
-              {/* Primary: open scanner */}
-              <Button
-                size="sm"
-                className="rounded-r-none border-r-0 gap-1.5 px-3"
-                onClick={() => verifyAndOpen("scanner")}
-              >
-                <Barcode className="size-3.5" />
-                สแกน / เพิ่มสินค้า
-              </Button>
-              {/* Dropdown arrow */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
+            <EntityListCard
+              title="รายการสินค้า"
+              description="เพิ่ม ค้นหา แก้ไข และลบข้อมูลสินค้าได้ที่นี่"
+              contentClassName="overflow-x-hidden"
+              actions={
+                <div className="flex">
+                  {/* Primary: open scanner */}
                   <Button
                     size="sm"
-                    className="rounded-l-none px-2 border-l border-primary-foreground/20"
-                    aria-label="ตัวเลือกเพิ่มเติม"
+                    className="rounded-r-none border-r-0 gap-1.5 px-3"
+                    onClick={() => verifyAndOpen("scanner")}
                   >
-                    <ChevronDown className="size-3.5" />
+                    <Barcode className="size-3.5" />
+                    สแกน / เพิ่มสินค้า
                   </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
-                  <DropdownMenuItem onClick={() => verifyAndOpen("scanner")}>
-                    <Barcode className="size-4" />
-                    สแกน Barcode / SKU
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => verifyAndOpen("drawer")}>
-                    <Plus className="size-4" />
-                    เพิ่มสินค้าด้วยตนเอง
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          }
-        >
-          <ProductsTableSection
-            products={filteredProducts}
-            categories={categoryOptions}
-            imageUrlById={imageUrlById}
-            isImagesLoading={
-              imagesFetchStatus === "idle" || imagesFetchStatus === "loading"
-            }
-            search={search}
-            isLoading={fetchStatus === "loading"}
-            onSearchChange={setSearch}
-            onUpdateProduct={handleUpdateProduct}
-            onDeleteProduct={handleDeleteProduct}
-          />
-        </EntityListCard>
+                  {/* Dropdown arrow */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        size="sm"
+                        className="rounded-l-none px-2 border-l border-primary-foreground/20"
+                        aria-label="ตัวเลือกเพิ่มเติม"
+                      >
+                        <ChevronDown className="size-3.5" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-48">
+                      <DropdownMenuItem
+                        onClick={() => verifyAndOpen("scanner")}
+                      >
+                        <Barcode className="size-4" />
+                        สแกน Barcode / SKU
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => verifyAndOpen("drawer")}>
+                        <Plus className="size-4" />
+                        เพิ่มสินค้าด้วยตนเอง
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              }
+            >
+              <ProductsTableSection
+                products={filteredProducts}
+                categories={categoryOptions}
+                locations={locationOptions}
+                imageUrlById={imageUrlById}
+                isImagesLoading={
+                  imagesFetchStatus === "idle" ||
+                  imagesFetchStatus === "loading"
+                }
+                search={search}
+                isLoading={fetchStatus === "loading"}
+                onSearchChange={setSearch}
+                onUpdateProduct={handleUpdateProduct}
+                onDeleteProduct={handleDeleteProduct}
+              />
+            </EntityListCard>
+          </TabsContent>
+
+          <TabsContent value="stats" className="space-y-4">
+            <ProductStatsCards
+              productsCount={products.length}
+              activeProductsCount={activeProductsCount}
+              totalProductsValue={totalProductsValue}
+              latestProductName={latestProductName}
+              lowStockCount={lowStockCount}
+              productsDelta={weeklyTrend.countDelta}
+              activeDelta={weeklyTrend.activeDelta}
+              valueDelta={weeklyTrend.valueDelta}
+            />
+
+            <ProductsCharts products={products} />
+          </TabsContent>
+        </Tabs>
       </div>
       <BulkScannerModal open={scannerOpen} onOpenChange={setScannerOpen} />
       <ProductFormDrawer
         mode="create"
         open={createDrawerOpen}
         categories={categoryOptions}
+        locations={locationOptions}
         onOpenChange={setCreateDrawerOpen}
         onSubmit={handleCreateProduct}
         isSubmitting={createStatus === "loading"}

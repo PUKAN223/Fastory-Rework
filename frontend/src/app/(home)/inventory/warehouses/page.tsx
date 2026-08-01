@@ -5,15 +5,25 @@ import { Containers } from "@/components/Containers";
 import { EntityListCard } from "@/components/card/EntityListCard";
 import { PageHeaderCards } from "@/components/card/PageHeaderCards";
 import { WarehouseStatsCards } from "@/components/card/WarehouseStatsCards";
+import { WarehouseCharts } from "@/components/charts/WarehouseCharts";
 import { CreateWarehouseDrawer } from "@/components/drawers/CreateWarehouseDrawer";
 import { WarehousesTableSection } from "@/components/tables/WarehousesTableSection";
 import { Badge } from "@/components/ui/badge";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { fetchLocations } from "@/features/locationsSlice";
 import { useEntityCrudHandlers } from "@/hooks/useEntityCrudHandlers";
 import { notifyErrorOnce } from "@/lib/notifyError";
 import {
   createWarehouseService,
   deleteWarehouseService,
+  forceDeleteWarehouseService,
   updateWarehouseService,
 } from "@/services/inventory/warehouse.service";
 import { useAppDispatch, useAppSelector } from "@/store/hook";
@@ -111,6 +121,13 @@ export default function InventoryWarehousesPage() {
     [dispatch],
   );
 
+  const forceDeleteWarehouseAction = useCallback(
+    async (id: string) => {
+      await forceDeleteWarehouseService(dispatch, id);
+    },
+    [dispatch],
+  );
+
   const {
     handleCreate: handleCreateWarehouse,
     handleUpdate: handleUpdateWarehouse,
@@ -129,6 +146,18 @@ export default function InventoryWarehousesPage() {
     },
   });
 
+  const { handleDelete: handleForceDeleteWarehouse } = useEntityCrudHandlers<
+    CreateWarehousePayload,
+    Partial<CreateWarehousePayload>
+  >({
+    createAction: createWarehouseAction,
+    updateAction: updateWarehouseAction,
+    deleteAction: forceDeleteWarehouseAction,
+    messages: {
+      deleteSuccess: "Force ลบคลังสินค้าสำเร็จ",
+    },
+  });
+
   return (
     <Containers>
       <PageHeaderCards
@@ -141,32 +170,46 @@ export default function InventoryWarehousesPage() {
         </div>
       </PageHeaderCards>
 
-      <WarehouseStatsCards
-        latestWarehouseName={latestWarehouseName}
-        totalCapacity={totalCapacity}
-        warehousesCount={warehouses.length}
-        warehousesDelta={weeklyTrend.warehousesDelta}
-        capacityDelta={weeklyTrend.capacityDelta}
-      />
+      <Tabs defaultValue="warehouses">
+        <TabsList className="mb-2">
+          <TabsTrigger value="warehouses">คลังสินค้า</TabsTrigger>
+          <TabsTrigger value="stats">สถิติคลัง</TabsTrigger>
+        </TabsList>
 
-      <EntityListCard
-        title="รายการคลังสินค้า"
-        description="เพิ่ม ค้นหา แก้ไข และลบข้อมูลคลังสินค้าได้ที่นี่"
-        actions={
-          <CreateWarehouseDrawer
-            isSubmitting={createStatus === "loading"}
-            onCreate={handleCreateWarehouse}
+        <TabsContent value="warehouses" className="space-y-4">
+          <EntityListCard
+            title="รายการคลังสินค้า"
+            description="เพิ่ม ค้นหา แก้ไข และลบข้อมูลคลังสินค้าได้ที่นี่"
+            actions={
+              <CreateWarehouseDrawer
+                isSubmitting={createStatus === "loading"}
+                onCreate={handleCreateWarehouse}
+              />
+            }
+          >
+            <WarehousesTableSection
+              warehouses={filteredWarehouses}
+              search={search}
+              onSearchChange={setSearch}
+              onDeleteWarehouse={handleDeleteWarehouse}
+              onUpdateWarehouse={handleUpdateWarehouse}
+              onForceDeleteWarehouse={handleForceDeleteWarehouse}
+            />
+          </EntityListCard>
+        </TabsContent>
+
+        <TabsContent value="stats" className="space-y-4">
+          <WarehouseStatsCards
+            latestWarehouseName={latestWarehouseName}
+            totalCapacity={totalCapacity}
+            warehousesCount={warehouses.length}
+            warehousesDelta={weeklyTrend.warehousesDelta}
+            capacityDelta={weeklyTrend.capacityDelta}
           />
-        }
-      >
-        <WarehousesTableSection
-          warehouses={filteredWarehouses}
-          search={search}
-          onSearchChange={setSearch}
-          onDeleteWarehouse={handleDeleteWarehouse}
-          onUpdateWarehouse={handleUpdateWarehouse}
-        />
-      </EntityListCard>
+
+          <WarehouseCharts warehouses={warehouses} />
+        </TabsContent>
+      </Tabs>
     </Containers>
   );
 }

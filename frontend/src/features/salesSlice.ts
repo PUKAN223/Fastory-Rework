@@ -85,6 +85,7 @@ interface SalesState {
   checkoutOrder: Order | null;
   voidStatus: AsyncStatus;
   fetchSummaryStatus: AsyncStatus;
+  lastFetched: number | null;
   error: string | null;
 }
 
@@ -103,15 +104,25 @@ const initialState: SalesState = {
   fetchOrdersStatus: "idle",
   voidStatus: "idle",
   fetchSummaryStatus: "idle",
+  lastFetched: null,
   error: null,
 };
 
 async function parseErrorMessage(response: Response, fallback: string) {
-  const body = await response
-    .clone()
-    .json()
-    .catch(() => ({}));
-  return body.message ?? body.error ?? fallback;
+  try {
+    const text = await response.text();
+    if (!text) return fallback;
+    try {
+      const body = JSON.parse(text);
+      if (body.message) return body.message;
+      if (body.error) return body.error;
+    } catch {
+      return text;
+    }
+  } catch {
+    return fallback;
+  }
+  return fallback;
 }
 
 // Normalize a raw snake_case order from the backend to our camelCase Order type
@@ -198,7 +209,10 @@ export const checkout = createAsyncThunk<
       return rejectWithValue(await parseErrorMessage(r, "Failed to checkout"));
     }
     const data = await r.json();
-    return normalizeOrder({ ...data.order, promptpayPayload: data.promptpayPayload });
+    return normalizeOrder({
+      ...data.order,
+      promptpayPayload: data.promptpayPayload,
+    });
   } catch (e) {
     return rejectWithValue(
       e instanceof Error ? e.message : "Failed to checkout",
@@ -321,6 +335,7 @@ const slice = createSlice({
     builder.addCase(fetchOrders.fulfilled, (state, action) => {
       state.fetchOrdersStatus = "succeeded";
       state.orders = action.payload;
+      state.lastFetched = Date.now();
     });
     builder.addCase(fetchOrders.rejected, (state, action) => {
       state.fetchOrdersStatus = "failed";
@@ -336,6 +351,7 @@ const slice = createSlice({
       state.checkoutStatus = "succeeded";
       state.checkoutOrder = action.payload;
       state.orders.unshift(action.payload);
+      state.lastFetched = Date.now();
       if (state.dailySummary) {
         state.dailySummary.totalOrders += 1;
         state.dailySummary.totalRevenue += Number(action.payload.total);
@@ -358,6 +374,7 @@ const slice = createSlice({
     });
     builder.addCase(voidOrder.fulfilled, (state, action) => {
       state.voidStatus = "succeeded";
+      state.lastFetched = Date.now();
       const index = state.orders.findIndex((o) => o.id === action.payload.id);
       if (index !== -1) {
         state.orders[index] = action.payload;
@@ -404,6 +421,7 @@ const slice = createSlice({
     builder.addCase(fetchSummary.fulfilled, (s, a) => {
       s.fetchSummaryStatus = "succeeded";
       s.dailySummary = a.payload;
+      s.lastFetched = Date.now();
     });
     builder.addCase(fetchSummary.rejected, (s, a) => {
       s.fetchSummaryStatus = "failed";
@@ -411,6 +429,14 @@ const slice = createSlice({
     });
   },
 });
+
+export function isSalesStale(
+  lastFetched: number | null,
+  maxAgeMs = 15000,
+): boolean {
+  if (lastFetched === null) return true;
+  return Date.now() - lastFetched > maxAgeMs;
+}
 
 export const {
   addToCart,

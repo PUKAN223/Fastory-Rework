@@ -10,16 +10,19 @@ type CategoriesState = {
   createStatus: AsyncStatus;
   updateStatus: AsyncStatus;
   deleteStatus: AsyncStatus;
+  lastFetched: number | null;
   error: string | null;
 };
 
 type ApiCategory = {
-  id: number;
-  name: string;
+  id?: number;
+  store_id?: number;
+  name?: string;
   description?: string | null;
   icon_id?: string | null;
   productCount?: number;
   created_at?: string;
+  updated_at?: string;
 };
 
 type ApiListResponse = {
@@ -38,6 +41,7 @@ const initialState: CategoriesState = {
   createStatus: "idle",
   updateStatus: "idle",
   deleteStatus: "idle",
+  lastFetched: null,
   error: null,
 };
 
@@ -68,14 +72,20 @@ function normalizeCategory(raw: ApiCategory): Category {
 }
 
 async function parseErrorMessage(response: Response, fallback: string) {
-  const body = (await response
-    .clone()
-    .json()
-    .catch(() => ({}))) as {
-    message?: string;
-    error?: string;
-  };
-  return body.message ?? body.error ?? fallback;
+  try {
+    const text = await response.text();
+    if (!text) return fallback;
+    try {
+      const body = JSON.parse(text);
+      if (body.message) return body.message;
+      if (body.error) return body.error;
+    } catch {
+      return text;
+    }
+  } catch {
+    return fallback;
+  }
+  return fallback;
 }
 
 const readApiList = (body: unknown): ApiCategory[] => {
@@ -255,6 +265,14 @@ const setRejected = (
   state.error = action.payload ?? action.error?.message ?? "Unknown error";
 };
 
+export function isCategoriesStale(
+  lastFetched: number | null,
+  maxAgeMs = 15000,
+): boolean {
+  if (lastFetched === null) return true;
+  return Date.now() - lastFetched > maxAgeMs;
+}
+
 const slice = createSlice({
   name: "categories",
   initialState,
@@ -265,6 +283,7 @@ const slice = createSlice({
       state.createStatus = "idle";
       state.updateStatus = "idle";
       state.deleteStatus = "idle";
+      state.lastFetched = null;
       state.error = null;
     },
   },
@@ -273,6 +292,7 @@ const slice = createSlice({
     b.addCase(fetchCategories.fulfilled, (s, a) => {
       s.items = a.payload;
       s.fetchStatus = "succeeded";
+      s.lastFetched = Date.now();
     });
     b.addCase(fetchCategories.rejected, (s, a) =>
       setRejected(s, "fetchStatus", a),
@@ -282,6 +302,7 @@ const slice = createSlice({
     b.addCase(createCategory.fulfilled, (s, a) => {
       s.items.unshift(a.payload);
       s.createStatus = "succeeded";
+      s.lastFetched = Date.now();
     });
     b.addCase(createCategory.rejected, (s, a) =>
       setRejected(s, "createStatus", a),
@@ -292,6 +313,7 @@ const slice = createSlice({
       const i = s.items.findIndex((x) => x.id === a.payload.id);
       if (i >= 0) s.items[i] = a.payload;
       s.updateStatus = "succeeded";
+      s.lastFetched = Date.now();
     });
     b.addCase(updateCategory.rejected, (s, a) =>
       setRejected(s, "updateStatus", a),
@@ -301,6 +323,7 @@ const slice = createSlice({
     b.addCase(deleteCategory.fulfilled, (s, a) => {
       s.items = s.items.filter((x) => x.id !== a.payload);
       s.deleteStatus = "succeeded";
+      s.lastFetched = Date.now();
     });
     b.addCase(deleteCategory.rejected, (s, a) =>
       setRejected(s, "deleteStatus", a),
@@ -310,6 +333,7 @@ const slice = createSlice({
       const i = s.items.findIndex((x) => x.id === a.payload.id);
       if (i >= 0) s.items[i] = a.payload;
       else s.items.unshift(a.payload);
+      s.lastFetched = Date.now();
     });
   },
 });

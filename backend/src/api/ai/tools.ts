@@ -411,11 +411,53 @@ export const geminiTools: any[] = [
   },
 ];
 
-// Execute requested tool safely in Prisma
-export async function executeTool(name: string, args: any): Promise<any> {
+function checkToolPermission(name: string, userPermissions: Record<string, boolean>): boolean {
+  if (userPermissions["*"] || userPermissions.all) return true;
+
+  const toolPermissionMap: Record<string, string[]> = {
+    updateStoreSettings: ["settings:write"],
+    getStoreMembers: ["settings:read"],
+    updateMemberRole: ["settings:write"],
+    removeStoreMember: ["settings:write"],
+    addStoreMember: ["settings:write"],
+    createProduct: ["products:write"],
+    updateProduct: ["products:write"],
+    bulkUpdateProducts: ["products:write"],
+    deleteProduct: ["products:write"],
+    createCategory: ["categories:write"],
+    deleteCategory: ["categories:write"],
+    createLocation: ["locations:write"],
+    updateLocation: ["locations:write"],
+    deleteLocation: ["locations:write"],
+    adjustStock: ["stocks:write"],
+    getTodaySales: ["sales:read", "reports:read"],
+    getSalesReportByDate: ["sales:read", "reports:read"],
+    getCategorySalesBreakdown: ["sales:read", "reports:read"],
+    voidOrder: ["sales:write"],
+  };
+
+  const required = toolPermissionMap[name];
+  if (!required) return true;
+
+  return required.some((perm) => userPermissions[perm] === true);
+}
+
+// Execute requested tool safely in Prisma with permission enforcement
+export async function executeTool(
+  name: string,
+  args: any,
+  userPermissions: Record<string, boolean> = {},
+  roleName = "ผู้ใช้"
+): Promise<any> {
   const storeId = Number(args.storeId);
   if (isNaN(storeId)) {
     return { error: "Invalid storeId" };
+  }
+
+  if (!checkToolPermission(name, userPermissions)) {
+    return {
+      error: `ขออภัยครับ บัญชีของคุณ (${roleName}) ไม่มีสิทธิ์ใช้งานฟังก์ชัน ${name} (Permission Denied)`,
+    };
   }
 
   try {

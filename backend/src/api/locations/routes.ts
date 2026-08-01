@@ -11,8 +11,27 @@ class LocationsRoutes extends BaseRouter {
       app
         .get("/", async (req) => {
           const storeId = Number((req as any).params.storeId);
-          const locations = await prisma.locations.findMany({ where: { store_id: storeId } });
-          return { success: true, locations };
+          const locations = await prisma.locations.findMany({
+            where: { store_id: storeId },
+            include: {
+              _count: { select: { products: true } },
+              products: { select: { stock_on_hand: true } },
+            },
+          });
+
+          const result = locations.map((loc) => ({
+            id: loc.id,
+            store_id: loc.store_id,
+            name: loc.name,
+            description: loc.description,
+            max_capacity: loc.max_capacity,
+            product_count: loc._count.products,
+            stock_total: loc.products.reduce((sum, p) => sum + p.stock_on_hand, 0),
+            created_at: loc.created_at,
+            updated_at: loc.updated_at,
+          }));
+
+          return { success: true, locations: result };
         })
 
         .get("/:id", async (req) => {
@@ -108,6 +127,32 @@ class LocationsRoutes extends BaseRouter {
           if (!existing) {
             req.set.status = 404;
             return { success: false, message: "Location not found" };
+          }
+
+          // Check if any products are assigned to this location
+          const productCount = await prisma.products.count({
+            where: { location_id: id, store_id: storeId },
+          });
+
+          if (productCount > 0) {
+            const url = new URL(req.request.url);
+            const force = url.searchParams.get("force") === "true";
+
+            if (!force) {
+              req.set.status = 409;
+              return {
+                success: false,
+                message: `ไม่สามารถลบได้ มีสินค้า ${productCount} รายการอยู่ในที่เก็บนี้ กรุณาย้ายสินค้าออกก่อน หรือใช้ force=true เพื่อเคลียร์สินค้าออกอัตโนมัติ`,
+                code: "LOCATION_HAS_PRODUCTS",
+                productCount,
+              };
+            }
+
+            // Force clear: unlink all products from this location
+            await prisma.products.updateMany({
+              where: { location_id: id, store_id: storeId },
+              data: { location_id: null },
+            });
           }
 
           await prisma.locations.delete({ where: { id } });

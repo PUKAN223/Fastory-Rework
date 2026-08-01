@@ -49,7 +49,7 @@ export const requirePermission = (permission: string) => {
   };
 };
 
-export const requireStorePermission = (permission: string) => {
+export const requireStorePermission = (...requiredPermissions: string[]) => {
   return async (context: any) => {
     const { headers, params, set } = context;
     const session = getAuthSession(headers?.authorization);
@@ -79,7 +79,9 @@ export const requireStorePermission = (permission: string) => {
     }
 
     const permissions = (membership.permissions ?? {}) as NestedPermissionMap;
-    if (!hasPermission(permissions, permission)) {
+    const hasAny = requiredPermissions.some((perm) => hasPermission(permissions, perm));
+
+    if (!hasAny) {
       set.status = 403;
       return { success: false, message: "Permission denied" };
     }

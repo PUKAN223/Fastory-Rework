@@ -1,10 +1,18 @@
-import { Ellipsis, Search, Shapes } from "lucide-react";
+import { AlertTriangle, Ellipsis, Search, Shapes } from "lucide-react";
 import { type FormEvent, useEffect, useMemo, useState } from "react";
 import { ConfirmDeleteDialog } from "@/components/dialogs/ConfirmDeleteDialog";
 import { DataTablePagination } from "@/components/tables/DataTablePagination";
 import { usePagination } from "@/hooks/usePagination";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   Drawer,
   DrawerContent,
@@ -29,13 +37,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   Table,
   TableBody,
   TableCell,
@@ -55,6 +56,7 @@ type WarehousesTableSectionProps = {
     payload: Partial<CreateWarehousePayload>,
   ) => Promise<boolean> | boolean;
   onDeleteWarehouse: (id: string) => Promise<boolean> | boolean;
+  onForceDeleteWarehouse: (id: string) => Promise<boolean> | boolean;
 };
 
 export function WarehousesTableSection({
@@ -63,6 +65,7 @@ export function WarehousesTableSection({
   onSearchChange,
   onUpdateWarehouse,
   onDeleteWarehouse,
+  onForceDeleteWarehouse,
 }: WarehousesTableSectionProps) {
   const [editOpen, setEditOpen] = useState(false);
   const [editingWarehouse, setEditingWarehouse] = useState<Warehouse | null>(
@@ -79,6 +82,9 @@ export function WarehousesTableSection({
   const [deletingWarehouse, setDeletingWarehouse] = useState<Warehouse | null>(
     null,
   );
+  // Force delete dialog state
+  const [forceDeleteOpen, setForceDeleteOpen] = useState(false);
+  const [forceDeleting, setForceDeleting] = useState(false);
 
   const {
     pageSize,
@@ -143,6 +149,7 @@ export function WarehousesTableSection({
     setDeleteOpen(true);
   };
 
+  // First attempt normal delete — if it fails (has products), show force dialog
   const handleConfirmDelete = async () => {
     if (!deletingWarehouse) {
       return;
@@ -154,6 +161,24 @@ export function WarehousesTableSection({
 
     if (isSuccess) {
       setDeleteOpen(false);
+      setDeletingWarehouse(null);
+    } else {
+      // Check if it failed due to products inside (409)
+      const productCount = deletingWarehouse.productCount ?? 0;
+      if (productCount > 0) {
+        setDeleteOpen(false);
+        setForceDeleteOpen(true);
+      }
+    }
+  };
+
+  const handleForceDelete = async () => {
+    if (!deletingWarehouse) return;
+    setForceDeleting(true);
+    const isSuccess = await onForceDeleteWarehouse(deletingWarehouse.id);
+    setForceDeleting(false);
+    if (isSuccess) {
+      setForceDeleteOpen(false);
       setDeletingWarehouse(null);
     }
   };
@@ -191,7 +216,8 @@ export function WarehousesTableSection({
               <TableRow>
                 <TableHead className="text-center">ชื่อคลัง</TableHead>
                 <TableHead>คำอธิบาย</TableHead>
-                <TableHead className="text-center">ความจุสูงสุด</TableHead>
+                <TableHead className="text-center">ความจุ</TableHead>
+                <TableHead className="text-center">สินค้า</TableHead>
                 <TableHead className="whitespace-nowrap">สร้างเมื่อ</TableHead>
                 <TableHead className="text-center whitespace-nowrap">
                   การกระทำ
@@ -199,58 +225,86 @@ export function WarehousesTableSection({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {paginatedWarehouses.map((warehouse) => (
-                <TableRow key={warehouse.id}>
-                  <TableCell className="truncate font-medium text-center">
-                    {warehouse.name}
-                  </TableCell>
-                  <TableCell className="truncate">
-                    {warehouse.description.length === 0
-                      ? "ไม่มีคำอธิบาย"
-                      : warehouse.description}
-                  </TableCell>
-                  <TableCell className="text-center">
-                    <Badge variant="outline">{warehouse.maxCapacity}</Badge>
-                  </TableCell>
-                  <TableCell className="truncate whitespace-nowrap">
-                    {new Date(warehouse.createdAt).toLocaleString("th-TH", {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </TableCell>
-                  <TableCell className="text-center whitespace-nowrap">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          disabled={deletingWarehouseId === warehouse.id}
-                          size="icon"
-                          variant="ghost"
+              {paginatedWarehouses.map((warehouse) => {
+                const stockTotal = warehouse.stockTotal ?? 0;
+                const maxCap = warehouse.maxCapacity;
+                const usagePercent =
+                  maxCap > 0
+                    ? Math.min(100, Math.round((stockTotal / maxCap) * 100))
+                    : 0;
+                const isNearFull = usagePercent >= 80;
+                const isFull = usagePercent >= 100;
+
+                return (
+                  <TableRow key={warehouse.id}>
+                    <TableCell className="truncate font-medium text-center">
+                      {warehouse.name}
+                    </TableCell>
+                    <TableCell className="truncate">
+                      {warehouse.description.length === 0
+                        ? "ไม่มีคำอธิบาย"
+                        : warehouse.description}
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <div className="flex flex-col items-center gap-1 min-w-[80px]">
+                        <span
+                          className={`text-xs font-medium ${isFull ? "text-destructive" : isNearFull ? "text-warning" : "text-muted-foreground"}`}
                         >
-                          <Ellipsis className="size-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem
-                          onSelect={() => handleEditOpen(warehouse)}
-                        >
-                          แก้ไข
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onSelect={() => handleDeleteOpen(warehouse)}
-                          variant="destructive"
-                        >
-                          {deletingWarehouseId === warehouse.id
-                            ? "กำลังลบ..."
-                            : "ลบ"}
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))}
+                          {stockTotal}/{maxCap}
+                        </span>
+                        <div className="w-full h-1.5 rounded-full bg-muted overflow-hidden">
+                          <div
+                            className={`h-full rounded-full transition-all ${isFull ? "bg-destructive" : isNearFull ? "bg-amber-500" : "bg-primary"}`}
+                            style={{ width: `${usagePercent}%` }}
+                          />
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <Badge variant="secondary">
+                        {warehouse.productCount ?? 0} รายการ
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="truncate whitespace-nowrap">
+                      {new Date(warehouse.createdAt).toLocaleString("th-TH", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </TableCell>
+                    <TableCell className="text-center whitespace-nowrap">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            disabled={deletingWarehouseId === warehouse.id}
+                            size="icon"
+                            variant="ghost"
+                          >
+                            <Ellipsis className="size-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem
+                            onSelect={() => handleEditOpen(warehouse)}
+                          >
+                            แก้ไข
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onSelect={() => handleDeleteOpen(warehouse)}
+                            variant="destructive"
+                          >
+                            {deletingWarehouseId === warehouse.id
+                              ? "กำลังลบ..."
+                              : "ลบ"}
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         )}
@@ -332,6 +386,7 @@ export function WarehousesTableSection({
         </DrawerContent>
       </Drawer>
 
+      {/* Normal delete confirmation */}
       <ConfirmDeleteDialog
         open={deleteOpen}
         onOpenChange={(open) => {
@@ -345,6 +400,68 @@ export function WarehousesTableSection({
         onConfirm={handleConfirmDelete}
         isDeleting={deletingWarehouseId === deletingWarehouse?.id}
       />
+
+      {/* Force delete dialog — shown when location has products */}
+      <Dialog
+        open={forceDeleteOpen}
+        onOpenChange={(open) => {
+          setForceDeleteOpen(open);
+          if (!open) setDeletingWarehouse(null);
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="size-5 text-destructive" />
+              ไม่สามารถลบคลังสินค้าได้
+            </DialogTitle>
+            <DialogDescription>
+              <div className="space-y-3 pt-1">
+                <p>
+                  คลัง{" "}
+                  <strong className="text-foreground">
+                    "{deletingWarehouse?.name}"
+                  </strong>{" "}
+                  มีสินค้า{" "}
+                  <strong className="text-destructive">
+                    {deletingWarehouse?.productCount ?? 0} รายการ
+                  </strong>{" "}
+                  อยู่ในนี้
+                </p>
+                <p className="text-sm">คุณต้องการ:</p>
+                <ul className="list-disc pl-4 text-sm space-y-1">
+                  <li>
+                    <strong>ย้ายสินค้าออกก่อน</strong> —
+                    ไปที่หน้าสินค้าและเปลี่ยนที่เก็บของสินค้าเหล่านั้น แล้วค่อยลบ
+                  </li>
+                  <li>
+                    <strong>Force ลบ</strong> — สินค้าทั้งหมดในคลังนี้จะถูกตั้งค่าเป็น
+                    "ไม่มีที่เก็บ" และลบคลังนี้ออก
+                  </li>
+                </ul>
+              </div>
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setForceDeleteOpen(false);
+                setDeletingWarehouse(null);
+              }}
+            >
+              ย้ายสินค้าไปก่อน
+            </Button>
+            <Button
+              variant="destructive"
+              disabled={forceDeleting}
+              onClick={handleForceDelete}
+            >
+              {forceDeleting ? "กำลังลบ..." : "Force ลบ (เคลียร์สินค้าออก)"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

@@ -4,12 +4,21 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Containers } from "@/components/Containers";
 import { CategoryStatsCards } from "@/components/card/CategoryStatsCards";
+import { CategoryCharts } from "@/components/charts/CategoryCharts";
 import { EntityListCard } from "@/components/card/EntityListCard";
 import { PageHeaderCards } from "@/components/card/PageHeaderCards";
 import { CreateCategoryDrawer } from "@/components/drawers/CreateCategoryDrawer";
 import { CategoriesTableSection } from "@/components/tables/CategoriesTableSection";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { fetchCategories } from "@/features/categoriesSlice";
 import { useEntityCrudHandlers } from "@/hooks/useEntityCrudHandlers";
 import { notifyErrorOnce } from "@/lib/notifyError";
@@ -140,37 +149,50 @@ export default function InventoryCategoriesPage() {
         <Badge variant="outline">{totalProducts} สินค้า</Badge>
       </PageHeaderCards>
 
-      <CategoryStatsCards
-        categoriesCount={categories.length}
-        latestCategoryName={latestCategoryName}
-        totalProducts={totalProducts}
-        categoriesDelta={weeklyTrend.categoriesDelta}
-        productsDelta={weeklyTrend.productsDelta}
-      />
+      <Tabs defaultValue="categories">
+        <TabsList className="mb-2">
+          <TabsTrigger value="categories">หมวดหมู่</TabsTrigger>
+          <TabsTrigger value="stats">สถิติหมวดหมู่</TabsTrigger>
+        </TabsList>
 
-      <EntityListCard
-        title="รายการหมวดหมู่"
-        description="เพิ่ม ค้นหา และดูรายละเอียดของหมวดหมู่สินค้าได้ที่นี่"
-        actions={
-          <>
-            <CreateCategoryDrawer
-              isSubmitting={createStatus === "loading"}
-              onCreate={handleCreateCategory}
+        <TabsContent value="categories">
+          <EntityListCard
+            title="รายการหมวดหมู่"
+            description="เพิ่ม ค้นหา และดูรายละเอียดของหมวดหมู่สินค้าได้ที่นี่"
+            actions={
+              <>
+                <CreateCategoryDrawer
+                  isSubmitting={createStatus === "loading"}
+                  onCreate={handleCreateCategory}
+                />
+                <Button asChild variant="outline">
+                  <Link href="/inventory/products">จัดการสินค้า</Link>
+                </Button>
+              </>
+            }
+          >
+            <CategoriesTableSection
+              categories={filteredCategories}
+              search={search}
+              onSearchChange={setSearch}
+              onDeleteCategory={handleDeleteCategory}
+              onUpdateCategory={handleUpdateCategory}
             />
-            <Button asChild variant="outline">
-              <Link href="/inventory/products">จัดการสินค้า</Link>
-            </Button>
-          </>
-        }
-      >
-        <CategoriesTableSection
-          categories={filteredCategories}
-          search={search}
-          onSearchChange={setSearch}
-          onDeleteCategory={handleDeleteCategory}
-          onUpdateCategory={handleUpdateCategory}
-        />
-      </EntityListCard>
+          </EntityListCard>
+        </TabsContent>
+
+        <TabsContent value="stats" className="space-y-4">
+          <CategoryStatsCards
+            categoriesCount={categories.length}
+            latestCategoryName={latestCategoryName}
+            totalProducts={totalProducts}
+            categoriesDelta={weeklyTrend.categoriesDelta}
+            productsDelta={weeklyTrend.productsDelta}
+          />
+
+          <CategoryCharts categories={categories} />
+        </TabsContent>
+      </Tabs>
     </Containers>
   );
 }

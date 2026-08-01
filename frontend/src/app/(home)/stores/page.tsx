@@ -1,35 +1,24 @@
 "use client";
 
-import {
-  CheckCircle2,
-  MoreHorizontal,
-  Pencil,
-  Plus,
-  Store,
-  Trash2,
-} from "lucide-react";
+import { CheckCircle2, MoreHorizontal, Pencil, Plus, Store } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { toast } from "sonner";
 import { CreateStoreSheet, EditStoreSheet } from "@/components/AddStoreDialog";
-import { ConfirmDeleteDialog } from "@/components/dialogs/ConfirmDeleteDialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-  deleteStore,
   fetchStores,
   type Store as StoreType,
   setActiveStore,
 } from "@/features/storeSlice";
+import { hasStorePermission } from "@/lib/permissions";
 import { storeIconMap } from "@/lib/storeIcons";
 import { cn } from "@/lib/utils";
 import { useAppDispatch, useAppSelector } from "@/store/hook";
@@ -42,7 +31,6 @@ export default function StoresPage() {
   const loading = useAppSelector((state) => state.stores.loading);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
-  const [deleteOpen, setDeleteOpen] = useState(false);
   const [selectedStore, setSelectedStore] = useState<StoreType | null>(null);
 
   useEffect(() => {
@@ -51,31 +39,16 @@ export default function StoresPage() {
 
   const handleSelectStore = (id: number) => {
     dispatch(setActiveStore(id));
-    router.push("/dashboard");
-  };
+    const targetStore = stores.find((s) => s.id === id);
+    const perms = targetStore?.permissions;
 
-  const [deletePassword, setDeletePassword] = useState("");
-  const [isDeletingStore, setIsDeletingStore] = useState(false);
-
-  const handleDeleteStore = async () => {
-    if (!selectedStore) return;
-    if (!deletePassword.trim()) {
-      toast.error("กรุณากรอกรหัสผ่านเพื่อยืนยัน");
-      return;
-    }
-    setIsDeletingStore(true);
-    try {
-      await dispatch(
-        deleteStore({ id: selectedStore.id, password: deletePassword }),
-      ).unwrap();
-      toast.success("ลบร้านค้าสำเร็จ");
-      setDeleteOpen(false);
-      setSelectedStore(null);
-      setDeletePassword("");
-    } catch (err) {
-      toast.error(typeof err === "string" ? err : "ไม่สามารถลบร้านค้าได้");
-    } finally {
-      setIsDeletingStore(false);
+    if (
+      hasStorePermission(perms, "sales:write") &&
+      !hasStorePermission(perms, "reports:read")
+    ) {
+      router.push("/sales/pos");
+    } else {
+      router.push("/dashboard");
     }
   };
 
@@ -209,18 +182,6 @@ export default function StoresPage() {
                       <Pencil className="size-4" />
                       แก้ไขข้อมูลร้านค้า
                     </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      className="text-destructive focus:text-destructive"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSelectedStore(s);
-                        setDeleteOpen(true);
-                      }}
-                    >
-                      <Trash2 className="size-4" />
-                      ลบร้านค้า
-                    </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
@@ -342,49 +303,6 @@ export default function StoresPage() {
         onOpenChange={setEditOpen}
         store={selectedStore}
       />
-
-      <ConfirmDeleteDialog
-        open={deleteOpen}
-        onOpenChange={(v) => {
-          setDeleteOpen(v);
-          if (!v) {
-            setDeletePassword("");
-            setSelectedStore(null);
-          }
-        }}
-        title="ยืนยันการลบร้านค้า?"
-        description={
-          <>
-            การดำเนินการนี้ไม่สามารถย้อนกลับได้ ข้อมูลสินค้า หมวดหมู่ ประวัติสต็อก
-            และที่เก็บสินค้าทั้งหมดภายใต้ร้านค้า{" "}
-            <strong className="text-foreground">
-              "{selectedStore?.name}"
-            </strong>{" "}
-            จะถูกลบออกถาวร
-          </>
-        }
-        onConfirm={handleDeleteStore}
-        isDeleting={isDeletingStore || !deletePassword.trim()}
-        confirmLabel="ยืนยันการลบ"
-      >
-        <div className="space-y-1.5 pt-2">
-          <label
-            htmlFor="delete-store-password"
-            className="text-xs font-semibold text-muted-foreground"
-          >
-            กรอกรหัสผ่านของคุณเพื่อยืนยันการลบ{" "}
-            <span className="text-destructive">*</span>
-          </label>
-          <Input
-            id="delete-store-password"
-            type="password"
-            placeholder="รหัสผ่านบัญชีผู้ใช้ของคุณ"
-            value={deletePassword}
-            onChange={(e) => setDeletePassword(e.target.value)}
-            className="h-9"
-          />
-        </div>
-      </ConfirmDeleteDialog>
     </div>
   );
 }

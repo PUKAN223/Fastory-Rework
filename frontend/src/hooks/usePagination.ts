@@ -90,7 +90,7 @@ export function usePagination({
     setCurrentPageState(1); // Reset to first page on page size change
   };
 
-  const paginate = <T,>(items: T[]): T[] => {
+  const paginate = <T>(items: T[]): T[] => {
     return items.slice(startIndex, endIndex);
   };
 

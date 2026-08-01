@@ -11,9 +11,11 @@ import {
   LineChart as LineIcon,
   Percent,
   PieChart as PieIcon,
+  ShoppingBag,
   TrendingUp,
   Users,
 } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import {
   Area,
@@ -57,6 +59,80 @@ import { formatCurrency } from "@/lib/utils";
 import { useAppDispatch, useAppSelector } from "@/store/hook";
 
 type DateRangeOption = "7d" | "30d" | "all";
+
+function ChartTooltip({ active, payload, label }: any) {
+  if (!active || !payload?.length) return null;
+  const dateStr = label
+    ? format(parseISO(label), "d MMMM yyyy", { locale: th })
+    : "";
+
+  return (
+    <div className="rounded-xl border border-border/80 bg-zinc-900/95 p-3 text-xs shadow-xl backdrop-blur-md">
+      {dateStr && (
+        <p className="mb-1.5 font-semibold text-zinc-100">{dateStr}</p>
+      )}
+      {payload.map((p: any, i: number) => (
+        <div key={i} className="flex items-center gap-2 text-zinc-400 mt-0.5">
+          <span
+            className="size-2.5 rounded-full border border-white/20 shadow-sm"
+            style={{ background: p.fill || p.color || p.stroke }}
+          />
+          <span>{p.name}:</span>
+          <span className="font-semibold text-zinc-100">
+            {typeof p.value === "number" &&
+            (p.name.includes("ยอดขาย") || p.name.includes("มูลค่า"))
+              ? formatCurrency(p.value)
+              : p.name.includes("ออเดอร์") || p.name.includes("จำนวน")
+                ? `${p.value} รายการ`
+                : formatCurrency(p.value)}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function EmptyChartContent({
+  message = "ไม่มีข้อมูลเพียงพอสำหรับการแสดงกราฟ",
+  onResetRange,
+}: {
+  message?: string;
+  onResetRange?: () => void;
+}) {
+  return (
+    <div className="flex flex-col items-center justify-center py-12 text-center">
+      <div className="flex size-11 items-center justify-center rounded-xl border border-border/60 bg-muted/30 text-muted-foreground mb-3 shadow-inner">
+        <BarChart3 className="size-5 text-muted-foreground" />
+      </div>
+      <p className="text-xs font-medium text-foreground">{message}</p>
+      <p className="text-[11px] text-muted-foreground mt-0.5 max-w-xs">
+        ทำรายการขายในระบบ หรือปรับเปลี่ยนการกรองช่วงเวลา
+      </p>
+      <div className="flex items-center gap-2 mt-3">
+        {onResetRange && (
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={onResetRange}
+            className="h-7 text-xs px-2.5 border-border/60 hover:bg-muted/50"
+          >
+            <Filter className="size-3 mr-1 text-muted-foreground" /> ดูข้อมูลทั้งหมด
+          </Button>
+        )}
+        <Button
+          size="sm"
+          variant="secondary"
+          asChild
+          className="h-7 text-xs px-2.5"
+        >
+          <Link href="/sales/pos">
+            <ShoppingBag className="size-3 mr-1" /> เปิดบิลขาย (POS)
+          </Link>
+        </Button>
+      </div>
+    </div>
+  );
+}
 
 export default function ReportsPage() {
   const dispatch = useAppDispatch();
@@ -174,9 +250,9 @@ export default function ReportsPage() {
   }, [filteredOrders]);
 
   const paymentChartData = [
-    { name: "เงินสด", value: metrics.cashTotal, color: "#10b981" },
-    { name: "พร้อมเพย์", value: metrics.promptpayTotal, color: "#3b82f6" },
-  ];
+    { name: "เงินสด", value: metrics.cashTotal, color: "#a1a1aa" },
+    { name: "พร้อมเพย์", value: metrics.promptpayTotal, color: "#64748b" },
+  ].filter((d) => d.value > 0);
 
   if (status === "loading" || status === "idle") {
     return (
@@ -218,7 +294,7 @@ export default function ReportsPage() {
       </PageHeaderCards>
 
       {/* Filter Toolbar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl border bg-card shadow-xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl border border-border/60 bg-card shadow-none">
         <div className="flex items-center gap-2">
           <Filter className="w-4 h-4 text-muted-foreground" />
           <span className="text-sm font-medium">ตัวกรองช่วงเวลา:</span>
@@ -256,7 +332,7 @@ export default function ReportsPage() {
             onValueChange={(v) => setActiveTab(v as any)}
             className="w-auto"
           >
-            <TabsList className="h-8">
+            <TabsList className="h-8 bg-muted/60 p-1">
               <TabsTrigger value="overview" className="text-xs px-3">
                 ภาพรวม
               </TabsTrigger>
@@ -271,15 +347,20 @@ export default function ReportsPage() {
         </div>
       </div>
 
-      {/* KPI Stats Cards */}
+      {/* KPI Stats Cards - Subtle Muted Dark Styling */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="overflow-hidden border-emerald-500/20 bg-emerald-500/5">
+        {/* Card 1: Revenue */}
+        <Card className="border-border/60 shadow-none">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">ยอดขายรวม</CardTitle>
-            <TrendingUp className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+            <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              ยอดขายรวม
+            </CardTitle>
+            <div className="p-1.5 rounded-lg bg-muted/50 text-muted-foreground">
+              <TrendingUp className="h-4 w-4" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+            <div className="text-2xl font-bold text-foreground">
               {formatCurrency(metrics.totalRevenue)}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
@@ -288,43 +369,54 @@ export default function ReportsPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        {/* Card 2: Orders */}
+        <Card className="border-border/60 shadow-none">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">จำนวนคำสั่งซื้อ</CardTitle>
-            <HandCoins className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              จำนวนคำสั่งซื้อ
+            </CardTitle>
+            <div className="p-1.5 rounded-lg bg-muted/50 text-muted-foreground">
+              <HandCoins className="h-4 w-4" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-2xl font-bold text-foreground">
               {metrics.totalOrders.toLocaleString()} รายการ
             </div>
             <p className="text-xs text-muted-foreground mt-1">สถานะเสร็จสมบูรณ์</p>
           </CardContent>
         </Card>
 
-        <Card>
+        {/* Card 3: AOV */}
+        <Card className="border-border/60 shadow-none">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
+            <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
               ยอดสั่งซื้อเฉลี่ย (AOV)
             </CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+            <div className="p-1.5 rounded-lg bg-muted/50 text-muted-foreground">
+              <Users className="h-4 w-4" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-2xl font-bold text-foreground">
               {formatCurrency(metrics.aov)}
             </div>
             <p className="text-xs text-muted-foreground mt-1">เฉลี่ยต่อคำสั่งซื้อ</p>
           </CardContent>
         </Card>
 
-        <Card>
+        {/* Card 4: Max Order Value */}
+        <Card className="border-border/60 shadow-none">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
+            <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
               ยอดสั่งซื้อสูงสุดในบิลเดียว
             </CardTitle>
-            <Award className="h-4 w-4 text-amber-500" />
+            <div className="p-1.5 rounded-lg bg-muted/50 text-muted-foreground">
+              <Award className="h-4 w-4" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-2xl font-bold text-foreground">
               {formatCurrency(metrics.maxOrderValue)}
             </div>
             <p className="text-xs text-muted-foreground mt-1">มูลค่าบิลสูงสุด</p>
@@ -338,14 +430,14 @@ export default function ReportsPage() {
         <TabsContent value="overview" className="space-y-4 mt-0">
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
             {/* Sales Bar Chart */}
-            <Card className="col-span-4">
-              <CardHeader className="flex flex-row items-center justify-between">
+            <Card className="col-span-4 border-border/60 shadow-none">
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <div>
-                  <CardTitle className="flex items-center gap-2">
-                    <BarChart3 className="w-5 h-5 text-primary" />
+                  <CardTitle className="flex items-center gap-2 text-sm font-medium">
+                    <BarChart3 className="w-4 h-4 text-muted-foreground" />
                     แนวโน้มยอดขายตามวันที่
                   </CardTitle>
-                  <CardDescription>
+                  <CardDescription className="text-xs">
                     กราฟแท่งแสดงยอดขายรวมรายวันในช่วงเวลาที่เลือก
                   </CardDescription>
                 </div>
@@ -355,93 +447,119 @@ export default function ReportsPage() {
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart
                       data={metrics.salesTrends}
-                      margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+                      margin={{ top: 10, right: 10, left: -15, bottom: 15 }}
                     >
+                      <defs>
+                        <linearGradient
+                          id="revenueBarMuted"
+                          x1="0"
+                          y1="0"
+                          x2="0"
+                          y2="1"
+                        >
+                          <stop
+                            offset="0%"
+                            stopColor="#d4d4d8"
+                            stopOpacity={0.85}
+                          />
+                          <stop
+                            offset="100%"
+                            stopColor="#71717a"
+                            stopOpacity={0.5}
+                          />
+                        </linearGradient>
+                      </defs>
                       <CartesianGrid
                         strokeDasharray="3 3"
                         vertical={false}
-                        opacity={0.3}
+                        opacity={0.1}
                       />
                       <XAxis
                         dataKey="date"
                         tickFormatter={(val) =>
                           format(parseISO(val), "d MMM", { locale: th })
                         }
-                        fontSize={12}
+                        fontSize={11}
                         tickLine={false}
                         axisLine={false}
+                        className="fill-muted-foreground font-medium"
                       />
                       <YAxis
-                        fontSize={12}
+                        fontSize={11}
                         tickLine={false}
                         axisLine={false}
-                        tickFormatter={(val) => `฿${val.toLocaleString()}`}
-                      />
-                      <Tooltip
-                        formatter={(value: number) => formatCurrency(value)}
-                        labelFormatter={(label) =>
-                          format(parseISO(label), "d MMMM yyyy", { locale: th })
+                        className="fill-muted-foreground"
+                        tickFormatter={(val) =>
+                          `฿${val >= 1000 ? `${(val / 1000).toFixed(0)}k` : val}`
                         }
-                        contentStyle={{
-                          borderRadius: "8px",
-                          border: "1px solid #e2e8f0",
-                        }}
                       />
+                      <Tooltip content={<ChartTooltip />} />
                       <Bar
                         dataKey="revenue"
-                        fill="currentColor"
-                        radius={[4, 4, 0, 0]}
-                        className="fill-primary"
+                        name="ยอดขาย"
+                        fill="url(#revenueBarMuted)"
+                        radius={[5, 5, 0, 0]}
+                        maxBarSize={26}
                       />
                     </BarChart>
                   </ResponsiveContainer>
                 ) : (
-                  <div className="flex h-full items-center justify-center text-muted-foreground text-sm">
-                    ไม่มีข้อมูลยอดขายในช่วงเวลาที่เลือก
-                  </div>
+                  <EmptyChartContent
+                    message="ไม่มีข้อมูลยอดขายในช่วงเวลาที่เลือก"
+                    onResetRange={() => setDateRange("all")}
+                  />
                 )}
               </CardContent>
             </Card>
 
             {/* Payment Methods Donut Chart */}
-            <Card className="col-span-3">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <PieIcon className="w-5 h-5 text-primary" />
+            <Card className="col-span-3 border-border/60 shadow-none">
+              <CardHeader className="pb-2">
+                <CardTitle className="flex items-center gap-2 text-sm font-medium">
+                  <PieIcon className="w-4 h-4 text-muted-foreground" />
                   สัดส่วนช่องทางการชำระเงิน
                 </CardTitle>
-                <CardDescription>
+                <CardDescription className="text-xs">
                   เปรียบเทียบการชำระด้วยเงินสดและพร้อมเพย์
                 </CardDescription>
               </CardHeader>
-              <CardContent className="h-[250px]">
-                {metrics.totalRevenue > 0 ? (
+              <CardContent className="h-[270px]">
+                {metrics.totalRevenue > 0 && paymentChartData.length > 0 ? (
                   <>
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={paymentChartData}
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={55}
-                          outerRadius={85}
-                          paddingAngle={4}
-                          dataKey="value"
-                        >
-                          {paymentChartData.map((entry) => (
-                            <Cell key={entry.name} fill={entry.color} />
-                          ))}
-                        </Pie>
-                        <Tooltip
-                          formatter={(value: number) => formatCurrency(value)}
-                          contentStyle={{
-                            borderRadius: "8px",
-                            border: "1px solid #e2e8f0",
-                          }}
-                        />
-                      </PieChart>
-                    </ResponsiveContainer>
-                    <div className="flex justify-center gap-6 mt-2">
+                    <div className="relative h-[190px] w-full">
+                      {/* Center Stat Number */}
+                      <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none pb-1">
+                        <span className="text-xl font-bold tracking-tight text-foreground">
+                          {formatCurrency(metrics.totalRevenue)}
+                        </span>
+                        <span className="text-[10px] font-medium text-muted-foreground">
+                          ยอดขายรวม
+                        </span>
+                      </div>
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={paymentChartData}
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={52}
+                            outerRadius={74}
+                            paddingAngle={4}
+                            dataKey="value"
+                          >
+                            {paymentChartData.map((entry) => (
+                              <Cell
+                                key={entry.name}
+                                fill={entry.color}
+                                stroke="transparent"
+                              />
+                            ))}
+                          </Pie>
+                          <Tooltip content={<ChartTooltip />} />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
+                    <div className="flex justify-center gap-6 pt-1">
                       {paymentChartData.map((entry) => {
                         const pct =
                           metrics.totalRevenue > 0
@@ -456,11 +574,13 @@ export default function ReportsPage() {
                             className="flex items-center gap-2 text-xs font-medium"
                           >
                             <div
-                              className="w-3 h-3 rounded-full"
+                              className="size-2.5 rounded-full border border-white/10 shadow-sm"
                               style={{ backgroundColor: entry.color }}
                             />
-                            <span>{entry.name}</span>
                             <span className="text-muted-foreground">
+                              {entry.name}
+                            </span>
+                            <span className="font-semibold text-foreground">
                               ({pct}%)
                             </span>
                           </div>
@@ -469,9 +589,10 @@ export default function ReportsPage() {
                     </div>
                   </>
                 ) : (
-                  <div className="flex h-full items-center justify-center text-muted-foreground text-sm">
-                    ไม่มีข้อมูลช่องทางการชำระเงิน
-                  </div>
+                  <EmptyChartContent
+                    message="ไม่มีข้อมูลช่องทางการชำระเงิน"
+                    onResetRange={() => setDateRange("all")}
+                  />
                 )}
               </CardContent>
             </Card>
@@ -480,13 +601,13 @@ export default function ReportsPage() {
 
         {/* Tab 2: Trends & Order Growth */}
         <TabsContent value="trends" className="space-y-4 mt-0">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <LineIcon className="w-5 h-5 text-primary" />
+          <Card className="border-border/60 shadow-none">
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-sm font-medium">
+                <LineIcon className="w-4 h-4 text-muted-foreground" />
                 กราฟแสดงการเติบโตและจำนวนออเดอร์รายวัน
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-xs">
                 วิเคราะห์ปริมาณออเดอร์ที่เข้ามาในแต่ละวัน
               </CardDescription>
             </CardHeader>
@@ -495,11 +616,11 @@ export default function ReportsPage() {
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart
                     data={metrics.salesTrends}
-                    margin={{ top: 10, right: 20, left: -20, bottom: 0 }}
+                    margin={{ top: 10, right: 20, left: -20, bottom: 10 }}
                   >
                     <defs>
                       <linearGradient
-                        id="colorOrders"
+                        id="colorOrdersMuted"
                         x1="0"
                         y1="0"
                         x2="0"
@@ -507,53 +628,61 @@ export default function ReportsPage() {
                       >
                         <stop
                           offset="5%"
-                          stopColor="#3b82f6"
-                          stopOpacity={0.4}
+                          stopColor="#a1a1aa"
+                          stopOpacity={0.25}
                         />
                         <stop
                           offset="95%"
-                          stopColor="#3b82f6"
-                          stopOpacity={0}
+                          stopColor="#a1a1aa"
+                          stopOpacity={0.0}
                         />
                       </linearGradient>
                     </defs>
                     <CartesianGrid
                       strokeDasharray="3 3"
                       vertical={false}
-                      opacity={0.3}
+                      opacity={0.1}
                     />
                     <XAxis
                       dataKey="date"
                       tickFormatter={(val) =>
                         format(parseISO(val), "d MMM", { locale: th })
                       }
-                      fontSize={12}
+                      fontSize={11}
+                      tickLine={false}
+                      axisLine={false}
+                      className="fill-muted-foreground font-medium"
                     />
-                    <YAxis fontSize={12} allowDecimals={false} />
-                    <Tooltip
-                      formatter={(val: number) => [
-                        `${val} ออเดอร์`,
-                        "จำนวนออเดอร์",
-                      ]}
-                      labelFormatter={(label) =>
-                        format(parseISO(label), "d MMMM yyyy", { locale: th })
-                      }
-                      contentStyle={{ borderRadius: "8px" }}
+                    <YAxis
+                      fontSize={11}
+                      axisLine={false}
+                      tickLine={false}
+                      allowDecimals={false}
+                      className="fill-muted-foreground"
                     />
+                    <Tooltip content={<ChartTooltip />} />
                     <Area
                       type="monotone"
                       dataKey="orders"
-                      stroke="#3b82f6"
+                      name="จำนวนออเดอร์"
+                      stroke="#a1a1aa"
                       strokeWidth={2}
                       fillOpacity={1}
-                      fill="url(#colorOrders)"
+                      fill="url(#colorOrdersMuted)"
+                      activeDot={{
+                        r: 5,
+                        stroke: "#d4d4d8",
+                        strokeWidth: 2,
+                        fill: "#71717a",
+                      }}
                     />
                   </AreaChart>
                 </ResponsiveContainer>
               ) : (
-                <div className="flex h-full items-center justify-center text-muted-foreground text-sm">
-                  ไม่มีข้อมูลกราฟแนวโน้ม
-                </div>
+                <EmptyChartContent
+                  message="ไม่มีข้อมูลกราฟแนวโน้มการเติบโต"
+                  onResetRange={() => setDateRange("all")}
+                />
               )}
             </CardContent>
           </Card>
@@ -593,12 +722,12 @@ export default function ReportsPage() {
                         <TableCell className="text-right">
                           {p.quantity.toLocaleString()} ชิ้น
                         </TableCell>
-                        <TableCell className="text-right font-medium text-emerald-600 dark:text-emerald-400">
+                        <TableCell className="text-right font-medium text-foreground">
                           {formatCurrency(p.revenue)}
                         </TableCell>
                         <TableCell className="text-right">
                           <Badge variant="outline" className="font-normal">
-                            <Percent className="w-3 h-3 mr-1" />
+                            <Percent className="w-3 h-3 mr-1 text-muted-foreground" />
                             {share}%
                           </Badge>
                         </TableCell>
@@ -608,33 +737,36 @@ export default function ReportsPage() {
                 </TableBody>
               </Table>
             ) : (
-              <div className="text-center py-12 text-muted-foreground text-sm">
-                ไม่พบข้อมูลสินค้าขายดีในช่วงเวลานี้
-              </div>
+              <EmptyChartContent
+                message="ไม่พบข้อมูลสินค้าขายดีในช่วงเวลานี้"
+                onResetRange={() => setDateRange("all")}
+              />
             )}
           </EntityListCard>
         </TabsContent>
       </Tabs>
 
-      {/* Business Insight Section */}
+      {/* Business Insight Section - Low-Contrast Muted Dark Design */}
       <EntityListCard
         title="สรุปวิเคราะห์ข้อมูลธุรกิจ"
         description="ข้อเสนอแนะเชิงลึกเพื่อช่วยในการตัดสินใจเพิ่มยอดขายของคุณ"
       >
         <div className="grid gap-4 md:grid-cols-2">
-          <div className="flex items-start gap-4 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
-            <ArrowUpRight className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
+          <div className="flex items-start gap-4 p-4 rounded-xl bg-muted/30 border border-border/60">
+            <ArrowUpRight className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
             <div>
-              <h4 className="text-sm font-semibold text-emerald-700 dark:text-emerald-400">
+              <h4 className="text-sm font-semibold text-foreground">
                 สินค้าทำเงินสูงสุด
               </h4>
-              <p className="text-sm text-emerald-600/90 dark:text-emerald-400/90 mt-1">
+              <p className="text-sm text-muted-foreground mt-1">
                 {metrics.topProducts.length > 0 ? (
                   <>
                     สินค้า{" "}
-                    <strong>"{metrics.topProducts[0]?.productName}"</strong>{" "}
+                    <strong className="text-foreground">
+                      "{metrics.topProducts[0]?.productName}"
+                    </strong>{" "}
                     ทำรายได้สูงสุดอยู่ที่{" "}
-                    <strong>
+                    <strong className="text-foreground">
                       {formatCurrency(metrics.topProducts[0]?.revenue)}
                     </strong>{" "}
                     แนะนำให้บริหารจัดการสต็อกของสินค้าชิ้นนี้อย่างสม่ำเสมอเพื่อไม่ให้เกิดสินค้าขาดตลาด
@@ -646,15 +778,15 @@ export default function ReportsPage() {
             </div>
           </div>
 
-          <div className="flex items-start gap-4 p-4 rounded-xl bg-blue-500/10 border border-blue-500/20">
-            <HandCoins className="h-5 w-5 text-blue-600 shrink-0 mt-0.5" />
+          <div className="flex items-start gap-4 p-4 rounded-xl bg-muted/30 border border-border/60">
+            <HandCoins className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
             <div>
-              <h4 className="text-sm font-semibold text-blue-700 dark:text-blue-400">
+              <h4 className="text-sm font-semibold text-foreground">
                 พฤติกรรมการชำระเงิน
               </h4>
-              <p className="text-sm text-blue-600/90 dark:text-blue-400/90 mt-1">
+              <p className="text-sm text-muted-foreground mt-1">
                 ลูกค้าส่วนใหญ่นิยมชำระด้วย{" "}
-                <strong>
+                <strong className="text-foreground">
                   {metrics.cashTotal >= metrics.promptpayTotal
                     ? "เงินสด"
                     : "พร้อมเพย์"}

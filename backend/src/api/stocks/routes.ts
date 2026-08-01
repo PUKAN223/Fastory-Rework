@@ -83,6 +83,27 @@ class StocksRoutes extends BaseRouter {
               throw new Error("สต็อกไม่เพียงพอ");
             }
 
+            // Per-location capacity check (only when adding stock and product has a location)
+            if (delta > 0 && currentProduct.location_id) {
+              const location = await tx.locations.findUnique({
+                where: { id: currentProduct.location_id },
+              });
+              if (location) {
+                const aggregate = await tx.products.aggregate({
+                  where: { location_id: currentProduct.location_id, id: { not: productId } },
+                  _sum: { stock_on_hand: true },
+                });
+                const otherStock = aggregate._sum.stock_on_hand ?? 0;
+                const totalAfter = otherStock + currentProduct.stock_on_hand + delta;
+                if (totalAfter > location.max_capacity) {
+                  const remainingSpace = Math.max(0, location.max_capacity - (otherStock + currentProduct.stock_on_hand));
+                  throw new Error(
+                    `ไม่สามารถเพิ่มสต็อกได้เนื่องจากที่เก็บสินค้า "${location.name}" เต็มความจุแล้ว (ความจุคงเหลือ: ${remainingSpace} ชิ้น, ต้องการเพิ่ม: ${delta} ชิ้น)`
+                  );
+                }
+              }
+            }
+
             const updatedProduct = await tx.products.update({
               where: { id: productId },
               data: {

@@ -260,6 +260,45 @@ class AIRoutes extends BaseRouter {
           };
         }
       })
+      .get("/chat/quota", async (req) => {
+        const storeId = Number((req as any).params.storeId);
+        const session = getAuthSession((req as any).headers?.authorization);
+        const store = await prisma.stores.findUnique({ where: { id: storeId } });
+        const userId = session?.user?.id || store?.owner_id;
+
+        if (!userId) {
+          return { success: false, message: "Unauthorized user" };
+        }
+
+        const startOfDay = new Date();
+        startOfDay.setHours(0, 0, 0, 0);
+
+        try {
+          const usedToday = await prisma.ai_chat_messages.count({
+            where: {
+              store_id: storeId,
+              user_id: userId,
+              role: "user",
+              created_at: { gte: startOfDay },
+            },
+          });
+
+          const dailyLimit = 100;
+          const remaining = Math.max(0, dailyLimit - usedToday);
+
+          return {
+            success: true,
+            model: "Gemini 3.1 Flash Lite",
+            usedToday,
+            dailyLimit,
+            remaining,
+            status: remaining > 0 ? "active" : "exceeded",
+          };
+        } catch (err: any) {
+          console.error("Failed to fetch quota:", err);
+          return { success: false, message: "Failed to calculate quota" };
+        }
+      })
       .get("/chat/history", async (req) => {
         const storeId = Number((req as any).params.storeId);
         const session = getAuthSession((req as any).headers?.authorization);

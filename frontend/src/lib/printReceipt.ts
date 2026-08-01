@@ -5,7 +5,10 @@ import type { Store } from "@/features/storeSlice";
 /**
  * Open print window for 80mm thermal receipt
  */
-export function handlePrintReceipt(order: Order, store: Store | null | undefined) {
+export function handlePrintReceipt(
+  order: Order,
+  store: Store | null | undefined,
+) {
   const printWindow = window.open("", "_blank");
   if (!printWindow) {
     toast.error("กรุณาอนุญาตป๊อบอัปในเบราว์เซอร์เพื่อพิมพ์ใบเสร็จ");
@@ -102,7 +105,7 @@ export function handlePrintReceipt(order: Order, store: Store | null | undefined
 
         <div class="totals-box" style="color: #475569;">
           <div class="row"><span>รับเงิน (${paymentText})</span> <span>฿${Number(order.amountReceived ?? totalVal).toLocaleString()}</span></div>
-          <div class="row" style="font-weight: 600;"><span>เงินทอน</span> <span>฿${Number(order.changeAmount ?? (Number(order.amountReceived || totalVal) - totalVal)).toLocaleString()}</span></div>
+          <div class="row" style="font-weight: 600;"><span>เงินทอน</span> <span>฿${Number(order.changeAmount ?? Number(order.amountReceived || totalVal) - totalVal).toLocaleString()}</span></div>
         </div>
 
         ${

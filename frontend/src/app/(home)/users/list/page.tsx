@@ -196,7 +196,7 @@ export default function StaffPage() {
           updateMember({
             storeId: activeStoreId,
             memberId: editingId,
-            data: { jobTitle },
+            data: { jobTitle, permissions },
           }),
         ).unwrap();
         toast.success("อัปเดตสิทธิ์สำเร็จ");
@@ -204,7 +204,7 @@ export default function StaffPage() {
         await dispatch(
           createMember({
             storeId: activeStoreId,
-            data: { emailOrUsername, jobTitle },
+            data: { emailOrUsername, jobTitle, permissions },
           }),
         ).unwrap();
         toast.success("เพิ่มพนักงานสำเร็จ");
@@ -254,7 +254,7 @@ export default function StaffPage() {
         }
       >
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogContent className="sm:max-w-[500px]">
+          <DialogContent className="sm:max-w-[540px]">
             <DialogHeader>
               <DialogTitle>
                 {editingId ? "แก้ไขสิทธิ์พนักงาน" : "เพิ่มพนักงานใหม่"}
@@ -267,7 +267,7 @@ export default function StaffPage() {
             </DialogHeader>
 
             <form onSubmit={handleSubmit} className="flex flex-col min-h-0">
-              <DialogPanel className="space-y-4 max-h-[60vh]">
+              <DialogPanel className="space-y-4 max-h-[65vh] overflow-y-auto pr-1">
                 {formError && (
                   <div className="p-3 rounded-xl border border-rose-500/30 bg-rose-500/10 text-rose-600 dark:text-rose-400 text-xs font-medium">
                     {formError}
@@ -297,7 +297,11 @@ export default function StaffPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>ชุดสิทธิ์แนะนำ (Presets)</Label>
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs font-semibold text-foreground">
+                      ชุดสิทธิ์สำเร็จรูป (Presets)
+                    </Label>
+                  </div>
                   <div className="flex flex-wrap gap-2">
                     {Object.entries(PRESETS).map(([key, preset]) => (
                       <Button
@@ -314,6 +318,61 @@ export default function StaffPage() {
                   </div>
                 </div>
 
+                {/* Custom Permissions Checklist */}
+                <div className="space-y-2.5 pt-2 border-t border-border/60">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs font-semibold text-foreground">
+                      กำหนดสิทธิ์แยกตามเมนู (Custom Permissions)
+                    </Label>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="xs"
+                        className="h-6 text-[11px] text-muted-foreground px-2"
+                        onClick={() => {
+                          const all: Record<string, boolean> = {};
+                          PERMISSION_OPTIONS.forEach((p) => (all[p.id] = true));
+                          setPermissions(all);
+                        }}
+                      >
+                        เลือกทั้งหมด
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="xs"
+                        className="h-6 text-[11px] text-muted-foreground px-2"
+                        onClick={() => setPermissions({})}
+                      >
+                        ล้างทั้งหมด
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[220px] overflow-y-auto p-2.5 rounded-xl border border-border/60 bg-muted/20">
+                    {PERMISSION_OPTIONS.map((opt) => (
+                      <div
+                        key={opt.id}
+                        className="flex items-center space-x-2.5 bg-card p-2 rounded-lg border border-border/40 hover:bg-muted/40 transition-colors"
+                      >
+                        <Checkbox
+                          id={`perm-${opt.id}`}
+                          checked={!!permissions[opt.id]}
+                          onCheckedChange={(checked) =>
+                            handleTogglePermission(opt.id, !!checked)
+                          }
+                        />
+                        <label
+                          htmlFor={`perm-${opt.id}`}
+                          className="text-xs font-medium leading-none cursor-pointer select-none text-foreground"
+                        >
+                          {opt.label}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </DialogPanel>
 
               <DialogFooter>
@@ -386,52 +445,73 @@ export default function StaffPage() {
                   <TableRow>
                     <TableHead>พนักงาน</TableHead>
                     <TableHead>ตำแหน่ง</TableHead>
+                    <TableHead>สิทธิ์ใช้งาน (Permissions)</TableHead>
                     <TableHead>วันที่เข้าร่วม</TableHead>
                     <TableHead className="text-right">จัดการ</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {staffMembers.map((m: any) => (
-                    <TableRow key={m.id}>
-                      <TableCell>
-                        <div className="flex items-center gap-3">
-                          <Avatar className="size-9 border border-border/60">
-                            <AvatarImage
-                              src={
-                                m.user?.profile_picture_url ||
-                                (m.user?.profile_image_id ||
-                                m.user?.profileImageId
-                                  ? `/api/images/${m.user.profile_image_id || m.user.profileImageId}`
-                                  : undefined)
-                              }
-                              alt={m.user?.username || "Staff"}
-                            />
-                            <AvatarFallback className="font-semibold text-xs bg-primary/10 text-primary uppercase">
-                              {m.user?.username
-                                ? m.user.username.slice(0, 2)
-                                : "US"}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div className="flex flex-col">
-                            <span className="font-medium text-sm">
-                              {m.user?.username}
-                            </span>
-                            <span className="text-xs text-muted-foreground">
-                              {m.user?.email}
-                            </span>
+                  {staffMembers.map((m: any) => {
+                    const permObj = m.permissions || {};
+                    const activePermCount = Object.values(permObj).filter(Boolean).length;
+
+                    return (
+                      <TableRow key={m.id}>
+                        <TableCell>
+                          <div className="flex items-center gap-3">
+                            <Avatar className="size-9 border border-border/60">
+                              <AvatarImage
+                                src={
+                                  m.user?.profile_picture_url ||
+                                  (m.user?.profile_image_id ||
+                                  m.user?.profileImageId
+                                    ? `/api/images/${m.user.profile_image_id || m.user.profileImageId}`
+                                    : undefined)
+                                }
+                                alt={m.user?.username || "Staff"}
+                              />
+                              <AvatarFallback className="font-semibold text-xs bg-primary/10 text-primary uppercase">
+                                {m.user?.username
+                                  ? m.user.username.slice(0, 2)
+                                  : "US"}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex flex-col">
+                              <span className="font-medium text-sm">
+                                {m.user?.username}
+                              </span>
+                              <span className="text-xs text-muted-foreground">
+                                {m.user?.email}
+                              </span>
+                            </div>
                           </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>{m.jobTitle || "-"}</TableCell>
-                      <TableCell className="whitespace-nowrap">
-                        {(() => {
-                          const rawDate = m.createdAt || m.created_at;
-                          const date = rawDate ? new Date(rawDate) : null;
-                          return date && !Number.isNaN(date.getTime())
-                            ? date.toLocaleDateString("th-TH")
-                            : "-";
-                        })()}
-                      </TableCell>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className="font-normal text-xs bg-muted/30">
+                            {m.jobTitle || m.job_title || "พนักงาน"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-xs text-muted-foreground flex items-center gap-1.5">
+                            <Badge
+                              variant="secondary"
+                              className="text-[11px] font-normal"
+                            >
+                              {activePermCount > 0
+                                ? `${activePermCount} สิทธิ์`
+                                : "ไม่มีสิทธิ์พิเศษ"}
+                            </Badge>
+                          </span>
+                        </TableCell>
+                        <TableCell className="whitespace-nowrap text-xs text-muted-foreground">
+                          {(() => {
+                            const rawDate = m.createdAt || m.created_at;
+                            const date = rawDate ? new Date(rawDate) : null;
+                            return date && !Number.isNaN(date.getTime())
+                              ? date.toLocaleDateString("th-TH")
+                              : "-";
+                          })()}
+                        </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
                           <Button
@@ -443,7 +523,9 @@ export default function StaffPage() {
                           </Button>
                           <ConfirmDeleteDialog
                             open={deletingId === m.id}
-                            onOpenChange={(open) => !open && setDeletingId(null)}
+                            onOpenChange={(open) =>
+                              !open && setDeletingId(null)
+                            }
                             title="ยืนยันการลบพนักงาน?"
                             description={
                               <>
@@ -468,8 +550,9 @@ export default function StaffPage() {
                         </div>
                       </TableCell>
                     </TableRow>
-                  ))}
-                </TableBody>
+                  );
+                })}
+              </TableBody>
               </Table>
             </div>
           )}

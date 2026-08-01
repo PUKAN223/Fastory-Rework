@@ -36,14 +36,6 @@ class Fastory {
     ]
 
     constructor() {
-        this.app = new Elysia();
-        this.app.group("/api/v1", (app) => {
-            for (const group of this.groups) {
-                app.use(new group.router(group.prefix).getRouter());
-            }
-            return app;
-        });
-
         this.logger = pino({
             level: process.env.NODE_ENV === "production" ? "info" : "debug",
             transport: {
@@ -52,7 +44,43 @@ class Fastory {
                     colorize: true
                 }
             }
-        })
+        });
+
+        this.app = new Elysia();
+
+        // 📡 Request Debug Logger Middleware
+        this.app.onRequest(({ request }) => {
+            (request as any)._startTime = performance.now();
+            const url = new URL(request.url);
+            const method = request.method;
+            const nowTime = new Date().toLocaleTimeString("th-TH");
+            console.log(`[${nowTime}] ${method.cyan} ${url.pathname.yellow}${url.search ? url.search.gray : ""}`);
+        });
+
+        this.app.onAfterHandle(({ request, set }) => {
+            const startTime = (request as any)._startTime || performance.now();
+            const duration = (performance.now() - startTime).toFixed(1);
+            const url = new URL(request.url);
+            const rawStatus = typeof set.status === "number" ? set.status : 200;
+            const statusStr = String(rawStatus);
+            const coloredStatus = rawStatus >= 400 ? statusStr.red : rawStatus >= 300 ? statusStr.yellow : statusStr.green;
+            const nowTime = new Date().toLocaleTimeString("th-TH");
+            console.log(`[${nowTime}] ${request.method.cyan} ${url.pathname.gray} -> ${coloredStatus} (${duration}ms)`);
+        });
+
+        this.app.onError(({ request, error, code }) => {
+            const url = request ? new URL(request.url).pathname : "";
+            const nowTime = new Date().toLocaleTimeString("th-TH");
+            const errMessage = (error as any)?.message || String(error);
+            console.error(`[${nowTime}] ${request?.method || ""} ${url} ERROR [${code}]: ${errMessage.red}`);
+        });
+
+        this.app.group("/api/v1", (app) => {
+            for (const group of this.groups) {
+                app.use(new group.router(group.prefix).getRouter());
+            }
+            return app;
+        });
     }
 
     public start(port: number) {

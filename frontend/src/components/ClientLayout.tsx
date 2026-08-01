@@ -1,10 +1,12 @@
 "use client";
 
+import React, { useEffect } from "react";
 import { ShieldAlert } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
-import React, { useEffect } from "react";
 import { hasStorePermission } from "@/lib/permissions";
 import { useAppSelector } from "@/store/hook";
+import { AppLogo } from "@/components/ui/app-logo";
+import { ChangelogModal } from "@/components/modals/ChangelogModal";
 import { AppSidebar } from "./AppSidebar";
 import {
   Breadcrumb,
@@ -29,6 +31,25 @@ const ROUTE_PERMISSIONS: { prefix: string; permission: string }[] = [
   { prefix: "/reports", permission: "reports:read" },
   { prefix: "/settings", permission: "settings:read" },
 ];
+
+const ROUTE_NAME_MAP: Record<string, string> = {
+  dashboard: "แดชบอร์ด",
+  inventory: "คลังสินค้า",
+  products: "รายการสินค้า",
+  categories: "หมวดหมู่สินค้า",
+  warehouses: "ที่เก็บสินค้า",
+  movements: "ประวัติสต็อก",
+  sales: "การขาย",
+  pos: "หน้าร้าน (POS)",
+  orders: "ประวัติการขาย",
+  reports: "รายงานสรุป",
+  assistant: "ผู้ช่วย AI",
+  stores: "จัดการร้านค้า",
+  settings: "การตั้งค่าร้านค้า",
+  users: "พนักงาน",
+  list: "จัดการพนักงาน",
+  logs: "ประวัติกิจกรรมพนักงาน",
+};
 
 export function ClientLayout({
   children,
@@ -58,8 +79,16 @@ export function ClientLayout({
       pathname !== "/stores"
     ) {
       router.push("/stores");
+    } else if (
+      authStatus === "authed" &&
+      activeStoreId !== null &&
+      pathname === "/dashboard" &&
+      hasStorePermission(permissions, "sales:write") &&
+      !hasStorePermission(permissions, "reports:read")
+    ) {
+      router.push("/sales/pos");
     }
-  }, [authStatus, activeStoreId, pathname, router]);
+  }, [authStatus, activeStoreId, pathname, permissions, router]);
 
   if (authStatus === "idle" || authStatus === "loading") {
     return (
@@ -110,8 +139,8 @@ export function ClientLayout({
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset className="min-w-0 overflow-x-clip">
-        <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-2 bg-background/95 backdrop-blur transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
-          <div className="flex items-center gap-2 px-4">
+        <header className="sticky top-0 z-10 flex h-14 shrink-0 items-center justify-between gap-2 border-b border-border/60 bg-background/85 backdrop-blur-md transition-[width,height] ease-linear px-4">
+          <div className="flex items-center gap-2 min-w-0">
             <SidebarTrigger className="-ml-1" />
             <Separator
               orientation="vertical"
@@ -120,23 +149,29 @@ export function ClientLayout({
             <Breadcrumb>
               <BreadcrumbList>
                 <BreadcrumbItem className="hidden md:block">
-                  <BreadcrumbLink href="#">Fastory</BreadcrumbLink>
+                  <BreadcrumbLink href="/dashboard" className="flex items-center gap-1">
+                    <AppLogo size={20} className="text-xs font-semibold" />
+                  </BreadcrumbLink>
                 </BreadcrumbItem>
                 <BreadcrumbSeparator className="hidden md:block" />
                 {segments.map((part, index) => {
                   const href = `/${segments.slice(0, index + 1).join("/")}`;
                   const isLast = index === segments.length - 1;
+                  const label =
+                    ROUTE_NAME_MAP[part.toLowerCase()] ||
+                    part.charAt(0).toUpperCase() + part.slice(1);
+
                   return (
                     <React.Fragment key={href}>
                       {index > 0 && <BreadcrumbSeparator />}
                       <BreadcrumbItem>
                         {isLast ? (
-                          <BreadcrumbPage>
-                            {part.charAt(0).toUpperCase() + part.slice(1)}
+                          <BreadcrumbPage className="font-medium text-foreground">
+                            {label}
                           </BreadcrumbPage>
                         ) : (
                           <BreadcrumbLink href={href}>
-                            {part.charAt(0).toUpperCase() + part.slice(1)}
+                            {label}
                           </BreadcrumbLink>
                         )}
                       </BreadcrumbItem>
@@ -146,9 +181,21 @@ export function ClientLayout({
               </BreadcrumbList>
             </Breadcrumb>
           </div>
+
+          {/* Active Store Indicator */}
+          {activeStore && (
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 px-2.5 py-1 rounded-lg border border-border/60 bg-muted/30 text-xs font-medium text-foreground select-none">
+                <span className="size-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+                <span className="truncate max-w-[130px] sm:max-w-[200px]">
+                  {activeStore.name}
+                </span>
+              </div>
+            </div>
+          )}
         </header>
         <div
-          className={`flex min-w-0 flex-1 flex-col gap-4 overflow-x-clip ${pathname === "/sales/pos" ? "p-2 pt-0" : "p-4 pt-0"}`}
+          className={`flex min-w-0 flex-1 flex-col gap-5 overflow-x-clip ${pathname === "/sales/pos" ? "p-2 pt-2" : "p-4 sm:p-6 pt-4 sm:pt-6"}`}
         >
           {!hasAccess ? (
             <div className="flex min-h-[70vh] flex-col items-center justify-center p-6 text-center">
@@ -161,8 +208,16 @@ export function ClientLayout({
               <p className="mb-6 max-w-sm text-sm text-muted-foreground">
                 บัญชีของคุณในร้านค้านี้ไม่มีสิทธิ์เข้าถึงเมนูนี้ กรุณาติดต่อผู้จัดการร้านเพื่อปรับเปลี่ยนสิทธิ์
               </p>
-              <Button onClick={() => router.push("/dashboard")}>
-                กลับสู่หน้าแดชบอร์ด
+              <Button
+                onClick={() =>
+                  router.push(
+                    hasStorePermission(permissions, "sales:write")
+                      ? "/sales/pos"
+                      : "/dashboard",
+                  )
+                }
+              >
+                กลับสู่หน้าหลัก
               </Button>
             </div>
           ) : (
@@ -170,6 +225,7 @@ export function ClientLayout({
           )}
         </div>
       </SidebarInset>
+      <ChangelogModal />
     </SidebarProvider>
   );
 }

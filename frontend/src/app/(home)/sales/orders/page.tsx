@@ -4,7 +4,9 @@ import {
   AlertCircle,
   Banknote,
   Calendar,
+  Coins,
   Eye,
+  FileText,
   Printer,
   ReceiptText,
   Trash2,
@@ -46,8 +48,6 @@ import { fetchOrders, type Order, voidOrder } from "@/features/salesSlice";
 import type { Store } from "@/features/storeSlice";
 import { handlePrintReceipt } from "@/lib/printReceipt";
 import { useAppDispatch, useAppSelector } from "@/store/hook";
-
-
 
 export default function OrdersPage() {
   const dispatch = useAppDispatch();
@@ -204,7 +204,8 @@ export default function OrdersPage() {
                           <Eye className="h-4 w-4 mr-1" />
                           ดูรายละเอียด
                         </Button>
-                        {(order.status === "completed" || order.status === "pending") && (
+                        {(order.status === "completed" ||
+                          order.status === "pending") && (
                           <Button
                             variant="ghost"
                             size="sm"
@@ -212,7 +213,9 @@ export default function OrdersPage() {
                             onClick={() => setOrderToVoid(order)}
                           >
                             <Trash2 className="h-4 w-4 mr-1" />
-                            {order.status === "pending" ? "ยกเลิกรายการ" : "Void"}
+                            {order.status === "pending"
+                              ? "ยกเลิกรายการ"
+                              : "Void"}
                           </Button>
                         )}
                       </div>
@@ -242,16 +245,16 @@ export default function OrdersPage() {
         open={!!orderToView}
         onOpenChange={(open) => !open && setOrderToView(null)}
       >
-        <DialogContent className="max-w-2xl">
-          <DialogHeader className="border-b pb-4">
+        <DialogContent className="max-w-2xl p-0 overflow-hidden">
+          <DialogHeader className="p-6 pb-4 border-b bg-muted/20 pr-12">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
-                <DialogTitle className="text-xl flex items-center gap-2">
+                <DialogTitle className="text-xl flex items-center gap-2 font-bold">
                   <ReceiptText className="size-5 text-primary" />
                   ออเดอร์ #{orderToView?.orderNumber}
                 </DialogTitle>
                 <DialogDescription className="mt-1 flex items-center gap-2 text-xs">
-                  <Calendar className="size-3.5" />
+                  <Calendar className="size-3.5 text-muted-foreground" />
                   {orderToView &&
                     new Date(orderToView.createdAt).toLocaleString("th-TH", {
                       year: "numeric",
@@ -264,50 +267,52 @@ export default function OrdersPage() {
               </div>
 
               {orderToView && (
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-9 gap-2 text-xs font-medium border-primary/40 text-primary hover:bg-primary/10"
-                    onClick={() => handlePrintReceipt(orderToView, activeStore)}
-                  >
-                    <Printer className="size-4" />
-                    พิมพ์ / ดาวน์โหลดใบเสร็จ
-                  </Button>
-                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-9 gap-2 text-xs font-medium border-primary/30 text-primary hover:bg-primary/10 shadow-xs shrink-0"
+                  onClick={() => handlePrintReceipt(orderToView, activeStore)}
+                >
+                  <Printer className="size-4" />
+                  พิมพ์ / ดาวน์โหลดใบเสร็จ
+                </Button>
               )}
             </div>
           </DialogHeader>
 
           {orderToView && (
-            <DialogPanel className="space-y-5">
-              {/* Order Info Cards */}
+            <DialogPanel className="p-6 space-y-5 mt-5">
+              {/* Order Info Summary Cards */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div className="space-y-1 p-3 bg-muted/20 rounded-lg border">
-                  <p className="text-xs text-muted-foreground flex items-center gap-1">
-                    <User className="size-3.5" /> พนักงานขาย
+                {/* Salesperson Card */}
+                <div className="p-3 bg-card rounded-xl border shadow-xs space-y-1">
+                  <p className="text-xs text-muted-foreground flex items-center gap-1.5 font-medium">
+                    <User className="size-3.5 text-muted-foreground" />{" "}
+                    พนักงานขาย
                   </p>
-                  <p className="font-semibold text-sm truncate">
+                  <p className="font-semibold text-sm text-foreground truncate">
                     {orderToView.creator?.username || "Admin"}
                   </p>
                 </div>
 
-                <div className="space-y-1 p-3 bg-muted/20 rounded-lg border">
-                  <p className="text-xs text-muted-foreground flex items-center gap-1">
-                    <Banknote className="size-3.5" /> วิธีชำระเงิน
+                {/* Payment Method Card */}
+                <div className="p-3 bg-card rounded-xl border shadow-xs space-y-1">
+                  <p className="text-xs text-muted-foreground flex items-center gap-1.5 font-medium">
+                    <Banknote className="size-3.5 text-muted-foreground" />{" "}
+                    วิธีชำระเงิน
                   </p>
-                  <div className="flex items-center gap-1.5 mt-0.5">
+                  <div>
                     {orderToView.paymentMethod === "cash" ? (
                       <Badge
-                        variant="outline"
-                        className="bg-green-50 text-green-700 border-green-200 text-xs"
+                        variant="secondary"
+                        className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 text-xs font-medium"
                       >
-                        เงินสด
+                        เงินสด (Cash)
                       </Badge>
                     ) : (
                       <Badge
-                        variant="outline"
-                        className="bg-blue-50 text-blue-700 border-blue-200 text-xs"
+                        variant="secondary"
+                        className="bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20 text-xs font-medium"
                       >
                         PromptPay
                       </Badge>
@@ -315,19 +320,25 @@ export default function OrdersPage() {
                   </div>
                 </div>
 
-                <div className="space-y-1 p-3 bg-muted/20 rounded-lg border">
-                  <p className="text-xs text-muted-foreground">สถานะออเดอร์</p>
-                  <div className="mt-0.5">
+                {/* Order Status Card */}
+                <div className="p-3 bg-card rounded-xl border shadow-xs space-y-1">
+                  <p className="text-xs text-muted-foreground font-medium">
+                    สถานะออเดอร์
+                  </p>
+                  <div>
                     {orderToView.status === "completed" ? (
-                      <Badge className="bg-emerald-500 hover:bg-emerald-600 text-xs">
+                      <Badge className="bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-medium">
                         สำเร็จ
                       </Badge>
                     ) : orderToView.status === "pending" ? (
-                      <Badge className="bg-amber-500 hover:bg-amber-600 text-xs">
+                      <Badge className="bg-amber-500 hover:bg-amber-600 text-white text-xs font-medium">
                         รอชำระเงิน (Pending)
                       </Badge>
                     ) : (
-                      <Badge variant="destructive" className="text-xs">
+                      <Badge
+                        variant="destructive"
+                        className="text-xs font-medium"
+                      >
                         ยกเลิกแล้ว (Voided)
                       </Badge>
                     )}
@@ -337,12 +348,18 @@ export default function OrdersPage() {
 
               {/* Void Warning Alert if voided */}
               {orderToView.status === "voided" && (
-                <div className="p-3 bg-destructive/10 text-destructive rounded-lg border border-destructive/20 text-xs flex gap-2.5 items-start">
+                <div className="p-3.5 bg-destructive/10 text-destructive rounded-xl border border-destructive/20 text-xs flex gap-3 items-start">
                   <AlertCircle className="size-4 shrink-0 mt-0.5" />
                   <div>
-                    <p className="font-semibold">ออเดอร์นี้ถูกยกเลิก (Voided)</p>
-                    <p className="text-[11px] mt-0.5 opacity-90">
-                      ยกเลิกโดย: {orderToView.voider?.username || "System"} เมื่อ{" "}
+                    <p className="font-semibold text-sm">
+                      ออเดอร์นี้ถูกยกเลิก (Voided)
+                    </p>
+                    <p className="text-xs mt-0.5 opacity-90">
+                      ยกเลิกโดย:{" "}
+                      <span className="font-medium">
+                        {orderToView.voider?.username || "System"}
+                      </span>{" "}
+                      เมื่อ{" "}
                       {orderToView.voidedAt
                         ? new Date(orderToView.voidedAt).toLocaleString("th-TH")
                         : "-"}
@@ -353,24 +370,32 @@ export default function OrdersPage() {
 
               {/* Items Table */}
               <div>
-                <h4 className="font-semibold text-xs text-muted-foreground uppercase tracking-wider mb-2">
-                  รายการสินค้า ({orderToView.items?.length || 0})
-                </h4>
-                <div className="rounded-lg border overflow-hidden">
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="font-semibold text-xs text-muted-foreground uppercase tracking-wider">
+                    รายการสินค้า ({orderToView.items?.length || 0})
+                  </h4>
+                </div>
+                <div className="rounded-xl border overflow-hidden bg-card shadow-xs">
                   <Table className="text-xs">
                     <TableHeader className="bg-muted/40">
                       <TableRow>
-                        <TableHead>สินค้า</TableHead>
-                        <TableHead>SKU</TableHead>
-                        <TableHead className="text-center">จำนวน</TableHead>
-                        <TableHead className="text-right">ราคา/ชิ้น</TableHead>
-                        <TableHead className="text-right">รวม</TableHead>
+                        <TableHead className="font-semibold">สินค้า</TableHead>
+                        <TableHead className="font-semibold">SKU</TableHead>
+                        <TableHead className="text-center font-semibold">
+                          จำนวน
+                        </TableHead>
+                        <TableHead className="text-right font-semibold">
+                          ราคา/ชิ้น
+                        </TableHead>
+                        <TableHead className="text-right font-semibold">
+                          รวม
+                        </TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {orderToView.items?.map((item) => (
-                        <TableRow key={item.id}>
-                          <TableCell className="font-medium">
+                        <TableRow key={item.id} className="hover:bg-muted/30">
+                          <TableCell className="font-medium text-foreground">
                             {item.productName}
                           </TableCell>
                           <TableCell className="text-muted-foreground font-mono text-[11px]">
@@ -379,10 +404,10 @@ export default function OrdersPage() {
                           <TableCell className="text-center font-semibold">
                             {item.quantity}
                           </TableCell>
-                          <TableCell className="text-right">
+                          <TableCell className="text-right text-muted-foreground">
                             ฿{Number(item.unitPrice).toLocaleString()}
                           </TableCell>
-                          <TableCell className="text-right font-bold text-primary">
+                          <TableCell className="text-right font-bold text-foreground">
                             ฿{Number(item.totalPrice).toLocaleString()}
                           </TableCell>
                         </TableRow>
@@ -392,20 +417,62 @@ export default function OrdersPage() {
                 </div>
               </div>
 
-              {/* Summary Breakdown */}
-              <div className="flex flex-col sm:flex-row justify-between gap-4 pt-2">
-                {orderToView.note ? (
-                  <div className="flex-1 p-3 bg-muted/20 rounded-lg border text-xs">
-                    <p className="font-medium text-muted-foreground mb-1">
-                      หมายเหตุ:
-                    </p>
-                    <p className="italic">{orderToView.note}</p>
-                  </div>
-                ) : (
-                  <div className="flex-1" />
-                )}
+              {/* Breakdown Grid: Payment Details / Notes on Left, Summary Box on Right */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+                {/* Left Side: Cash Info & Notes */}
+                <div className="space-y-3">
+                  {/* Cash Payment Details Card */}
+                  {orderToView.paymentMethod === "cash" && (
+                    <div className="p-3.5 bg-muted/20 rounded-xl border space-y-2 text-xs">
+                      <p className="font-medium text-muted-foreground flex items-center gap-1.5">
+                        <Coins className="size-3.5 text-emerald-500" />{" "}
+                        ข้อมูลชำระเงินสด
+                      </p>
+                      <div className="space-y-1.5 pt-1">
+                        {orderToView.amountReceived !== undefined && (
+                          <div className="flex justify-between items-center text-muted-foreground">
+                            <span>รับเงินสดมา</span>
+                            <span className="font-semibold text-foreground">
+                              ฿
+                              {Number(
+                                orderToView.amountReceived,
+                              ).toLocaleString()}
+                            </span>
+                          </div>
+                        )}
+                        {(orderToView.changeAmount !== undefined ||
+                          orderToView.amountReceived) && (
+                          <div className="flex justify-between items-center text-emerald-600 dark:text-emerald-400 font-semibold pt-1 border-t border-border/40">
+                            <span>เงินทอน</span>
+                            <span className="text-sm">
+                              ฿
+                              {Number(
+                                orderToView.changeAmount ??
+                                  Number(orderToView.amountReceived || 0) -
+                                    Number(orderToView.total),
+                              ).toLocaleString()}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
 
-                <div className="w-full sm:w-72 p-4 bg-muted/20 rounded-xl border space-y-2 text-xs">
+                  {/* Order Note */}
+                  {orderToView.note && (
+                    <div className="p-3.5 bg-muted/20 rounded-xl border text-xs space-y-1">
+                      <p className="font-medium text-muted-foreground flex items-center gap-1.5">
+                        <FileText className="size-3.5" /> หมายเหตุ:
+                      </p>
+                      <p className="text-foreground italic pl-5">
+                        {orderToView.note}
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Right Side: Totals Card */}
+                <div className="p-4 bg-muted/30 rounded-xl border space-y-2.5 text-xs shadow-xs">
                   <div className="flex justify-between text-muted-foreground">
                     <span>ยอดรวมสินค้า</span>
                     <span className="font-medium text-foreground">
@@ -416,70 +483,55 @@ export default function OrdersPage() {
                     </span>
                   </div>
                   {Number(orderToView.discount) > 0 && (
-                    <div className="flex justify-between text-destructive">
+                    <div className="flex justify-between text-destructive font-medium">
                       <span>ส่วนลด</span>
-                      <span className="font-medium">
+                      <span>
                         -฿{Number(orderToView.discount).toLocaleString()}
                       </span>
                     </div>
                   )}
-                  <div className="flex justify-between font-bold text-base text-foreground pt-2 border-t border-border/60">
-                    <span>ยอดชำระสุทธิ</span>
-                    <span className="text-primary">
+                  <div className="flex justify-between items-baseline pt-2.5 border-t border-border">
+                    <span className="font-bold text-sm text-foreground">
+                      ยอดชำระสุทธิ
+                    </span>
+                    <span className="text-xl font-extrabold text-primary">
                       ฿{Number(orderToView.total).toLocaleString()}
                     </span>
                   </div>
-
-                  {/* Cash Payment Info */}
-                  {orderToView.paymentMethod === "cash" && (
-                    <div className="pt-2 border-t border-border/60 space-y-1 text-muted-foreground">
-                      {orderToView.amountReceived !== undefined && (
-                        <div className="flex justify-between">
-                          <span>รับเงินสดมา</span>
-                          <span className="font-medium text-foreground">
-                            ฿
-                            {Number(
-                              orderToView.amountReceived,
-                            ).toLocaleString()}
-                          </span>
-                        </div>
-                      )}
-                      {(orderToView.changeAmount !== undefined ||
-                        orderToView.amountReceived) && (
-                        <div className="flex justify-between text-emerald-600 font-medium">
-                          <span>เงินทอน</span>
-                          <span>
-                            ฿
-                            {Number(
-                              orderToView.changeAmount ??
-                                Number(orderToView.amountReceived || 0) -
-                                  Number(orderToView.total),
-                            ).toLocaleString()}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  )}
                 </div>
               </div>
 
-              {(orderToView.status === "pending" || orderToView.status === "completed") && (
-                <DialogFooter className="mt-4 pt-3 border-t">
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    className="w-full sm:w-auto"
-                    onClick={() => {
-                      const target = orderToView;
-                      setOrderToView(null);
-                      setOrderToVoid(target);
-                    }}
-                  >
-                    <Trash2 className="h-4 w-4 mr-1.5" />
-                    {orderToView.status === "pending" ? "ยกเลิกออเดอร์นี้ (Void/Cancel)" : "Void ออเดอร์นี้"}
-                  </Button>
-                </DialogFooter>
-              )}
+              {/* Action Footer */}
+              <div className="flex items-center justify-between pt-4 border-t">
+                <div>
+                  {(orderToView.status === "pending" ||
+                    orderToView.status === "completed") && (
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      className="gap-1.5 text-xs"
+                      onClick={() => {
+                        const target = orderToView;
+                        setOrderToView(null);
+                        setOrderToVoid(target);
+                      }}
+                    >
+                      <Trash2 className="size-3.5" />
+                      {orderToView.status === "pending"
+                        ? "ยกเลิกออเดอร์นี้"
+                        : "Void ออเดอร์นี้"}
+                    </Button>
+                  )}
+                </div>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setOrderToView(null)}
+                >
+                  ปิด
+                </Button>
+              </div>
             </DialogPanel>
           )}
         </DialogContent>

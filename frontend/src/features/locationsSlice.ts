@@ -10,6 +10,7 @@ type LocationsState = {
   createStatus: AsyncStatus;
   updateStatus: AsyncStatus;
   deleteStatus: AsyncStatus;
+  lastFetched: number | null;
   error: string | null;
 };
 
@@ -18,6 +19,8 @@ type ApiLocation = {
   name?: string;
   description?: string | null;
   max_capacity?: number;
+  product_count?: number;
+  stock_total?: number;
   created_at?: string;
   updated_at?: string;
 };
@@ -31,6 +34,7 @@ const initialState: LocationsState = {
   createStatus: "idle",
   updateStatus: "idle",
   deleteStatus: "idle",
+  lastFetched: null,
   error: null,
 };
 
@@ -48,20 +52,30 @@ function normalizeLocation(raw: ApiLocation): Warehouse {
     name: toSafeString(raw.name, "Untitled"),
     description: toSafeString(raw.description, ""),
     maxCapacity: toSafeNumber(raw.max_capacity, 0),
+    productCount:
+      typeof raw.product_count === "number" ? raw.product_count : undefined,
+    stockTotal:
+      typeof raw.stock_total === "number" ? raw.stock_total : undefined,
     createdAt: toSafeString(raw.created_at, new Date().toISOString()),
     updatedAt: toSafeString(raw.updated_at, new Date().toISOString()),
   };
 }
 
 async function parseErrorMessage(response: Response, fallback: string) {
-  const body = (await response
-    .clone()
-    .json()
-    .catch(() => ({}))) as {
-    message?: string;
-    error?: string;
-  };
-  return body.message ?? body.error ?? fallback;
+  try {
+    const text = await response.text();
+    if (!text) return fallback;
+    try {
+      const body = JSON.parse(text);
+      if (body.message) return body.message;
+      if (body.error) return body.error;
+    } catch {
+      return text;
+    }
+  } catch {
+    return fallback;
+  }
+  return fallback;
 }
 
 const readApiList = (body: unknown): ApiLocation[] => {
@@ -197,6 +211,27 @@ export const deleteLocation = createAsyncThunk<
   }
 });
 
+export const forceDeleteLocation = createAsyncThunk<
+  string,
+  string,
+  { rejectValue: string }
+>("locations/forceDelete", async (id, { rejectWithValue }) => {
+  try {
+    const r = await requestWithRefresh(`/api/locations/${id}?force=true`, {
+      method: "DELETE",
+    });
+    if (!r.ok)
+      return rejectWithValue(
+        await parseErrorMessage(r, "Failed to force delete location"),
+      );
+    return id;
+  } catch (e) {
+    return rejectWithValue(
+      e instanceof Error ? e.message : "Failed to force delete location",
+    );
+  }
+});
+
 const setPending = (
   state: LocationsState,
   key: keyof Pick<
@@ -220,6 +255,14 @@ const setRejected = (
   state.error = action.payload ?? action.error?.message ?? "Unknown error";
 };
 
+export function isLocationsStale(
+  lastFetched: number | null,
+  maxAgeMs = 15000,
+): boolean {
+  if (lastFetched === null) return true;
+  return Date.now() - lastFetched > maxAgeMs;
+}
+
 const slice = createSlice({
   name: "locations",
   initialState,
@@ -230,6 +273,7 @@ const slice = createSlice({
       state.createStatus = "idle";
       state.updateStatus = "idle";
       state.deleteStatus = "idle";
+      state.lastFetched = null;
       state.error = null;
     },
   },
@@ -238,6 +282,7 @@ const slice = createSlice({
     b.addCase(fetchLocations.fulfilled, (s, a) => {
       s.items = a.payload;
       s.fetchStatus = "succeeded";
+      s.lastFetched = Date.now();
     });
     b.addCase(fetchLocations.rejected, (s, a) =>
       setRejected(s, "fetchStatus", a),
@@ -247,6 +292,7 @@ const slice = createSlice({
     b.addCase(createLocation.fulfilled, (s, a) => {
       s.items.unshift(a.payload);
       s.createStatus = "succeeded";
+      s.lastFetched = Date.now();
     });
     b.addCase(createLocation.rejected, (s, a) =>
       setRejected(s, "createStatus", a),
@@ -257,6 +303,7 @@ const slice = createSlice({
       const i = s.items.findIndex((x) => x.id === a.payload.id);
       if (i >= 0) s.items[i] = a.payload;
       s.updateStatus = "succeeded";
+      s.lastFetched = Date.now();
     });
     b.addCase(updateLocation.rejected, (s, a) =>
       setRejected(s, "updateStatus", a),
@@ -266,8 +313,21 @@ const slice = createSlice({
     b.addCase(deleteLocation.fulfilled, (s, a) => {
       s.items = s.items.filter((x) => x.id !== a.payload);
       s.deleteStatus = "succeeded";
+      s.lastFetched = Date.now();
     });
     b.addCase(deleteLocation.rejected, (s, a) =>
+      setRejected(s, "deleteStatus", a),
+    );
+
+    b.addCase(forceDeleteLocation.pending, (s) =>
+      setPending(s, "deleteStatus"),
+    );
+    b.addCase(forceDeleteLocation.fulfilled, (s, a) => {
+      s.items = s.items.filter((x) => x.id !== a.payload);
+      s.deleteStatus = "succeeded";
+      s.lastFetched = Date.now();
+    });
+    b.addCase(forceDeleteLocation.rejected, (s, a) =>
       setRejected(s, "deleteStatus", a),
     );
   },

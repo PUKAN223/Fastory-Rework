@@ -3,24 +3,28 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import {
   AlertTriangle,
+  BarChart3,
   Bot,
   BrainCircuit,
   Check,
   ChevronRight,
+  Coins,
   Copy,
+  Cpu,
+  DollarSign,
+  FileText,
+  Info,
   Lightbulb,
   Package,
   PackageX,
+  Receipt,
   RefreshCw,
   Send,
   Sparkles,
+  Table as TableIcon,
   TrendingUp,
   User,
   Zap,
-  DollarSign,
-  Receipt,
-  BarChart3,
-  Table as TableIcon,
 } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -28,6 +32,13 @@ import { PageHeaderCards } from "@/components/card/PageHeaderCards";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useAppDispatch, useAppSelector } from "@/store/hook";
 import { AiTableCard } from "@/components/ai/AiTableCard";
 import { AiChartCard } from "@/components/ai/AiChartCard";
@@ -54,6 +65,14 @@ interface Message {
   actionCompleted?: boolean;
   actionResultReply?: string;
   actionLoading?: boolean;
+}
+
+interface QuotaInfo {
+  model: string;
+  usedToday: number;
+  dailyLimit: number;
+  remaining: number;
+  status: string;
 }
 
 const QUICK_PROMPTS = [
@@ -130,8 +149,10 @@ const renderActionArgs = (toolName?: string, args?: any) => {
   if (!args) return null;
   const { storeId, ...rest } = args;
 
-  // Handle bulkUpdateProducts specially for beautiful batch UI
-  if (toolName === "bulkUpdateProducts" || (Array.isArray(rest.updates) && rest.updates.length > 0)) {
+  if (
+    toolName === "bulkUpdateProducts" ||
+    (Array.isArray(rest.updates) && rest.updates.length > 0)
+  ) {
     const updates = Array.isArray(rest.updates) ? rest.updates : [];
     return (
       <div className="mt-2.5 space-y-2 border rounded-xl bg-background/60 p-3 border-border/80 shadow-xs">
@@ -147,10 +168,22 @@ const renderActionArgs = (toolName?: string, args?: any) => {
 
         <div className="max-h-56 overflow-y-auto space-y-2 pr-1 divide-y divide-border/40">
           {updates.map((item: any, idx: number) => (
-            <div key={idx} className="pt-2 first:pt-0 flex flex-col gap-1 text-xs">
+            <div
+              key={idx}
+              className="pt-2 first:pt-0 flex flex-col gap-1 text-xs"
+            >
               <div className="flex items-center justify-between font-medium text-foreground">
-                <span className="text-muted-foreground text-[11px]">#{idx + 1} ID: {item.productId}</span>
-                {item.name && <span className="font-semibold text-primary truncate max-w-[200px]" title={item.name}>{item.name}</span>}
+                <span className="text-muted-foreground text-[11px]">
+                  #{idx + 1} ID: {item.productId}
+                </span>
+                {item.name && (
+                  <span
+                    className="font-semibold text-primary truncate max-w-[200px]"
+                    title={item.name}
+                  >
+                    {item.name}
+                  </span>
+                )}
               </div>
               <div className="flex flex-wrap gap-2 text-[11px]">
                 {item.sellingPrice !== undefined && (
@@ -191,16 +224,26 @@ const renderActionArgs = (toolName?: string, args?: any) => {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
       {Object.entries(rest).map(([key, value]) => (
-        <div key={key} className="flex flex-col gap-0.5 bg-background/50 p-2 rounded-md border border-border/50">
-          <span className="text-[10px] text-muted-foreground uppercase">{ARG_KEY_MAP[key] || key}</span>
-          <span className="text-xs font-medium text-foreground truncate" title={String(value)}>{String(value) || "-"}</span>
+        <div
+          key={key}
+          className="flex flex-col gap-0.5 bg-background/50 p-2 rounded-md border border-border/50"
+        >
+          <span className="text-[10px] text-muted-foreground uppercase">
+            {ARG_KEY_MAP[key] || key}
+          </span>
+          <span
+            className="text-xs font-medium text-foreground truncate"
+            title={String(value)}
+          >
+            {String(value) || "-"}
+          </span>
         </div>
       ))}
     </div>
   );
 };
 
-export default function AIAssistantPage() {
+export default function AssistantPage() {
   const dispatch = useAppDispatch();
   const activeStoreId = useAppSelector((state) => state.stores.activeStoreId);
   const stores = useAppSelector((state) => state.stores.stores);
@@ -222,11 +265,37 @@ export default function AIAssistantPage() {
   const [activeTool, setActiveTool] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
+  // Quota modal & data state
+  const [quotaOpen, setQuotaOpen] = useState(false);
+  const [quotaInfo, setQuotaInfo] = useState<QuotaInfo | null>(null);
+  const [isQuotaLoading, setIsQuotaLoading] = useState(false);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const fetchQuota = async () => {
+    setIsQuotaLoading(true);
+    try {
+      const res = await fetch("/api/ai/quota");
+      const data = await res.json();
+      if (data.success) {
+        setQuotaInfo({
+          model: data.model || "Gemini 3.1 Flash Lite",
+          usedToday: data.usedToday ?? 0,
+          dailyLimit: data.dailyLimit ?? 100,
+          remaining: data.remaining ?? 100,
+          status: data.status || "active",
+        });
+      }
+    } catch (err) {
+      console.error("Failed to fetch AI quota:", err);
+    } finally {
+      setIsQuotaLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -242,11 +311,27 @@ export default function AIAssistantPage() {
       }
     };
     fetchHistory();
+    fetchQuota();
   }, []);
 
   useEffect(() => {
     scrollToBottom();
   }, [messages, isLoading, activeTool]);
+
+  // Handle auto-expanding text area height dynamically
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setInput(e.target.value);
+    if (inputRef.current) {
+      inputRef.current.style.height = "auto";
+      inputRef.current.style.height = `${Math.min(inputRef.current.scrollHeight, 160)}px`;
+    }
+  };
+
+  const resetInputHeight = () => {
+    if (inputRef.current) {
+      inputRef.current.style.height = "auto";
+    }
+  };
 
   const handleSendMessage = async (textToSend?: string) => {
     const text = textToSend || input.trim();
@@ -263,7 +348,10 @@ export default function AIAssistantPage() {
     };
 
     setMessages((prev) => [...prev, userMsg]);
-    if (!textToSend) setInput("");
+    if (!textToSend) {
+      setInput("");
+      resetInputHeight();
+    }
     setIsLoading(true);
     setActiveTool(null);
 
@@ -297,14 +385,16 @@ export default function AIAssistantPage() {
       const aiMsgId = (Date.now() + 1).toString();
       let currentAiContent = "";
 
-      // Initialize an empty message placeholder
       setMessages((prev) => [
         ...prev,
         {
           id: aiMsgId,
           role: "assistant",
           content: "",
-          timestamp: new Date().toLocaleTimeString("th-TH", { hour: "2-digit", minute: "2-digit" }),
+          timestamp: new Date().toLocaleTimeString("th-TH", {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
         },
       ]);
 
@@ -328,12 +418,13 @@ export default function AIAssistantPage() {
 
               if (eventName === "tool_call") {
                 setActiveTool(data.name);
-                console.log(`[AI Tool Execution] Using Tool: ${data.name}`);
               } else if (eventName === "text_chunk") {
                 setActiveTool(null);
                 currentAiContent += data.text;
                 setMessages((prev) =>
-                  prev.map((m) => m.id === aiMsgId ? { ...m, content: currentAiContent } : m)
+                  prev.map((m) =>
+                    m.id === aiMsgId ? { ...m, content: currentAiContent } : m,
+                  ),
                 );
               } else if (eventName === "action_required") {
                 setActiveTool(null);
@@ -341,16 +432,17 @@ export default function AIAssistantPage() {
                   prev.map((m) =>
                     m.id === aiMsgId
                       ? {
-                        ...m,
-                        content: m.content || "⚠️ **ระบบต้องการการยืนยันดำเนินการจากคุณ**",
-                        actionRequired: {
-                          toolName: data.toolName,
-                          args: data.args,
-                          storeId: data.storeId,
-                        },
-                      }
-                      : m
-                  )
+                          ...m,
+                          content:
+                            m.content || "⚠️ **ระบบต้องการการยืนยันดำเนินการจากคุณ**",
+                          actionRequired: {
+                            toolName: data.toolName,
+                            args: data.args,
+                            storeId: data.storeId,
+                          },
+                        }
+                      : m,
+                  ),
                 );
               } else if (eventName === "error") {
                 toast.error(data.message || "เกิดข้อผิดพลาด");
@@ -366,12 +458,17 @@ export default function AIAssistantPage() {
     } finally {
       setIsLoading(false);
       setActiveTool(null);
+      fetchQuota();
     }
   };
 
-  const handleConfirmAction = async (msgId: string, action: ActionRequired, approved: boolean) => {
+  const handleConfirmAction = async (
+    msgId: string,
+    action: ActionRequired,
+    approved: boolean,
+  ) => {
     setMessages((prev) =>
-      prev.map((m) => (m.id === msgId ? { ...m, actionLoading: true } : m))
+      prev.map((m) => (m.id === msgId ? { ...m, actionLoading: true } : m)),
     );
 
     try {
@@ -390,29 +487,44 @@ export default function AIAssistantPage() {
         prev.map((m) =>
           m.id === msgId
             ? {
-              ...m,
-              actionLoading: false,
-              actionCompleted: true,
-              actionResultReply: data.reply || (approved ? "✅ ทำรายการสำเร็จ" : "❌ ยกเลิกทำรายการแล้ว"),
-            }
-            : m
-        )
+                ...m,
+                actionLoading: false,
+                actionCompleted: true,
+                actionResultReply:
+                  data.reply ||
+                  (approved ? "✅ ทำรายการสำเร็จ" : "❌ ยกเลิกทำรายการแล้ว"),
+              }
+            : m,
+        ),
       );
 
       if (approved && data.success) {
         toast.success(data.message || "ทำรายการสำเร็จ");
-
-        // Dispatch Redux thunks to update frontend slice state in real-time
         const toolName = action.toolName;
-        if (["createProduct", "updateProduct", "deleteProduct", "adjustStock"].includes(toolName)) {
+        if (
+          [
+            "createProduct",
+            "updateProduct",
+            "deleteProduct",
+            "adjustStock",
+          ].includes(toolName)
+        ) {
           dispatch(fetchProducts());
           dispatch(fetchMovements());
         } else if (["createCategory", "deleteCategory"].includes(toolName)) {
           dispatch(fetchCategories());
           dispatch(fetchProducts());
-        } else if (["createLocation", "updateLocation", "deleteLocation"].includes(toolName)) {
+        } else if (
+          ["createLocation", "updateLocation", "deleteLocation"].includes(
+            toolName,
+          )
+        ) {
           dispatch(fetchLocations());
-        } else if (["updateMemberRole", "removeStoreMember", "addStoreMember"].includes(toolName)) {
+        } else if (
+          ["updateMemberRole", "removeStoreMember", "addStoreMember"].includes(
+            toolName,
+          )
+        ) {
           if (activeStoreId) dispatch(fetchMembers(activeStoreId));
         } else if (["voidOrder"].includes(toolName)) {
           dispatch(fetchOrders());
@@ -429,7 +541,7 @@ export default function AIAssistantPage() {
     } catch {
       toast.error("ไม่สามารถเชื่อมต่อระบบยืนยันรายการได้");
       setMessages((prev) =>
-        prev.map((m) => (m.id === msgId ? { ...m, actionLoading: false } : m))
+        prev.map((m) => (m.id === msgId ? { ...m, actionLoading: false } : m)),
       );
     }
   };
@@ -452,8 +564,7 @@ export default function AIAssistantPage() {
       setCopiedId(id);
       toast.success("คัดลอกข้อความเรียบร้อยแล้ว");
       setTimeout(() => setCopiedId(null), 2000);
-    } catch (err) {
-      console.error("Failed to copy text:", err);
+    } catch {
       toast.error("ไม่สามารถคัดลอกข้อความได้");
     }
   };
@@ -479,7 +590,9 @@ export default function AIAssistantPage() {
       return { cleanContent: rawContent, suggestions: [] };
     }
 
-    const cleanContent = rawContent.replace(/\[SUGGESTIONS:\s*[\s\S]*?\]$/, "").trim();
+    const cleanContent = rawContent
+      .replace(/\[SUGGESTIONS:\s*[\s\S]*?\]$/, "")
+      .trim();
     let suggestions: string[] = [];
     try {
       const jsonStr = `[${suggestMatch[1]}]`;
@@ -492,7 +605,7 @@ export default function AIAssistantPage() {
     return { cleanContent, suggestions };
   };
 
-  const parseJsonAttribute = <T = any,>(raw: string, fallback: T): T => {
+  const parseJsonAttribute = <T = any>(raw: string, fallback: T): T => {
     if (!raw || !raw.trim()) return fallback;
 
     let str = raw.trim();
@@ -505,27 +618,20 @@ export default function AIAssistantPage() {
 
     try {
       return JSON.parse(str);
-    } catch { }
+    } catch {}
 
     try {
       const fixedQuotes = str.replace(/'([^'\\]*(?:\\.[^'\\]*)*)'/g, '"$1"');
       return JSON.parse(fixedQuotes);
-    } catch { }
-
-    try {
-      if ((str.startsWith("[") && str.endsWith("]")) || (str.startsWith("{") && str.endsWith("}"))) {
-        const fn = new Function(`return (${str});`);
-        const res = fn();
-        if (res !== undefined) return res;
-      }
-    } catch { }
+    } catch {}
 
     return fallback;
   };
 
   const extractTextFromReactNode = (node: any): string => {
     if (node === null || node === undefined) return "";
-    if (typeof node === "string" || typeof node === "number") return String(node);
+    if (typeof node === "string" || typeof node === "number")
+      return String(node);
     if (Array.isArray(node)) return node.map(extractTextFromReactNode).join("");
     if (node && typeof node === "object" && node.props && node.props.children) {
       return extractTextFromReactNode(node.props.children);
@@ -550,7 +656,10 @@ export default function AIAssistantPage() {
         const isThead = inThead || tagType.includes("thead");
         const isTbody = inTbody || tagType.includes("tbody");
 
-        if (tagType.includes("tr") || (node.props.children && String(node.key || "").includes("tr"))) {
+        if (
+          tagType.includes("tr") ||
+          (node.props.children && String(node.key || "").includes("tr"))
+        ) {
           const cells: string[] = [];
           const children = React.Children.toArray(node.props.children);
           children.forEach((cell: any) => {
@@ -576,7 +685,9 @@ export default function AIAssistantPage() {
       traverseTree(props.children);
 
       if (headers.length > 0 && rows.length > 0) {
-        return <AiTableCard headers={headers} rows={rows} defaultPageSize={5} />;
+        return (
+          <AiTableCard headers={headers} rows={rows} defaultPageSize={5} />
+        );
       }
 
       if (rows.length > 0) {
@@ -587,15 +698,18 @@ export default function AIAssistantPage() {
     }
 
     return (
-      <div className="overflow-x-auto my-3 border rounded-xl bg-card shadow-sm p-3">
-        <table className="w-full text-xs text-left border-collapse border border-border" {...props} />
+      <div className="overflow-x-auto my-3 border rounded-xl bg-card shadow-xs p-3">
+        <table
+          className="w-full text-xs text-left border-collapse border border-border"
+          {...props}
+        />
       </div>
     );
   };
 
   const renderContent = (content: string) => {
-    // Regex to extract custom XML-like tags, allowing multi-line tags via [\s\S]
-    const cardRegex = /(<(?:ProductCard|SalesCard|OrderCard|TableCard|ChartCard)[\s\S]*?\/>)/g;
+    const cardRegex =
+      /(<(?:ProductCard|SalesCard|OrderCard|TableCard|ChartCard)[\s\S]*?\/>)/g;
     const parts = content.split(cardRegex);
 
     const getAttr = (tag: string, attr: string) => {
@@ -623,7 +737,9 @@ export default function AIAssistantPage() {
           }
         }
 
-        const matchFallback = rest.match(new RegExp(`([\\s\\S]*?)${quoteChar}(?:\\s|\\/>|>|$)`));
+        const matchFallback = rest.match(
+          new RegExp(`([\\s\\S]*?)${quoteChar}(?:\\s|\\/>|>|$)`),
+        );
         if (matchFallback) return matchFallback[1];
       } else {
         const match = afterAttr.match(/^([^\s/>]+)/);
@@ -643,7 +759,10 @@ export default function AIAssistantPage() {
         const sku = getAttr(part, "sku");
 
         return (
-          <div key={idx} className="my-3 p-3 border rounded-xl bg-card shadow-sm flex flex-col gap-2 relative overflow-hidden">
+          <div
+            key={idx}
+            className="my-3 p-3 border rounded-xl bg-card shadow-xs flex flex-col gap-2 relative overflow-hidden"
+          >
             <div className="absolute top-0 right-0 p-2 opacity-10">
               <Package className="size-12" />
             </div>
@@ -653,14 +772,21 @@ export default function AIAssistantPage() {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="font-semibold text-sm truncate">{name}</p>
-                <p className="text-xs text-muted-foreground mt-0.5">SKU: {sku || "-"}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  SKU: {sku || "-"}
+                </p>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-2 mt-2 pt-2 border-t text-sm">
               <div>
                 <p className="text-muted-foreground text-xs">ราคา</p>
                 <p className="font-medium text-emerald-600 dark:text-emerald-400">
-                  {price && price !== "-" && price !== "undefined" && price !== "null" ? `฿${price}` : "ไม่ระบุ"}
+                  {price &&
+                  price !== "-" &&
+                  price !== "undefined" &&
+                  price !== "null"
+                    ? `฿${price}`
+                    : "ไม่ระบุ"}
                 </p>
               </div>
               <div>
@@ -678,18 +804,25 @@ export default function AIAssistantPage() {
         const count = getAttr(part, "count");
 
         return (
-          <div key={idx} className="my-3 p-4 border rounded-xl bg-card shadow-sm flex items-center justify-between gap-4">
+          <div
+            key={idx}
+            className="my-3 p-4 border rounded-xl bg-card shadow-xs flex items-center justify-between gap-4"
+          >
             <div className="flex items-center gap-3">
               <div className="size-10 rounded-full bg-blue-50 text-blue-500 dark:bg-blue-950 dark:text-blue-400 flex items-center justify-center shrink-0">
                 <DollarSign className="size-5" />
               </div>
               <div>
                 <p className="font-semibold text-sm">{title}</p>
-                <p className="text-xs text-muted-foreground mt-0.5">{count} ออเดอร์</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {count} ออเดอร์
+                </p>
               </div>
             </div>
             <div className="text-right">
-              <p className="font-bold text-lg text-emerald-600 dark:text-emerald-400">฿{revenue}</p>
+              <p className="font-bold text-lg text-emerald-600 dark:text-emerald-400">
+                ฿{revenue}
+              </p>
             </div>
           </div>
         );
@@ -701,7 +834,10 @@ export default function AIAssistantPage() {
         const paymentMethod = getAttr(part, "paymentMethod");
 
         return (
-          <div key={idx} className="my-3 p-3 border rounded-xl bg-card shadow-sm flex flex-col gap-2">
+          <div
+            key={idx}
+            className="my-3 p-3 border rounded-xl bg-card shadow-xs flex flex-col gap-2"
+          >
             <div className="flex items-center justify-between pb-2 border-b">
               <div className="flex items-center gap-2">
                 <Receipt className="size-4 text-muted-foreground" />
@@ -713,7 +849,9 @@ export default function AIAssistantPage() {
             </div>
             <div className="flex items-center justify-between pt-1">
               <span className="text-xs text-muted-foreground">ยอดรวมทั้งสิ้น</span>
-              <span className="font-bold text-sm text-emerald-600 dark:text-emerald-400">฿{total}</span>
+              <span className="font-bold text-sm text-emerald-600 dark:text-emerald-400">
+                ฿{total}
+              </span>
             </div>
           </div>
         );
@@ -721,7 +859,10 @@ export default function AIAssistantPage() {
 
       if (part.startsWith("<TableCard")) {
         const title = getAttr(part, "title");
-        const headers = parseJsonAttribute<string[]>(getAttr(part, "headers"), []);
+        const headers = parseJsonAttribute<string[]>(
+          getAttr(part, "headers"),
+          [],
+        );
         const rows = parseJsonAttribute<any[][]>(getAttr(part, "rows"), []);
         const pageSize = Number(getAttr(part, "pageSize") || 5);
 
@@ -741,8 +882,14 @@ export default function AIAssistantPage() {
         const title = getAttr(part, "title") || "กราฟสรุปข้อมูล";
         const data = parseJsonAttribute<any[]>(getAttr(part, "data"), []);
         const xKey = getAttr(part, "xKey") || "name";
-        const dataKeys = parseJsonAttribute<string[]>(getAttr(part, "dataKeys"), ["value"]);
-        const labels = parseJsonAttribute<string[]>(getAttr(part, "labels"), []);
+        const dataKeys = parseJsonAttribute<string[]>(
+          getAttr(part, "dataKeys"),
+          ["value"],
+        );
+        const labels = parseJsonAttribute<string[]>(
+          getAttr(part, "labels"),
+          [],
+        );
 
         return (
           <AiChartCard
@@ -757,9 +904,11 @@ export default function AIAssistantPage() {
         );
       }
 
-      // Render standard text with Markdown
       return (
-        <div key={idx} className="markdown-body prose prose-sm dark:prose-invert max-w-none text-sm leading-relaxed my-1">
+        <div
+          key={idx}
+          className="markdown-body prose prose-sm dark:prose-invert max-w-none text-sm leading-relaxed my-1"
+        >
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
             components={{
@@ -776,41 +925,129 @@ export default function AIAssistantPage() {
   return (
     <div className="flex flex-col flex-1 min-h-0 gap-4">
       <PageHeaderCards
-        title="ผู้ช่วย AI วิเคราะห์ร้านค้า (Fastory AI)"
+        title="ผู้ช่วย AI วิเคราะห์ร้านค้า"
         description={`ร้านค้าปัจจุบัน: ${activeStore?.name || "ยังไม่ได้เลือกร้านค้า"}`}
       >
-        <Badge variant="outline" className="bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400 border-emerald-200">
-          Online
-        </Badge>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleResetChat}
-          className="gap-2 text-xs"
-        >
-          <RefreshCw className="size-3.5" />
-          ล้างประวัติการคุย
-        </Button>
+        <div className="flex items-center gap-2">
+          {/* Quota Button */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              fetchQuota();
+              setQuotaOpen(true);
+            }}
+            className="gap-1.5 text-xs h-9 border-amber-500/30 bg-amber-500/5 hover:bg-amber-500/10 text-amber-700 dark:text-amber-400"
+          >
+            <Zap className="size-3.5 text-amber-500 fill-amber-500/20" />
+            <span>โควต้า AI</span>
+            {quotaInfo && (
+              <Badge
+                variant="secondary"
+                className="ml-1 text-[10px] px-1.5 h-4 bg-amber-500/20 text-amber-800 dark:text-amber-300 font-mono"
+              >
+                {quotaInfo.remaining}/{quotaInfo.dailyLimit}
+              </Badge>
+            )}
+          </Button>
+
+          {/* Reset Chat History */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleResetChat}
+            className="gap-2 text-xs h-9"
+          >
+            <RefreshCw className="size-3.5" />
+            ล้างประวัติการคุย
+          </Button>
+        </div>
       </PageHeaderCards>
 
+      {/* Quota Details Modal */}
+      <Dialog open={quotaOpen} onOpenChange={setQuotaOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-lg">
+              <Zap className="size-5 text-amber-500 fill-amber-500/20" />
+              เช็คโควต้าการใช้งาน AI (AI Quota)
+            </DialogTitle>
+            <DialogDescription className="text-xs">
+              รายละเอียดและปริมาณโควต้าคำถามคงเหลือประจำวันของคุณ
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 px-6 pb-6 pt-0 text-xs">
+            <div className="p-3.5 rounded-xl border bg-card space-y-2.5 shadow-xs">
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground flex items-center gap-1.5">
+                  <Cpu className="size-3.5 text-primary" /> โมเดลประมวลผล
+                </span>
+                <span className="font-semibold text-foreground">
+                  {quotaInfo?.model || "Gemini 3.1 Flash Lite"}
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between border-t pt-2">
+                <span className="text-muted-foreground">คำถามที่ใช้ไปวันนี้</span>
+                <span className="font-semibold text-foreground">
+                  {quotaInfo?.usedToday ?? 0} ครั้ง
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between border-t pt-2">
+                <span className="text-muted-foreground">โควต้ารวมต่อวัน</span>
+                <span className="font-semibold text-foreground">
+                  {quotaInfo?.dailyLimit ?? 100} ครั้ง/วัน
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between border-t pt-2">
+                <span className="font-semibold text-foreground">
+                  โควต้าคงเหลือวันนี้
+                </span>
+                <Badge
+                  variant="secondary"
+                  className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 text-xs font-bold font-mono px-2 py-0.5"
+                >
+                  {quotaInfo?.remaining ?? 100} ครั้ง
+                </Badge>
+              </div>
+            </div>
+
+            <div className="p-3 bg-muted/40 rounded-xl border text-[11px] text-muted-foreground flex gap-2">
+              <Info className="size-4 text-primary shrink-0 mt-0.5" />
+              <p>
+                โควต้าจะทำการรีเซ็ตใหม่ทุกเที่ยงคืน หากโควต้าเต็ม
+                คุณยังคงสามารถเข้าดูประวัติและสรุปตารางเก่าได้ตามปกติ
+              </p>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Main Chat Container */}
-      <Card className="flex flex-col flex-1 min-h-0 border-border/60 shadow-sm overflow-hidden bg-card/50 backdrop-blur-sm">
+      <Card className="flex flex-col flex-1 min-h-0 border-border/60 shadow-xs overflow-hidden bg-card/50 backdrop-blur-sm">
         {/* Messages Scroll Area */}
         <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4">
           {messages.map((msg) => {
-            const { cleanContent, suggestions } = parseContentAndSuggestions(msg.content);
+            const { cleanContent, suggestions } = parseContentAndSuggestions(
+              msg.content,
+            );
             return (
               <div
                 key={msg.id}
-                className={`flex gap-3 max-w-[85%] ${msg.role === "user" ? "ml-auto flex-row-reverse" : "mr-auto"
-                  }`}
+                className={`flex gap-3 max-w-[85%] ${
+                  msg.role === "user" ? "ml-auto flex-row-reverse" : "mr-auto"
+                }`}
               >
                 {/* Avatar */}
                 <div
-                  className={`size-8 rounded-full flex items-center justify-center shrink-0 shadow-sm ${msg.role === "user"
+                  className={`size-8 rounded-full flex items-center justify-center shrink-0 shadow-xs ${
+                    msg.role === "user"
                       ? "bg-primary text-primary-foreground"
                       : "bg-muted text-muted-foreground border"
-                    }`}
+                  }`}
                 >
                   {msg.role === "user" ? (
                     <User className="size-4" />
@@ -822,10 +1059,11 @@ export default function AIAssistantPage() {
                 {/* Message Box */}
                 <div className="group relative space-y-1">
                   <div
-                    className={`p-4 rounded-2xl text-sm shadow-xs ${msg.role === "user"
+                    className={`p-4 rounded-2xl text-sm shadow-xs ${
+                      msg.role === "user"
                         ? "bg-primary text-primary-foreground rounded-tr-none"
                         : "bg-muted/60 border border-border/60 text-foreground rounded-tl-none"
-                      }`}
+                    }`}
                   >
                     {renderContent(cleanContent)}
 
@@ -839,9 +1077,13 @@ export default function AIAssistantPage() {
                         <div className="text-xs bg-background/70 p-3 rounded-lg border text-foreground space-y-1">
                           <p className="font-semibold text-primary flex items-center gap-1.5">
                             <Check className="size-3.5" />
-                            {TOOL_NAME_MAP[msg.actionRequired.toolName] || msg.actionRequired.toolName}
+                            {TOOL_NAME_MAP[msg.actionRequired.toolName] ||
+                              msg.actionRequired.toolName}
                           </p>
-                          {renderActionArgs(msg.actionRequired.toolName, msg.actionRequired.args)}
+                          {renderActionArgs(
+                            msg.actionRequired.toolName,
+                            msg.actionRequired.args,
+                          )}
                         </div>
 
                         {!msg.actionCompleted ? (
@@ -849,17 +1091,31 @@ export default function AIAssistantPage() {
                             <Button
                               size="sm"
                               disabled={msg.actionLoading}
-                              onClick={() => handleConfirmAction(msg.id, msg.actionRequired!, true)}
-                              className="text-xs h-8 bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5 shadow-sm"
+                              onClick={() =>
+                                handleConfirmAction(
+                                  msg.id,
+                                  msg.actionRequired!,
+                                  true,
+                                )
+                              }
+                              className="text-xs h-8 bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5 shadow-xs"
                             >
                               <Check className="size-3.5" />
-                              {msg.actionLoading ? "กำลังทำรายการ..." : "ยืนยันดำเนินการ"}
+                              {msg.actionLoading
+                                ? "กำลังทำรายการ..."
+                                : "ยืนยันดำเนินการ"}
                             </Button>
                             <Button
                               size="sm"
                               variant="outline"
                               disabled={msg.actionLoading}
-                              onClick={() => handleConfirmAction(msg.id, msg.actionRequired!, false)}
+                              onClick={() =>
+                                handleConfirmAction(
+                                  msg.id,
+                                  msg.actionRequired!,
+                                  false,
+                                )
+                              }
                               className="text-xs h-8 text-muted-foreground hover:text-foreground"
                             >
                               ยกเลิก
@@ -879,7 +1135,8 @@ export default function AIAssistantPage() {
                   {msg.role === "assistant" && suggestions.length > 0 && (
                     <div className="mt-2 flex flex-wrap items-center gap-1.5 animate-fade-in">
                       <p className="text-[11px] font-medium text-muted-foreground w-full flex items-center gap-1 mb-0.5">
-                        <Sparkles className="size-3 text-primary" /> คำแนะนำถามต่อ:
+                        <Sparkles className="size-3 text-primary" />{" "}
+                        คำแนะนำถามต่อ:
                       </p>
                       {suggestions.map((sug, sIdx) => (
                         <button
@@ -897,8 +1154,9 @@ export default function AIAssistantPage() {
 
                   {/* Footer details */}
                   <div
-                    className={`flex items-center gap-2 text-[11px] text-muted-foreground px-1 ${msg.role === "user" ? "justify-end" : "justify-start"
-                      }`}
+                    className={`flex items-center gap-2 text-[11px] text-muted-foreground px-1 ${
+                      msg.role === "user" ? "justify-end" : "justify-start"
+                    }`}
                   >
                     <span>{msg.timestamp}</span>
                     {msg.role === "assistant" && (
@@ -923,7 +1181,7 @@ export default function AIAssistantPage() {
           {/* Typing Indicator */}
           {isLoading && (
             <div className="flex gap-3 max-w-[85%] mr-auto items-center">
-              <div className="size-8 rounded-full bg-muted text-muted-foreground border flex items-center justify-center shrink-0 shadow-sm">
+              <div className="size-8 rounded-full bg-muted text-muted-foreground border flex items-center justify-center shrink-0 shadow-xs">
                 <BrainCircuit className="size-4 animate-spin" />
               </div>
               <div className="flex flex-col gap-1.5">
@@ -934,7 +1192,9 @@ export default function AIAssistantPage() {
                 {activeTool && (
                   <div className="text-[11px] text-primary flex items-center gap-1.5 px-2 animate-pulse">
                     <span>🛠️</span>
-                    <span>กำลังใช้คำสั่ง: <strong>{activeTool}</strong>...</span>
+                    <span>
+                      กำลังใช้คำสั่ง: <strong>{activeTool}</strong>...
+                    </span>
                   </div>
                 )}
               </div>
@@ -953,7 +1213,7 @@ export default function AIAssistantPage() {
                   <button
                     key={idx}
                     onClick={() => handleSendMessage(qp.prompt)}
-                    className="flex items-center gap-2 p-2.5 rounded-xl border bg-card text-card-foreground text-left transition-all hover:bg-accent hover:text-accent-foreground shadow-sm group"
+                    className="flex items-center gap-2 p-2.5 rounded-xl border bg-card text-card-foreground text-left transition-all hover:bg-accent hover:text-accent-foreground shadow-xs group"
                   >
                     <IconComponent className="size-4 shrink-0 text-muted-foreground group-hover:text-foreground" />
                     <span className="text-xs font-medium truncate flex-1">
@@ -979,7 +1239,7 @@ export default function AIAssistantPage() {
             <textarea
               ref={inputRef}
               value={input}
-              onChange={(e) => setInput(e.target.value)}
+              onChange={handleInputChange}
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
@@ -987,13 +1247,13 @@ export default function AIAssistantPage() {
                 }
               }}
               placeholder="พิมพ์คำถาม หรือพิมพ์สิ่งที่ต้องการให้ AI ช่วยวิเคราะห์ (เช่น ยอดขายวันนี้, สินค้าสต็อกต่ำ)..."
-              className="flex-1 min-h-[44px] max-h-32 p-3 text-sm rounded-xl border border-input bg-background resize-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 transition-all placeholder:text-muted-foreground/60"
+              className="flex-1 min-h-[48px] max-h-40 p-3 text-sm leading-relaxed rounded-xl border border-input bg-background resize-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 transition-all placeholder:text-muted-foreground/60 overflow-y-auto"
               rows={1}
             />
             <Button
               type="submit"
               disabled={!input.trim() || isLoading}
-              className="h-11 px-4 rounded-xl gap-2 shadow-sm shrink-0"
+              className="h-12 px-4 rounded-xl gap-2 shadow-xs shrink-0"
             >
               <Send className="size-4" />
               <span className="hidden sm:inline">ส่ง</span>

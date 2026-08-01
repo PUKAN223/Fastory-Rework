@@ -56,6 +56,7 @@ import { formatCurrency } from "@/lib/utils";
 import type { CreateProductPayload, Product } from "@/types/products";
 
 type ProductCategoryOption = { id: string; name: string };
+type ProductLocationOption = { id: string; name: string };
 type ProductStatusFilter = "all" | "active" | "inactive";
 type ProductSortOption = "latest" | "price-desc" | "price-asc";
 type ProductViewMode = "table" | "grid";
@@ -71,6 +72,7 @@ const PRODUCT_SKELETON_KEYS = [
 type ProductsTableSectionProps = {
   products: Product[];
   categories: ProductCategoryOption[];
+  locations?: ProductLocationOption[];
   imageUrlById: Record<string, string>;
   search: string;
   isLoading: boolean;
@@ -82,8 +84,6 @@ type ProductsTableSectionProps = {
   ) => Promise<boolean> | boolean;
   onDeleteProduct: (id: string) => Promise<boolean> | boolean;
 };
-
-
 
 function formatUpdatedAt(value: string) {
   const d = new Date(value);
@@ -104,6 +104,7 @@ function formatProfit(costPrice: number, sellingPrice: number) {
 export function ProductsTableSection({
   products,
   categories,
+  locations = [],
   imageUrlById,
   search,
   isLoading,
@@ -144,6 +145,7 @@ export function ProductsTableSection({
       sku: editingProduct.sku,
       name: editingProduct.name,
       categoryId: editingProduct.categoryId,
+      locationId: editingProduct.locationId ?? null,
       description: editingProduct.description,
       costPrice: editingProduct.costPrice,
       sellingPrice: editingProduct.sellingPrice,
@@ -912,6 +914,7 @@ export function ProductsTableSection({
           mode="edit"
           open={editOpen}
           categories={categories}
+          locations={locations}
           onOpenChange={closeEdit}
           onSubmit={handleEditSubmit}
           isSubmitting={isSavingEdit}
@@ -925,7 +928,9 @@ export function ProductsTableSection({
         title="ยืนยันการลบสินค้า"
         description={`คุณต้องการลบสินค้า "${deletingProduct?.name ?? "-"}" ใช่หรือไม่?`}
         onConfirm={handleConfirmDelete}
-        isDeleting={!deletingProduct || deletingProductId === deletingProduct?.id}
+        isDeleting={
+          !deletingProduct || deletingProductId === deletingProduct?.id
+        }
       />
 
       <ConfirmDeleteDialog

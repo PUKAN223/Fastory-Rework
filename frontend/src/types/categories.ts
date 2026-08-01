@@ -9,6 +9,8 @@ export type Category = {
   createdAt: string;
 };
 
+export type ProductCategory = Category;
+
 export type CreateCategoryPayload = {
   name: string;
   description: string;

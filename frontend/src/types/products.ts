@@ -2,6 +2,7 @@ export type Product = {
   id: string;
   sku: string;
   categoryId: string;
+  locationId: string | null;
   name: string;
   description: string;
   costPrice: number;
@@ -18,6 +19,7 @@ export type Product = {
 export type CreateProductPayload = {
   sku: string;
   categoryId: string;
+  locationId?: string | null;
   name: string;
   description: string;
   costPrice: number;
@@ -33,6 +35,7 @@ export type ProductFormMode = "create" | "edit";
 export type ProductFormInitialValues = {
   sku: string;
   categoryId: string;
+  locationId: string | null;
   name: string;
   description: string;
   costPrice: number;
