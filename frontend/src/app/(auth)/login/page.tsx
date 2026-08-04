@@ -9,7 +9,11 @@ export default function LoginPage() {
         <a href="#" className="self-center font-medium">
           <AppLogo size={32} className="text-lg" />
         </a>
-        <Suspense fallback={<div className="text-center text-sm text-muted-foreground">กำลังโหลด...</div>}>
+        <Suspense
+          fallback={
+            <div className="h-[480px] w-full animate-pulse rounded-xl border border-border/50 bg-card p-6 shadow-sm" />
+          }
+        >
           <LoginForm />
         </Suspense>
       </div>
