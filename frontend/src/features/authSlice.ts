@@ -91,6 +91,7 @@ export const authLogin = createAsyncThunk<
   return data.user;
 });
 
+
 export const authMe = createAsyncThunk<AuthUser, void, { rejectValue: string }>(
   "auth/me",
   async (_, { rejectWithValue }) => {
@@ -213,6 +214,8 @@ const slice = createSlice({
     b.addCase(authLogin.rejected, (s, a) =>
       setGuest(s, a.payload ?? a.error.message ?? "Login failed"),
     );
+
+
 
     b.addCase(authRegister.pending, (s) => {
       s.status = "loading";

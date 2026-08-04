@@ -18,7 +18,13 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  PageTabs,
+  PageTabsContent,
+  PageTabsList,
+  PageTabsTrigger,
+} from "@/components/ui/page-tabs";
+import { FolderTree, BarChart3 } from "lucide-react";
 import { fetchCategories } from "@/features/categoriesSlice";
 import { useEntityCrudHandlers } from "@/hooks/useEntityCrudHandlers";
 import { notifyErrorOnce } from "@/lib/notifyError";
@@ -149,13 +155,17 @@ export default function InventoryCategoriesPage() {
         <Badge variant="outline">{totalProducts} สินค้า</Badge>
       </PageHeaderCards>
 
-      <Tabs defaultValue="categories">
-        <TabsList className="mb-2">
-          <TabsTrigger value="categories">หมวดหมู่</TabsTrigger>
-          <TabsTrigger value="stats">สถิติหมวดหมู่</TabsTrigger>
-        </TabsList>
+      <PageTabs defaultValue="categories" className="w-full">
+        <PageTabsList>
+          <PageTabsTrigger value="categories" icon={FolderTree}>
+            หมวดหมู่
+          </PageTabsTrigger>
+          <PageTabsTrigger value="stats" icon={BarChart3}>
+            สถิติหมวดหมู่
+          </PageTabsTrigger>
+        </PageTabsList>
 
-        <TabsContent value="categories">
+        <PageTabsContent value="categories" className="space-y-4">
           <EntityListCard
             title="รายการหมวดหมู่"
             description="เพิ่ม ค้นหา และดูรายละเอียดของหมวดหมู่สินค้าได้ที่นี่"
@@ -179,9 +189,9 @@ export default function InventoryCategoriesPage() {
               onUpdateCategory={handleUpdateCategory}
             />
           </EntityListCard>
-        </TabsContent>
+        </PageTabsContent>
 
-        <TabsContent value="stats" className="space-y-4">
+        <PageTabsContent value="stats" className="space-y-4">
           <CategoryStatsCards
             categoriesCount={categories.length}
             latestCategoryName={latestCategoryName}
@@ -191,8 +201,8 @@ export default function InventoryCategoriesPage() {
           />
 
           <CategoryCharts categories={categories} />
-        </TabsContent>
-      </Tabs>
+        </PageTabsContent>
+      </PageTabs>
     </Containers>
   );
 }

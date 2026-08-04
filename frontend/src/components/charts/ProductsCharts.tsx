@@ -175,7 +175,7 @@ export function ProductsCharts({ products }: ProductsChartsProps) {
 
   if (products.length === 0) {
     return (
-      <Card className="border-border/60 shadow-none">
+      <Card className="border-border/60 shadow-none min-w-0 overflow-hidden">
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-medium">
             สถิติและกราฟวิเคราะห์สินค้า
@@ -184,7 +184,7 @@ export function ProductsCharts({ products }: ProductsChartsProps) {
             แสดงข้อมูลเชิงลึกเมื่อมีสินค้าในระบบ
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-2 sm:p-6 pt-0 sm:pt-0">
           <EmptyChartContent message="ไม่พบข้อมูลสินค้าในระบบเพื่อนำมาแสดงกราฟ" />
         </CardContent>
       </Card>
@@ -192,7 +192,7 @@ export function ProductsCharts({ products }: ProductsChartsProps) {
   }
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 min-w-0">
       {/* Chart 1: Bar Chart - Top Valued Products */}
       <Card className="border-border/60 shadow-none lg:col-span-2">
         <CardHeader className="pb-2">
@@ -206,12 +206,13 @@ export function ProductsCharts({ products }: ProductsChartsProps) {
             คำนวณจาก (ราคาขาย × จำนวนสต็อก)
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-2 sm:p-6 pt-0 sm:pt-0">
           {topValuedProducts.length === 0 ? (
             <EmptyChartContent message="ยังไม่มีสินค้าที่มีจำนวนสต็อกและมูลค่าเพียงพอ" />
           ) : (
-            <div className="h-60 w-full pt-2">
-              <ResponsiveContainer width="100%" height="100%">
+            <div className="overflow-x-auto no-scrollbar pb-2">
+              <div className="h-60 min-w-[520px] sm:min-w-full pt-2">
+                <ResponsiveContainer width="100%" height="100%">
                 <BarChart
                   data={topValuedProducts}
                   margin={{ top: 10, right: 10, left: -10, bottom: 25 }}
@@ -259,13 +260,14 @@ export function ProductsCharts({ products }: ProductsChartsProps) {
                   />
                 </BarChart>
               </ResponsiveContainer>
+              </div>
             </div>
           )}
         </CardContent>
       </Card>
 
       {/* Chart 2: Donut Chart - Status Breakdown with Center Stat */}
-      <Card className="border-border/60 shadow-none">
+      <Card className="border-border/60 shadow-none min-w-0 overflow-hidden">
         <CardHeader className="pb-2">
           <div className="flex items-center gap-2">
             <PieIcon className="size-4 text-emerald-400" />
@@ -277,7 +279,7 @@ export function ProductsCharts({ products }: ProductsChartsProps) {
             จำแนกตามสถานะการเปิดใช้งานและสต็อกต่ำ
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-2 sm:p-6 pt-0 sm:pt-0">
           {statusData.length === 0 ? (
             <EmptyChartContent message="ไม่มีข้อมูลสถานะสินค้าเพียงพอ" />
           ) : (
@@ -335,7 +337,7 @@ export function ProductsCharts({ products }: ProductsChartsProps) {
       </Card>
 
       {/* Chart 3: Area Chart - Price Range Distribution */}
-      <Card className="border-border/60 shadow-none lg:col-span-3">
+      <Card className="border-border/60 shadow-none lg:col-span-3 min-w-0 overflow-hidden">
         <CardHeader className="pb-2">
           <div className="flex items-center gap-2">
             <TrendingUp className="size-4 text-sky-400" />
@@ -347,12 +349,13 @@ export function ProductsCharts({ products }: ProductsChartsProps) {
             จำนวนรายการสินค้าแบ่งตามช่วงราคาขาย
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-2 sm:p-6 pt-0 sm:pt-0">
           {!hasPriceData ? (
             <EmptyChartContent message="ยังไม่มีข้อมูลระดับราคาสินค้า" />
           ) : (
-            <div className="h-48 w-full pt-1">
-              <ResponsiveContainer width="100%" height="100%">
+            <div className="overflow-x-auto no-scrollbar pb-2">
+              <div className="h-48 min-w-[520px] sm:min-w-full pt-1">
+                <ResponsiveContainer width="100%" height="100%">
                 <AreaChart
                   data={priceRangeData}
                   margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
@@ -407,6 +410,7 @@ export function ProductsCharts({ products }: ProductsChartsProps) {
                   />
                 </AreaChart>
               </ResponsiveContainer>
+              </div>
             </div>
           )}
         </CardContent>

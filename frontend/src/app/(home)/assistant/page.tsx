@@ -432,15 +432,15 @@ export default function AssistantPage() {
                   prev.map((m) =>
                     m.id === aiMsgId
                       ? {
-                          ...m,
-                          content:
-                            m.content || "⚠️ **ระบบต้องการการยืนยันดำเนินการจากคุณ**",
-                          actionRequired: {
-                            toolName: data.toolName,
-                            args: data.args,
-                            storeId: data.storeId,
-                          },
-                        }
+                        ...m,
+                        content:
+                          m.content || "⚠️ **ระบบต้องการการยืนยันดำเนินการจากคุณ**",
+                        actionRequired: {
+                          toolName: data.toolName,
+                          args: data.args,
+                          storeId: data.storeId,
+                        },
+                      }
                       : m,
                   ),
                 );
@@ -487,13 +487,13 @@ export default function AssistantPage() {
         prev.map((m) =>
           m.id === msgId
             ? {
-                ...m,
-                actionLoading: false,
-                actionCompleted: true,
-                actionResultReply:
-                  data.reply ||
-                  (approved ? "✅ ทำรายการสำเร็จ" : "❌ ยกเลิกทำรายการแล้ว"),
-              }
+              ...m,
+              actionLoading: false,
+              actionCompleted: true,
+              actionResultReply:
+                data.reply ||
+                (approved ? "✅ ทำรายการสำเร็จ" : "❌ ยกเลิกทำรายการแล้ว"),
+            }
             : m,
         ),
       );
@@ -618,12 +618,12 @@ export default function AssistantPage() {
 
     try {
       return JSON.parse(str);
-    } catch {}
+    } catch { }
 
     try {
       const fixedQuotes = str.replace(/'([^'\\]*(?:\\.[^'\\]*)*)'/g, '"$1"');
       return JSON.parse(fixedQuotes);
-    } catch {}
+    } catch { }
 
     return fallback;
   };
@@ -782,9 +782,9 @@ export default function AssistantPage() {
                 <p className="text-muted-foreground text-xs">ราคา</p>
                 <p className="font-medium text-emerald-600 dark:text-emerald-400">
                   {price &&
-                  price !== "-" &&
-                  price !== "undefined" &&
-                  price !== "null"
+                    price !== "-" &&
+                    price !== "undefined" &&
+                    price !== "null"
                     ? `฿${price}`
                     : "ไม่ระบุ"}
                 </p>
@@ -923,13 +923,63 @@ export default function AssistantPage() {
   };
 
   return (
-    <div className="flex flex-col flex-1 min-h-0 gap-4">
-      <PageHeaderCards
-        title="ผู้ช่วย AI วิเคราะห์ร้านค้า"
-        description={`ร้านค้าปัจจุบัน: ${activeStore?.name || "ยังไม่ได้เลือกร้านค้า"}`}
-      >
+    <div className="flex flex-col h-[calc(100svh-5.5rem)] w-full gap-3 md:gap-4 overflow-hidden">
+      <div className="hidden md:block">
+        <PageHeaderCards
+          title="ผู้ช่วย AI วิเคราะห์ร้านค้า"
+          description={`ร้านค้าปัจจุบัน: ${activeStore?.name || "ยังไม่ได้เลือกร้านค้า"}`}
+        >
+          <div className="flex items-center gap-2">
+            {/* Quota Button */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                fetchQuota();
+                setQuotaOpen(true);
+              }}
+              className="gap-1.5 text-xs h-9 border-amber-500/30 bg-amber-500/5 hover:bg-amber-500/10 text-amber-700 dark:text-amber-400"
+            >
+              <Zap className="size-3.5 text-amber-500 fill-amber-500/20" />
+              <span>โควต้า AI</span>
+              {quotaInfo && (
+                <Badge
+                  variant="secondary"
+                  className="ml-1 text-[10px] px-1.5 h-4 bg-amber-500/20 text-amber-800 dark:text-amber-300 font-mono"
+                >
+                  {quotaInfo.remaining}/{quotaInfo.dailyLimit}
+                </Badge>
+              )}
+            </Button>
+
+            {/* Reset Chat History */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleResetChat}
+              className="gap-2 text-xs h-9"
+            >
+              <RefreshCw className="size-3.5" />
+              ล้างประวัติการคุย
+            </Button>
+          </div>
+        </PageHeaderCards>
+      </div>
+
+      {/* Mobile Compact Header */}
+      <div className="md:hidden flex items-center justify-between px-2 pt-1 pb-2">
         <div className="flex items-center gap-2">
-          {/* Quota Button */}
+          <div className="size-8 rounded-full bg-primary/10 flex items-center justify-center">
+            <Sparkles className="size-4 text-primary" />
+          </div>
+          <div>
+            <h2 className="text-sm font-bold leading-none">Fastory AI</h2>
+            <p className="text-[10px] text-muted-foreground mt-1 truncate max-w-[120px]">
+              {activeStore?.name || "ไม่ได้เลือกร้านค้า"}
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-1.5">
           <Button
             variant="outline"
             size="sm"
@@ -937,32 +987,25 @@ export default function AssistantPage() {
               fetchQuota();
               setQuotaOpen(true);
             }}
-            className="gap-1.5 text-xs h-9 border-amber-500/30 bg-amber-500/5 hover:bg-amber-500/10 text-amber-700 dark:text-amber-400"
+            className="gap-1.5 text-xs h-8 border-amber-500/30 bg-amber-500/5 hover:bg-amber-500/10 text-amber-700 dark:text-amber-400 px-2"
           >
             <Zap className="size-3.5 text-amber-500 fill-amber-500/20" />
-            <span>โควต้า AI</span>
             {quotaInfo && (
-              <Badge
-                variant="secondary"
-                className="ml-1 text-[10px] px-1.5 h-4 bg-amber-500/20 text-amber-800 dark:text-amber-300 font-mono"
-              >
-                {quotaInfo.remaining}/{quotaInfo.dailyLimit}
-              </Badge>
+              <span className="font-mono font-bold text-[10px]">
+                {quotaInfo.remaining}
+              </span>
             )}
           </Button>
-
-          {/* Reset Chat History */}
           <Button
             variant="outline"
-            size="sm"
+            size="icon"
             onClick={handleResetChat}
-            className="gap-2 text-xs h-9"
+            className="size-8 text-muted-foreground"
           >
             <RefreshCw className="size-3.5" />
-            ล้างประวัติการคุย
           </Button>
         </div>
-      </PageHeaderCards>
+      </div>
 
       {/* Quota Details Modal */}
       <Dialog open={quotaOpen} onOpenChange={setQuotaOpen}>
@@ -1029,7 +1072,7 @@ export default function AssistantPage() {
       {/* Main Chat Container */}
       <Card className="flex flex-col flex-1 min-h-0 border-border/60 shadow-xs overflow-hidden bg-card/50 backdrop-blur-sm">
         {/* Messages Scroll Area */}
-        <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-6 space-y-4 relative">
           {messages.map((msg) => {
             const { cleanContent, suggestions } = parseContentAndSuggestions(
               msg.content,
@@ -1037,17 +1080,15 @@ export default function AssistantPage() {
             return (
               <div
                 key={msg.id}
-                className={`flex gap-3 max-w-[85%] ${
-                  msg.role === "user" ? "ml-auto flex-row-reverse" : "mr-auto"
-                }`}
+                className={`flex gap-2 md:gap-3 ${msg.role === "user" ? "ml-auto flex-row-reverse max-w-[85%] w-fit" : "mr-auto w-full max-w-[100%] md:max-w-[85%]"
+                  }`}
               >
                 {/* Avatar */}
                 <div
-                  className={`size-8 rounded-full flex items-center justify-center shrink-0 shadow-xs ${
-                    msg.role === "user"
+                  className={`size-7 md:size-8 rounded-full flex items-center justify-center shrink-0 shadow-xs ${msg.role === "user"
                       ? "bg-primary text-primary-foreground"
                       : "bg-muted text-muted-foreground border"
-                  }`}
+                    }`}
                 >
                   {msg.role === "user" ? (
                     <User className="size-4" />
@@ -1057,13 +1098,12 @@ export default function AssistantPage() {
                 </div>
 
                 {/* Message Box */}
-                <div className="group relative space-y-1">
+                <div className={`group relative space-y-1 min-w-0 ${msg.role === "user" ? "" : "flex-1 md:flex-none"}`}>
                   <div
-                    className={`p-4 rounded-2xl text-sm shadow-xs ${
-                      msg.role === "user"
+                    className={`p-3 md:p-4 rounded-2xl text-sm shadow-xs overflow-x-auto ${msg.role === "user"
                         ? "bg-primary text-primary-foreground rounded-tr-none"
-                        : "bg-muted/60 border border-border/60 text-foreground rounded-tl-none"
-                    }`}
+                        : "bg-muted/60 border border-border/60 text-foreground rounded-tl-none w-full"
+                      }`}
                   >
                     {renderContent(cleanContent)}
 
@@ -1154,9 +1194,8 @@ export default function AssistantPage() {
 
                   {/* Footer details */}
                   <div
-                    className={`flex items-center gap-2 text-[11px] text-muted-foreground px-1 ${
-                      msg.role === "user" ? "justify-end" : "justify-start"
-                    }`}
+                    className={`flex items-center gap-2 text-[11px] text-muted-foreground px-1 ${msg.role === "user" ? "justify-end" : "justify-start"
+                      }`}
                   >
                     <span>{msg.timestamp}</span>
                     {msg.role === "assistant" && (
@@ -1206,14 +1245,14 @@ export default function AssistantPage() {
         {/* Quick Prompts Bar */}
         {messages.length < 5 && (
           <div className="p-3 border-t border-border/40 bg-muted/20">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+            <div className="flex md:grid md:grid-cols-4 gap-2 overflow-x-auto md:overflow-visible pb-2 md:pb-0 snap-x snap-mandatory md:snap-none [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
               {QUICK_PROMPTS.map((qp, idx) => {
                 const IconComponent = qp.icon;
                 return (
                   <button
                     key={idx}
                     onClick={() => handleSendMessage(qp.prompt)}
-                    className="flex items-center gap-2 p-2.5 rounded-xl border bg-card text-card-foreground text-left transition-all hover:bg-accent hover:text-accent-foreground shadow-xs group"
+                    className="flex items-center gap-2 p-2.5 rounded-xl border bg-card text-card-foreground text-left transition-all hover:bg-accent hover:text-accent-foreground shadow-xs group shrink-0 min-w-[220px] max-w-[85vw] md:min-w-0 md:max-w-none snap-start md:snap-align-none"
                   >
                     <IconComponent className="size-4 shrink-0 text-muted-foreground group-hover:text-foreground" />
                     <span className="text-xs font-medium truncate flex-1">
@@ -1246,17 +1285,17 @@ export default function AssistantPage() {
                   handleSendMessage();
                 }
               }}
-              placeholder="พิมพ์คำถาม หรือพิมพ์สิ่งที่ต้องการให้ AI ช่วยวิเคราะห์ (เช่น ยอดขายวันนี้, สินค้าสต็อกต่ำ)..."
-              className="flex-1 min-h-[48px] max-h-40 p-3 text-sm leading-relaxed rounded-xl border border-input bg-background resize-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 transition-all placeholder:text-muted-foreground/60 overflow-y-auto"
+              placeholder="พิมพ์คำถาม หรือให้ AI ช่วยวิเคราะห์"
+              className="flex-1 min-h-[48px] max-h-40 p-3 text-xs sm:text-sm leading-relaxed rounded-xl border border-input bg-background resize-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 transition-all placeholder:text-muted-foreground/60 overflow-y-auto"
               rows={1}
             />
             <Button
               type="submit"
+              size="icon"
               disabled={!input.trim() || isLoading}
-              className="h-12 px-4 rounded-xl gap-2 shadow-xs shrink-0"
+              className="size-12 rounded-xl shrink-0 shadow-xs bg-primary hover:bg-primary/90 transition-all group"
             >
-              <Send className="size-4" />
-              <span className="hidden sm:inline">ส่ง</span>
+              <Send className="size-5 group-hover:scale-110 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
             </Button>
           </form>
         </div>

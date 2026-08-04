@@ -7,6 +7,7 @@ import { hasStorePermission } from "@/lib/permissions";
 import { useAppSelector } from "@/store/hook";
 import { AppLogo } from "@/components/ui/app-logo";
 import { ChangelogModal } from "@/components/modals/ChangelogModal";
+import { TutorialProvider } from "@/components/tutorial/TutorialProvider";
 import { AppSidebar } from "./AppSidebar";
 import {
   Breadcrumb,
@@ -136,18 +137,19 @@ export function ClientLayout({
   const segments = pathname.split("/").filter(Boolean);
 
   return (
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset className="min-w-0 flex flex-col min-h-screen">
+    <TutorialProvider>
+      <SidebarProvider>
+        <AppSidebar />
+        <SidebarInset className="min-w-0 flex flex-col min-h-screen">
         <header className="sticky top-0 z-10 flex h-14 shrink-0 items-center justify-between gap-2 border-b border-border/60 bg-background/85 backdrop-blur-md transition-[width,height] ease-linear px-4">
           <div className="flex items-center gap-2 min-w-0">
-            <SidebarTrigger className="-ml-1" />
+            <SidebarTrigger id="sidebar-trigger" className="-ml-1" />
             <Separator
               orientation="vertical"
               className="mr-2 data-[orientation=vertical]:h-4"
             />
             <Breadcrumb className="min-w-0">
-              <BreadcrumbList className="flex-nowrap overflow-x-auto no-scrollbar whitespace-nowrap">
+              <BreadcrumbList className="flex-nowrap overflow-x-auto overflow-y-hidden no-scrollbar whitespace-nowrap">
                 <BreadcrumbItem className="hidden md:block shrink-0">
                   <BreadcrumbLink href="/dashboard" className="flex items-center gap-1">
                     <AppLogo size={20} className="text-xs font-semibold" />
@@ -215,5 +217,6 @@ export function ClientLayout({
       </SidebarInset>
       <ChangelogModal />
     </SidebarProvider>
+    </TutorialProvider>
   );
 }

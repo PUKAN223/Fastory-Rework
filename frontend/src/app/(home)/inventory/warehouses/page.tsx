@@ -16,7 +16,13 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  PageTabs,
+  PageTabsContent,
+  PageTabsList,
+  PageTabsTrigger,
+} from "@/components/ui/page-tabs";
+import { Warehouse, BarChart3 } from "lucide-react";
 import { fetchLocations } from "@/features/locationsSlice";
 import { useEntityCrudHandlers } from "@/hooks/useEntityCrudHandlers";
 import { notifyErrorOnce } from "@/lib/notifyError";
@@ -170,13 +176,17 @@ export default function InventoryWarehousesPage() {
         </div>
       </PageHeaderCards>
 
-      <Tabs defaultValue="warehouses">
-        <TabsList className="mb-2">
-          <TabsTrigger value="warehouses">คลังสินค้า</TabsTrigger>
-          <TabsTrigger value="stats">สถิติคลัง</TabsTrigger>
-        </TabsList>
+      <PageTabs defaultValue="warehouses" className="w-full">
+        <PageTabsList>
+          <PageTabsTrigger value="warehouses" icon={Warehouse}>
+            คลังสินค้า
+          </PageTabsTrigger>
+          <PageTabsTrigger value="stats" icon={BarChart3}>
+            สถิติคลัง
+          </PageTabsTrigger>
+        </PageTabsList>
 
-        <TabsContent value="warehouses" className="space-y-4">
+        <PageTabsContent value="warehouses" className="space-y-4">
           <EntityListCard
             title="รายการคลังสินค้า"
             description="เพิ่ม ค้นหา แก้ไข และลบข้อมูลคลังสินค้าได้ที่นี่"
@@ -196,9 +206,9 @@ export default function InventoryWarehousesPage() {
               onForceDeleteWarehouse={handleForceDeleteWarehouse}
             />
           </EntityListCard>
-        </TabsContent>
+        </PageTabsContent>
 
-        <TabsContent value="stats" className="space-y-4">
+        <PageTabsContent value="stats" className="space-y-4">
           <WarehouseStatsCards
             latestWarehouseName={latestWarehouseName}
             totalCapacity={totalCapacity}
@@ -208,8 +218,8 @@ export default function InventoryWarehousesPage() {
           />
 
           <WarehouseCharts warehouses={warehouses} />
-        </TabsContent>
-      </Tabs>
+        </PageTabsContent>
+      </PageTabs>
     </Containers>
   );
 }

@@ -17,8 +17,8 @@ export function WarehouseStatsCards({
   capacityDelta,
 }: WarehouseStatsCardsProps) {
   return (
-    <div className="grid gap-3 md:grid-cols-3">
-      <Card className="border-border/60 py-3 shadow-none">
+    <div className="flex md:grid md:grid-cols-3 gap-3 overflow-x-auto md:overflow-visible pb-2 md:pb-0 snap-x snap-mandatory md:snap-none [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+      <Card className="border-border/60 py-3 shadow-none min-w-fit md:min-w-0 shrink-0 md:shrink snap-start md:snap-align-none">
         <CardContent className="space-y-1 px-4">
           <p className="text-xs text-muted-foreground">คลังทั้งหมด</p>
           <p className="text-3xl font-semibold tracking-tight">
@@ -28,7 +28,7 @@ export function WarehouseStatsCards({
         </CardContent>
       </Card>
 
-      <Card className="border-border/60 py-3 shadow-none">
+      <Card className="border-border/60 py-3 shadow-none min-w-fit md:min-w-0 shrink-0 md:shrink snap-start md:snap-align-none">
         <CardContent className="space-y-1 px-4">
           <p className="text-xs text-muted-foreground">ความจุรวม</p>
           <p className="text-3xl font-semibold tracking-tight">
@@ -38,7 +38,7 @@ export function WarehouseStatsCards({
         </CardContent>
       </Card>
 
-      <Card className="border-border/60 py-3 shadow-none">
+      <Card className="border-border/60 py-3 shadow-none min-w-fit md:min-w-0 shrink-0 md:shrink snap-start md:snap-align-none">
         <CardContent className="space-y-1 px-4">
           <p className="text-xs text-muted-foreground">คลังล่าสุด</p>
           <p className="truncate text-3xl font-semibold tracking-tight">

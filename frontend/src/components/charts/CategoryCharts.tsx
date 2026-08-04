@@ -112,7 +112,7 @@ export function CategoryCharts({ categories }: CategoryChartsProps) {
 
   if (categories.length === 0) {
     return (
-      <Card className="border-border/60 shadow-none">
+      <Card className="border-border/60 shadow-none min-w-0 overflow-hidden">
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-medium">
             สถิติและกราฟวิเคราะห์หมวดหมู่สินค้า
@@ -121,7 +121,7 @@ export function CategoryCharts({ categories }: CategoryChartsProps) {
             แสดงข้อมูลเชิงลึกเมื่อมีหมวดหมู่ในระบบ
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-2 sm:p-6 pt-0 sm:pt-0">
           <EmptyChartContent message="ไม่พบข้อมูลหมวดหมู่สินค้าในระบบเพื่อนำมาแสดงกราฟ" />
         </CardContent>
       </Card>
@@ -129,9 +129,9 @@ export function CategoryCharts({ categories }: CategoryChartsProps) {
   }
 
   return (
-    <div className="grid gap-4 md:grid-cols-2">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 min-w-0">
       {/* Chart 1: Horizontal Bar Chart */}
-      <Card className="border-border/60 shadow-none">
+      <Card className="border-border/60 shadow-none min-w-0 overflow-hidden">
         <CardHeader className="pb-2">
           <div className="flex items-center gap-2">
             <FolderTree className="size-4 text-indigo-400" />
@@ -143,7 +143,7 @@ export function CategoryCharts({ categories }: CategoryChartsProps) {
             เรียงลำดับตามจำนวนสินค้าที่มีอยู่ในระบบ
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-2 sm:p-6 pt-0 sm:pt-0">
           {!hasProductAssignments ? (
             <EmptyChartContent message="ยังไม่มีสินค้าถูกจัดสรรลงในหมวดหมู่" />
           ) : (
@@ -201,7 +201,7 @@ export function CategoryCharts({ categories }: CategoryChartsProps) {
       </Card>
 
       {/* Chart 2: Donut Chart Distribution with Center Stats */}
-      <Card className="border-border/60 shadow-none">
+      <Card className="border-border/60 shadow-none min-w-0 overflow-hidden">
         <CardHeader className="pb-2">
           <div className="flex items-center gap-2">
             <PieIcon className="size-4 text-sky-400" />
@@ -213,7 +213,7 @@ export function CategoryCharts({ categories }: CategoryChartsProps) {
             สัดส่วนจำนวนสินค้าคิดเป็นเปอร์เซ็นต์
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-2 sm:p-6 pt-0 sm:pt-0">
           {topCategoriesPie.length === 0 ? (
             <EmptyChartContent message="ยังไม่มีสัดส่วนสินค้าในหมวดหมู่" />
           ) : (
@@ -255,7 +255,7 @@ export function CategoryCharts({ categories }: CategoryChartsProps) {
                   </PieChart>
                 </ResponsiveContainer>
               </div>
-              <div className="flex flex-wrap justify-center gap-2 pt-2 text-xs">
+              <div className="hidden sm:flex flex-wrap justify-center gap-2 pt-2 text-xs">
                 {topCategoriesPie.map((entry, index) => (
                   <div key={entry.name} className="flex items-center gap-1.5">
                     <span

@@ -42,6 +42,25 @@ class AIRoutes extends BaseRouter {
           return { success: false, message: "Unauthorized user" };
         }
 
+        // Retrieve permissions
+        let userPermissions: Record<string, boolean> = {};
+        let userRole = "ผู้ใช้";
+
+        if (store?.owner_id === userId) {
+          userPermissions = { "*": true };
+          userRole = "เจ้าของร้าน";
+        } else {
+          const membership = await prisma.store_members.findUnique({
+            where: {
+              store_id_user_id: { store_id: storeId, user_id: userId },
+            }
+          });
+          if (membership) {
+            userPermissions = (membership.permissions ?? {}) as Record<string, boolean>;
+            userRole = membership.job_title || "พนักงาน";
+          }
+        }
+
         // Save User Message to DB
         try {
           await prisma.ai_chat_messages.create({
@@ -176,7 +195,7 @@ class AIRoutes extends BaseRouter {
                           
                           sendEvent("tool_call", { name: call.name });
 
-                          const result = await executeTool(call.name, call.args);
+                          const result = await executeTool(call.name, call.args, userPermissions, userRole);
                           functionResponses.push({
                             functionResponse: {
                               name: call.name,

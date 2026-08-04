@@ -32,6 +32,7 @@ export function LoginForm({
   const router = useRouter();
   const dispatch = useAppDispatch();
   const [mounted, setMounted] = useState(false);
+  
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -77,12 +78,30 @@ export function LoginForm({
 
   const searchParams = useSearchParams();
   const errorParam = searchParams.get("error");
+  const demoParam = searchParams.get("demo");
 
   useEffect(() => {
     if (errorParam) {
       toast.error(errorParam);
     }
   }, [errorParam]);
+
+  const handleDemoLogin = async () => {
+    try {
+      await dispatch(authLogin({ email: "test@example.com", password: "123456" })).unwrap();
+      toast.success("เข้าสู่ระบบทดลองใช้งานสำเร็จ");
+      router.push("/stores");
+    } catch (error) {
+      const message = typeof error === "string" ? error : "ไม่สามารถเข้าสู่ระบบทดลองใช้งานได้";
+      toast.error(message);
+    }
+  };
+
+  useEffect(() => {
+    if (demoParam === "true") {
+      handleDemoLogin();
+    }
+  }, [demoParam]);
 
   const handleGoogleLogin = () => {
     window.location.href = "/api/auth/google";
@@ -112,6 +131,16 @@ export function LoginForm({
                     />
                   </svg>
                   เข้าสู่ระบบด้วย Google
+                </Button>
+              </Field>
+              <Field>
+                <Button
+                  variant="secondary"
+                  type="button"
+                  disabled={loginLoading}
+                  onClick={handleDemoLogin}
+                >
+                  ทดลองใช้งาน (Demo)
                 </Button>
               </Field>
               <FieldSeparator className="*:data-[slot=field-separator-content]:bg-card">

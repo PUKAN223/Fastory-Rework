@@ -190,7 +190,7 @@ export default function DashboardPage() {
     imagesStatus === "loading";
 
   return (
-    <div className="space-y-6">
+    <div className="min-w-0 space-y-5 pb-6 overflow-x-clip">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">แดชบอร์ด</h1>
         <p className="text-muted-foreground text-sm">
@@ -199,88 +199,84 @@ export default function DashboardPage() {
       </div>
 
       {/* Summary Cards Grid */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Card className="border-border/60 shadow-none">
-          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-sm font-medium">สินค้าทั้งหมด</CardTitle>
-            <Package className="size-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
+      <div className="flex md:grid md:grid-cols-4 gap-3 overflow-x-auto md:overflow-visible pb-2 md:pb-0 snap-x snap-mandatory md:snap-none [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+        <Card className="border-border/60 py-3 shadow-none min-w-[180px] md:min-w-0 shrink-0 md:shrink snap-start md:snap-align-none">
+          <CardContent className="space-y-1 px-4">
+            <div className="flex items-center justify-between">
+              <p className="text-xs text-muted-foreground">สินค้าทั้งหมด</p>
+              <Package className="size-4 text-muted-foreground shrink-0" />
+            </div>
             {isLoading ? (
-              <Skeleton className="h-9 w-20" />
+              <Skeleton className="h-8 w-16" />
             ) : (
               <>
-                <div className="text-2xl font-bold">
-                  {products.length} รายการ
-                </div>
-                <p className="text-muted-foreground text-xs">
-                  มูลค่าประเมิน {totalProductsValue}
+                <p className="text-3xl font-semibold tracking-tight">
+                  {products.length} <span className="text-xs font-normal text-muted-foreground">รายการ</span>
+                </p>
+                <p className="text-xs text-muted-foreground truncate" title={totalProductsValue}>
+                  มูลค่า {totalProductsValue}
                 </p>
               </>
             )}
           </CardContent>
         </Card>
 
-        <Card className="border-border/60 shadow-none">
-          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-sm font-medium">สินค้าสต็อกต่ำ</CardTitle>
-            <AlertTriangle
-              className={`size-4 ${lowStockProducts.length > 0 ? "text-destructive" : "text-muted-foreground"}`}
-            />
-          </CardHeader>
-          <CardContent>
+        <Card className="border-border/60 py-3 shadow-none min-w-[180px] md:min-w-0 shrink-0 md:shrink snap-start md:snap-align-none">
+          <CardContent className="space-y-1 px-4">
+            <div className="flex items-center justify-between">
+              <p className={`text-xs ${lowStockProducts.length > 0 ? "text-destructive font-medium" : "text-muted-foreground"}`}>
+                สต็อกต่ำ
+              </p>
+              <AlertTriangle className={`size-4 shrink-0 ${lowStockProducts.length > 0 ? "text-destructive" : "text-muted-foreground"}`} />
+            </div>
             {isLoading ? (
-              <Skeleton className="h-9 w-20" />
+              <Skeleton className="h-8 w-16" />
             ) : (
               <>
-                <div
-                  className={`text-2xl font-bold ${lowStockProducts.length > 0 ? "text-destructive" : ""}`}
-                >
-                  {lowStockProducts.length} รายการ
-                </div>
-                <p className="text-muted-foreground text-xs">
-                  {lowStockProducts.length > 0
-                    ? "ต้องรีบสั่งซื้อสินค้าเพิ่ม"
-                    : "คลังสินค้าปกติ"}
+                <p className={`text-3xl font-semibold tracking-tight ${lowStockProducts.length > 0 ? "text-destructive" : ""}`}>
+                  {lowStockProducts.length} <span className="text-xs font-normal opacity-70">รายการ</span>
+                </p>
+                <p className="text-xs text-muted-foreground truncate">
+                  {lowStockProducts.length > 0 ? "ต้องสั่งซื้อเพิ่ม" : "สต็อกปกติ"}
                 </p>
               </>
             )}
           </CardContent>
         </Card>
 
-        <Card className="border-border/60 shadow-none">
-          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-sm font-medium">หมวดหมู่ทั้งหมด</CardTitle>
-            <Layers className="size-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
+        <Card className="border-border/60 py-3 shadow-none min-w-[180px] md:min-w-0 shrink-0 md:shrink snap-start md:snap-align-none">
+          <CardContent className="space-y-1 px-4">
+            <div className="flex items-center justify-between">
+              <p className="text-xs text-muted-foreground">หมวดหมู่</p>
+              <Layers className="size-4 text-muted-foreground shrink-0" />
+            </div>
             {isLoading ? (
-              <Skeleton className="h-9 w-20" />
+              <Skeleton className="h-8 w-16" />
             ) : (
               <>
-                <div className="text-2xl font-bold">
-                  {categories.length} หมวดหมู่
-                </div>
-                <p className="text-muted-foreground text-xs">จัดจำแนกกลุ่มสินค้า</p>
+                <p className="text-3xl font-semibold tracking-tight">
+                  {categories.length} <span className="text-xs font-normal text-muted-foreground">หมวด</span>
+                </p>
+                <p className="text-xs text-muted-foreground truncate">จัดจำแนกกลุ่ม</p>
               </>
             )}
           </CardContent>
         </Card>
 
-        <Card className="border-border/60 shadow-none">
-          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className="text-sm font-medium">คลังสินค้า</CardTitle>
-            <Warehouse className="size-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
+        <Card className="border-border/60 py-3 shadow-none min-w-[180px] md:min-w-0 shrink-0 md:shrink snap-start md:snap-align-none">
+          <CardContent className="space-y-1 px-4">
+            <div className="flex items-center justify-between">
+              <p className="text-xs text-muted-foreground">คลังสินค้า</p>
+              <Warehouse className="size-4 text-muted-foreground shrink-0" />
+            </div>
             {isLoading ? (
-              <Skeleton className="h-9 w-20" />
+              <Skeleton className="h-8 w-16" />
             ) : (
               <>
-                <div className="text-2xl font-bold">{locations.length} คลัง</div>
-                <p className="text-muted-foreground text-xs">
-                  ความจุรวม {totalCapacity} ชิ้น
+                <p className="text-3xl font-semibold tracking-tight">
+                  {locations.length} <span className="text-xs font-normal text-muted-foreground">แห่ง</span>
                 </p>
+                <p className="text-xs text-muted-foreground truncate">ความจุรวม {totalCapacity}</p>
               </>
             )}
           </CardContent>
@@ -288,73 +284,78 @@ export default function DashboardPage() {
       </div>
 
       {/* Chart: Stock Movement Overview (last 7 days) */}
-      <Card className="border-border/60 shadow-none">
-        <CardHeader className="flex flex-row items-start justify-between">
-          <div>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <TrendingUp className="size-4" />
-              ภาพรวมการเคลื่อนไหวสต็อก
+      <Card className="border-border/60 shadow-none min-w-0 overflow-hidden">
+        <CardHeader className="flex flex-row items-start sm:items-center justify-between gap-4 pb-2">
+          <div className="space-y-1 min-w-0 flex-1">
+            <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
+              <TrendingUp className="size-4 shrink-0" />
+              <span className="truncate">ภาพรวมการเคลื่อนไหวสต็อก</span>
             </CardTitle>
-            <CardDescription className="mt-0.5">
+            <CardDescription className="truncate text-xs sm:text-sm">
               สินค้าเข้า–ออกย้อนหลัง 7 วัน
             </CardDescription>
           </div>
-          <Button variant="ghost" size="sm" asChild>
+          <Button variant="ghost" size="sm" className="shrink-0 h-8 px-2 sm:px-3" asChild>
             <Link href="/inventory/movements">
-              ดูทั้งหมด <ArrowRight className="ml-1 size-3" />
+              <span className="hidden sm:inline">ดูทั้งหมด</span>
+              <ArrowRight className="sm:ml-1 size-4 sm:size-3" />
             </Link>
           </Button>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-2 sm:p-6 sm:pt-0 pt-0">
           {isLoading ? (
-            <Skeleton className="h-52 w-full" />
+            <Skeleton className="h-[320px] w-full" />
           ) : (
-            <ResponsiveContainer width="100%" height={210}>
-              <BarChart data={chartData} barCategoryGap="30%" barGap={3}>
-                <CartesianGrid
-                  strokeDasharray="3 3"
-                  vertical={false}
-                  stroke="oklch(0.92 0.004 286.32)"
-                />
-                <XAxis
-                  dataKey="name"
-                  tick={{ fontSize: 11, fill: "oklch(0.552 0.016 285.938)" }}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <YAxis
-                  tick={{ fontSize: 11, fill: "oklch(0.552 0.016 285.938)" }}
-                  axisLine={false}
-                  tickLine={false}
-                  allowDecimals={false}
-                  width={28}
-                />
-                <Tooltip
-                  content={<CustomTooltip />}
-                  cursor={{ fill: "oklch(0.967 0.001 286.375 / 0.6)" }}
-                />
-                <Legend
-                  wrapperStyle={{ fontSize: 11, paddingTop: 8 }}
-                  formatter={(value) => (
-                    <span style={{ color: "oklch(0.552 0.016 285.938)" }}>
-                      {value}
-                    </span>
-                  )}
-                />
-                <Bar
-                  dataKey="สินค้าเข้า"
-                  fill="oklch(0.646 0.222 41.116)"
-                  radius={[3, 3, 0, 0]}
-                  maxBarSize={28}
-                />
-                <Bar
-                  dataKey="สินค้าออก"
-                  fill="oklch(0.577 0.245 27.325)"
-                  radius={[3, 3, 0, 0]}
-                  maxBarSize={28}
-                />
-              </BarChart>
-            </ResponsiveContainer>
+            <div className="overflow-x-auto no-scrollbar pb-2">
+              <div className="min-w-[520px] sm:min-w-full h-[320px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={chartData} barCategoryGap="30%" barGap={3}>
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                      vertical={false}
+                      stroke="oklch(0.92 0.004 286.32)"
+                    />
+                    <XAxis
+                      dataKey="name"
+                      tick={{ fontSize: 11, fill: "oklch(0.552 0.016 285.938)" }}
+                      axisLine={false}
+                      tickLine={false}
+                    />
+                    <YAxis
+                      tick={{ fontSize: 11, fill: "oklch(0.552 0.016 285.938)" }}
+                      axisLine={false}
+                      tickLine={false}
+                      allowDecimals={false}
+                      width={28}
+                    />
+                    <Tooltip
+                      content={<CustomTooltip />}
+                      cursor={{ fill: "oklch(0.967 0.001 286.375 / 0.6)" }}
+                    />
+                    <Legend
+                      wrapperStyle={{ fontSize: 11, paddingTop: 8 }}
+                      formatter={(value) => (
+                        <span style={{ color: "oklch(0.552 0.016 285.938)" }}>
+                          {value}
+                        </span>
+                      )}
+                    />
+                    <Bar
+                      dataKey="สินค้าเข้า"
+                      fill="oklch(0.646 0.222 41.116)"
+                      radius={[3, 3, 0, 0]}
+                      maxBarSize={28}
+                    />
+                    <Bar
+                      dataKey="สินค้าออก"
+                      fill="oklch(0.577 0.245 27.325)"
+                      radius={[3, 3, 0, 0]}
+                      maxBarSize={28}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
           )}
         </CardContent>
       </Card>
@@ -362,24 +363,25 @@ export default function DashboardPage() {
       {/* Bottom row: Low Stock + Recent Movements */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
         {/* Low Stock Alerts */}
-        <Card className="lg:col-span-3 md:col-span-1 border-border/60 shadow-none">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <div>
-              <CardTitle className="flex items-center gap-2 text-rose-600 dark:text-rose-500">
-                <AlertTriangle className="size-5" />
-                สต็อกสินค้าวิกฤต
+        <Card className="border-border/60 shadow-none lg:col-span-3 md:col-span-1 min-w-0 overflow-hidden flex flex-col">
+          <CardHeader className="flex flex-row items-start sm:items-center justify-between gap-4 pb-2">
+            <div className="space-y-1 min-w-0 flex-1">
+              <CardTitle className="flex items-center gap-2 text-sm sm:text-base text-rose-600 dark:text-rose-500">
+                <AlertTriangle className="size-4 shrink-0" />
+                <span className="truncate">สต็อกสินค้าวิกฤต</span>
               </CardTitle>
-              <CardDescription>สินค้าที่ลดลงต่ำกว่าจุดสั่งซื้อซ้ำ</CardDescription>
+              <CardDescription className="truncate text-xs sm:text-sm">สินค้าที่ลดลงต่ำกว่าจุดสั่งซื้อซ้ำ</CardDescription>
             </div>
             {lowStockProducts.length > 5 && (
-              <Button variant="ghost" size="sm" asChild>
+              <Button variant="ghost" size="sm" className="shrink-0 h-8 px-2 sm:px-3" asChild>
                 <Link href="/inventory/products">
-                  ดูทั้งหมด <ArrowRight className="ml-1 size-3" />
+                  <span className="hidden sm:inline">ดูทั้งหมด</span>
+                  <ArrowRight className="sm:ml-1 size-4 sm:size-3" />
                 </Link>
               </Button>
             )}
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-4 pt-0 sm:p-6 sm:pt-0">
             {isLoading ? (
               <div className="space-y-2">
                 <Skeleton className="h-10 w-full" />
@@ -428,25 +430,25 @@ export default function DashboardPage() {
 
                         <div className="space-y-0.5 min-w-0 flex-1">
                           <p
-                            className="text-sm font-medium truncate"
+                            className="text-[13px] sm:text-sm font-medium truncate"
                             title={p.name}
                           >
                             {p.name.length > 35
                               ? `${p.name.slice(0, 35)}...`
                               : p.name}
                           </p>
-                          <p className="text-muted-foreground text-xs font-mono">
+                          <p className="text-muted-foreground text-[10px] sm:text-xs font-mono">
                             SKU: {p.sku || "–"}
                           </p>
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-2 shrink-0">
+                      <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
                         <Badge
                           variant="destructive"
-                          className="h-6 font-semibold"
+                          className="h-5 sm:h-6 px-1.5 sm:px-2.5 font-semibold text-[10px] sm:text-xs"
                         >
-                          {p.stockOnHand} / {p.reorderPoint} ชิ้น
+                          {p.stockOnHand} / {p.reorderPoint}
                         </Badge>
                         <Button
                           variant="ghost"
@@ -468,24 +470,25 @@ export default function DashboardPage() {
         </Card>
 
         {/* Recent Movements */}
-        <Card className="lg:col-span-4 md:col-span-1 border-border/60 shadow-none">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <History className="size-5" />
-                การเคลื่อนไหวสต็อกล่าสุด
+        <Card className="border-border/60 shadow-none lg:col-span-4 md:col-span-1 min-w-0 overflow-hidden flex flex-col">
+          <CardHeader className="flex flex-row items-start sm:items-center justify-between gap-4 pb-2">
+            <div className="space-y-1 min-w-0 flex-1">
+              <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
+                <History className="size-4 shrink-0" />
+                <span className="truncate">การเคลื่อนไหวสต็อกล่าสุด</span>
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="truncate text-xs sm:text-sm">
                 ประวัติการปรับเพิ่มและปรับลดยอดสต็อก 5 รายการล่าสุด
               </CardDescription>
             </div>
-            <Button variant="ghost" size="sm" asChild>
+            <Button variant="ghost" size="sm" className="shrink-0 h-8 px-2 sm:px-3" asChild>
               <Link href="/inventory/movements">
-                ดูทั้งหมด <ArrowRight className="ml-1 size-3" />
+                <span className="hidden sm:inline">ดูทั้งหมด</span>
+                <ArrowRight className="sm:ml-1 size-4 sm:size-3" />
               </Link>
             </Button>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-2 pb-3 sm:p-6 sm:pt-0">
             {isLoading ? (
               <div className="space-y-2">
                 <Skeleton className="h-10 w-full" />

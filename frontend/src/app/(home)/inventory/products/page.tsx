@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertTriangle, Barcode, ChevronDown, Plus } from "lucide-react";
+import { AlertTriangle, Barcode, ChevronDown, Plus, PackageSearch, BarChart3 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -26,7 +26,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  PageTabs,
+  PageTabsContent,
+  PageTabsList,
+  PageTabsTrigger,
+} from "@/components/ui/page-tabs";
 import { fetchCategories, isCategoriesStale } from "@/features/categoriesSlice";
 import { fetchImages } from "@/features/imageSlice";
 import { fetchLocations, isLocationsStale } from "@/features/locationsSlice";
@@ -284,13 +289,17 @@ export default function InventoryProductsPage() {
           <Badge variant="outline">สินค้าทั้งหมด {products.length} รายการ</Badge>
         </PageHeaderCards>
 
-        <Tabs defaultValue="products">
-          <TabsList className="mb-2">
-            <TabsTrigger value="products">สินค้า</TabsTrigger>
-            <TabsTrigger value="stats">สถิติสินค้า</TabsTrigger>
-          </TabsList>
+        <PageTabs defaultValue="products" className="w-full">
+          <PageTabsList>
+            <PageTabsTrigger value="products" icon={PackageSearch}>
+              รายการสินค้า
+            </PageTabsTrigger>
+            <PageTabsTrigger value="stats" icon={BarChart3}>
+              สถิติและภาพรวม
+            </PageTabsTrigger>
+          </PageTabsList>
 
-          <TabsContent value="products" className="space-y-4">
+          <PageTabsContent value="products" className="space-y-4">
             {(categories.length === 0 || locations.length === 0) && (
               <Alert variant="warning" className="animate-fade-in">
                 <AlertTriangle className="size-4 text-warning" />
@@ -395,9 +404,9 @@ export default function InventoryProductsPage() {
                 onDeleteProduct={handleDeleteProduct}
               />
             </EntityListCard>
-          </TabsContent>
+          </PageTabsContent>
 
-          <TabsContent value="stats" className="space-y-4">
+          <PageTabsContent value="stats" className="space-y-4">
             <ProductStatsCards
               productsCount={products.length}
               activeProductsCount={activeProductsCount}
@@ -410,8 +419,8 @@ export default function InventoryProductsPage() {
             />
 
             <ProductsCharts products={products} />
-          </TabsContent>
-        </Tabs>
+          </PageTabsContent>
+        </PageTabs>
       </div>
       <BulkScannerModal open={scannerOpen} onOpenChange={setScannerOpen} />
       <ProductFormDrawer

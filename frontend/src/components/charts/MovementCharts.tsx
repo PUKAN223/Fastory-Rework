@@ -141,7 +141,7 @@ export function MovementCharts({ movements }: MovementChartsProps) {
 
   if (movements.length === 0) {
     return (
-      <Card className="border-border/60 shadow-none">
+      <Card className="border-border/60 shadow-none min-w-0 overflow-hidden">
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-medium">
             สถิติและกราฟประวัติสต็อก
@@ -150,7 +150,7 @@ export function MovementCharts({ movements }: MovementChartsProps) {
             แสดงข้อมูลเชิงลึกเมื่อมีรายการเคลื่อนไหวสต็อก
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-2 sm:p-6 pt-0 sm:pt-0">
           <EmptyChartContent message="ไม่พบข้อมูลประวัติสต็อกในระบบเพื่อนำมาแสดงกราฟ" />
         </CardContent>
       </Card>
@@ -158,9 +158,9 @@ export function MovementCharts({ movements }: MovementChartsProps) {
   }
 
   return (
-    <div className="grid gap-4 md:grid-cols-2">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 min-w-0">
       {/* Chart 1: Area Chart - Movements Timeline */}
-      <Card className="border-border/60 shadow-none">
+      <Card className="border-border/60 shadow-none min-w-0 overflow-hidden">
         <CardHeader className="pb-2">
           <div className="flex items-center gap-2">
             <History className="size-4 text-emerald-400" />
@@ -172,12 +172,13 @@ export function MovementCharts({ movements }: MovementChartsProps) {
             ปริมาณยูนิตสต็อกที่รับเข้าและจ่ายออกตามช่วงเวลา
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-2 sm:p-6 pt-0 sm:pt-0">
           {timelineData.length === 0 ? (
             <EmptyChartContent message="ไม่มีข้อมูลการเคลื่อนไหวในช่วงเวลานี้" />
           ) : (
-            <div className="h-64 w-full pt-1">
-              <ResponsiveContainer width="100%" height="100%">
+            <div className="overflow-x-auto no-scrollbar pb-2">
+              <div className="h-64 min-w-[520px] sm:min-w-full pt-1">
+                <ResponsiveContainer width="100%" height="100%">
                 <AreaChart
                   data={timelineData}
                   margin={{ top: 10, right: 10, left: -15, bottom: 20 }}
@@ -265,13 +266,14 @@ export function MovementCharts({ movements }: MovementChartsProps) {
                   />
                 </AreaChart>
               </ResponsiveContainer>
+              </div>
             </div>
           )}
         </CardContent>
       </Card>
 
       {/* Chart 2: Bar Chart - Top Moved Items Volume */}
-      <Card className="border-border/60 shadow-none">
+      <Card className="border-border/60 shadow-none min-w-0 overflow-hidden">
         <CardHeader className="pb-2">
           <div className="flex items-center gap-2">
             <Activity className="size-4 text-purple-400" />
@@ -283,12 +285,13 @@ export function MovementCharts({ movements }: MovementChartsProps) {
             คำนวณจากปริมาณรวมของยูนิตสต็อกที่มีการเปลี่ยนแปลง
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-2 sm:p-6 pt-0 sm:pt-0">
           {topMovedProducts.length === 0 ? (
             <EmptyChartContent message="ยังไม่มีสินค้าที่มีการหมุนเวียนสต็อก" />
           ) : (
-            <div className="h-64 w-full pt-1">
-              <ResponsiveContainer width="100%" height="100%">
+            <div className="overflow-x-auto no-scrollbar pb-2">
+              <div className="h-64 min-w-[520px] sm:min-w-full pt-1">
+                <ResponsiveContainer width="100%" height="100%">
                 <BarChart
                   data={topMovedProducts}
                   margin={{ top: 10, right: 10, left: -15, bottom: 20 }}
@@ -334,6 +337,7 @@ export function MovementCharts({ movements }: MovementChartsProps) {
                   />
                 </BarChart>
               </ResponsiveContainer>
+              </div>
             </div>
           )}
         </CardContent>

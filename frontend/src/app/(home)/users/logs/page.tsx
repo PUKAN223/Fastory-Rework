@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Containers } from "@/components/Containers";
+import { DataTablePagination } from "@/components/tables/DataTablePagination";
 import { PageHeaderCards } from "@/components/card/PageHeaderCards";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -226,8 +227,8 @@ export default function EmployeeLogsPage() {
       />
 
       {/* Summary Stats — ProductStatsCards compact pattern */}
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Card className="border-border/60 py-3 shadow-none">
+      <div className="flex sm:grid sm:grid-cols-2 lg:grid-cols-4 gap-3 overflow-x-auto sm:overflow-visible pb-2 sm:pb-0 snap-x snap-mandatory sm:snap-none [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+        <Card className="border-border/60 py-3 shadow-none min-w-[200px] sm:min-w-0 shrink-0 sm:shrink snap-start sm:snap-align-none">
           <CardContent className="space-y-1 px-4">
             <p className="text-xs text-muted-foreground">กิจกรรมทั้งหมด</p>
             {loading ? (
@@ -239,7 +240,7 @@ export default function EmployeeLogsPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-border/60 py-3 shadow-none">
+        <Card className="border-border/60 py-3 shadow-none min-w-[200px] sm:min-w-0 shrink-0 sm:shrink snap-start sm:snap-align-none">
           <CardContent className="space-y-1 px-4">
             <p className="text-xs text-muted-foreground">การขาย (POS)</p>
             {loading ? (
@@ -251,7 +252,7 @@ export default function EmployeeLogsPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-border/60 py-3 shadow-none">
+        <Card className="border-border/60 py-3 shadow-none min-w-[200px] sm:min-w-0 shrink-0 sm:shrink snap-start sm:snap-align-none">
           <CardContent className="space-y-1 px-4">
             <p className="text-xs text-muted-foreground">ปรับปรุงสต็อก</p>
             {loading ? (
@@ -263,7 +264,7 @@ export default function EmployeeLogsPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-border/60 py-3 shadow-none">
+        <Card className="border-border/60 py-3 shadow-none min-w-[200px] sm:min-w-0 shrink-0 sm:shrink snap-start sm:snap-align-none">
           <CardContent className="space-y-1 px-4">
             <p className="text-xs text-muted-foreground">รายการยกเลิก</p>
             {loading ? (
@@ -282,7 +283,7 @@ export default function EmployeeLogsPage() {
 
       {/* Filter Toolbar — same pattern as Reports page filter bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-xl border border-border/60 bg-card shadow-none">
-        <div className="relative flex-1 max-w-sm">
+        <div className="relative w-full sm:max-w-sm shrink-0">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="ค้นหาเลขคำสั่งซื้อ, สินค้า, ชื่อพนักงาน..."
@@ -292,11 +293,11 @@ export default function EmployeeLogsPage() {
           />
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="flex items-center gap-1.5">
+        <div className="flex overflow-x-auto sm:overflow-visible pb-1 sm:pb-0 gap-2 items-center [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+          <div className="flex items-center gap-1.5 shrink-0">
             <Users className="w-3.5 h-3.5 text-muted-foreground" />
             <Select value={selectedUser} onValueChange={setSelectedUser}>
-              <SelectTrigger className="h-8 text-xs w-[150px]">
+              <SelectTrigger className="h-8 text-xs w-[140px] sm:w-[150px]">
                 <SelectValue placeholder="พนักงานทุกคน" />
               </SelectTrigger>
               <SelectContent>
@@ -310,10 +311,10 @@ export default function EmployeeLogsPage() {
             </Select>
           </div>
 
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 shrink-0">
             <Filter className="w-3.5 h-3.5 text-muted-foreground" />
             <Select value={selectedType} onValueChange={setSelectedType}>
-              <SelectTrigger className="h-8 text-xs w-[140px]">
+              <SelectTrigger className="h-8 text-xs w-[130px] sm:w-[140px]">
                 <SelectValue placeholder="ทุกกิจกรรม" />
               </SelectTrigger>
               <SelectContent>
@@ -326,10 +327,10 @@ export default function EmployeeLogsPage() {
             </Select>
           </div>
 
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 shrink-0">
             <Calendar className="w-3.5 h-3.5 text-muted-foreground" />
             <Select value={selectedDays} onValueChange={setSelectedDays}>
-              <SelectTrigger className="h-8 text-xs w-[120px]">
+              <SelectTrigger className="h-8 text-xs w-[110px] sm:w-[120px]">
                 <SelectValue placeholder="7 วันล่าสุด" />
               </SelectTrigger>
               <SelectContent>
@@ -412,39 +413,21 @@ export default function EmployeeLogsPage() {
                           {format(logDate, "d MMM yyyy", { locale: th })}
                         </div>
                       </TableCell>
-
-                      {/* Employee */}
                       <TableCell className="py-3 align-top text-xs">
                         <div className="flex items-center gap-2">
-                          <Avatar className="h-7 w-7 border border-border shrink-0">
-                            <AvatarFallback className="text-[10px] font-bold bg-primary/10 text-primary">
-                              {log.user.username.slice(0, 2).toUpperCase()}
-                            </AvatarFallback>
+                          <Avatar className="h-7 w-7 border border-border">
+                            <AvatarFallback className="text-[10px] font-bold">{log.user.username.slice(0, 2).toUpperCase()}</AvatarFallback>
                           </Avatar>
-                          <div className="min-w-0">
-                            <div className="font-medium text-foreground truncate">
-                              {log.user.username}
-                            </div>
-                            <div className="text-[11px] text-muted-foreground">
-                              {log.user.jobTitle}
-                            </div>
+                          <div>
+                            <div className="font-medium">{log.user.username}</div>
+                            <div className="text-[11px] text-muted-foreground">{log.user.jobTitle}</div>
                           </div>
                         </div>
                       </TableCell>
-
-                      {/* Type Badge */}
+                      <TableCell className="py-3 align-top text-xs">{getTypeBadge(log.type)}</TableCell>
                       <TableCell className="py-3 align-top text-xs">
-                        {getTypeBadge(log.type)}
-                      </TableCell>
-
-                      {/* Details */}
-                      <TableCell className="py-3 align-top text-xs">
-                        <div className="font-medium text-foreground">
-                          {log.actionTitle}
-                        </div>
-                        <p className="text-muted-foreground mt-0.5 leading-relaxed">
-                          {log.details}
-                        </p>
+                        <div className="font-medium text-foreground">{log.actionTitle}</div>
+                        <p className="text-muted-foreground mt-0.5">{log.details}</p>
                       </TableCell>
                     </TableRow>
                   );
@@ -456,81 +439,16 @@ export default function EmployeeLogsPage() {
 
         {/* Pagination Footer */}
         {!loading && filteredLogs.length > 0 && (
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 border-t border-border/60 bg-muted/10 text-xs">
-            <div className="flex items-center gap-3 text-muted-foreground">
-              <span>
-                แสดง{" "}
-                <strong className="text-foreground">
-                  {startIndex}–{endIndex}
-                </strong>{" "}
-                จาก{" "}
-                <strong className="text-foreground">{filteredLogs.length}</strong>{" "}
-                รายการ
-              </span>
-              <div className="flex items-center gap-1.5 border-l border-border/60 pl-3">
-                <span>แสดงหน้าละ:</span>
-                <Select
-                  value={String(pageSize)}
-                  onValueChange={(v) => setPageSize(Number(v))}
-                >
-                  <SelectTrigger className="h-7 text-xs w-[64px]">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {[10, 20, 50, 100].map((n) => (
-                      <SelectItem key={n} value={String(n)} className="text-xs">
-                        {n}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-1">
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-7 w-7"
-                onClick={() => setCurrentPage(1)}
-                disabled={currentPage === 1}
-              >
-                <ChevronsLeft className="w-3.5 h-3.5" />
-              </Button>
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-7 w-7"
-                onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
-                disabled={currentPage === 1}
-              >
-                <ChevronLeft className="w-3.5 h-3.5" />
-              </Button>
-              <span className="px-2.5 text-xs font-medium min-w-[80px] text-center">
-                หน้า {currentPage} / {totalPages}
-              </span>
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-7 w-7"
-                onClick={() =>
-                  setCurrentPage((p) => Math.min(p + 1, totalPages))
-                }
-                disabled={currentPage >= totalPages}
-              >
-                <ChevronRight className="w-3.5 h-3.5" />
-              </Button>
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-7 w-7"
-                onClick={() => setCurrentPage(totalPages)}
-                disabled={currentPage >= totalPages}
-              >
-                <ChevronsRight className="w-3.5 h-3.5" />
-              </Button>
-            </div>
-          </div>
+          <DataTablePagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            pageSize={pageSize}
+            totalItems={filteredLogs.length}
+            onPageChange={setCurrentPage}
+            onPageSizeChange={setPageSize}
+            pageSizeOptions={[10, 20, 50, 100]}
+            className="border-none bg-muted/10 rounded-b-xl"
+          />
         )}
       </Card>
     </Containers>

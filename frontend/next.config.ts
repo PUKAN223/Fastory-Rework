@@ -7,7 +7,6 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: true,
   },
   images: {
-    unoptimized: true,
     remotePatterns: [
       {
         protocol: "https",
@@ -22,6 +21,7 @@ const nextConfig: NextConfig = {
         hostname: "o2o-static.lotuss.com",
       },
     ],
+    formats: ["image/avif", "image/webp"],
   },
   allowedDevOrigins: ["172.20.10.2", "10.193.97.219", "192.168.1.203"],
   experimental: {
@@ -29,6 +29,28 @@ const nextConfig: NextConfig = {
     preloadEntriesOnStart: false,
   },
   productionBrowserSourceMaps: false,
+  async headers() {
+    return [
+      {
+        source: "/_next/static/(.*)",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
+          },
+        ],
+      },
+      {
+        source: "/(.*)\\.(png|jpg|jpeg|webp|avif|svg|ico|woff2|woff)",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=604800, stale-while-revalidate=86400",
+          },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;

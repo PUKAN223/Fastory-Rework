@@ -150,12 +150,13 @@ export const AiChartCard: React.FC<AiChartCardProps> = ({
       </div>
 
       {/* Chart Canvas */}
-      <div className="p-4 w-full h-[280px]">
+      <div className="p-4 w-full h-[280px] overflow-x-auto">
         {data && data.length > 0 ? (
-          <ResponsiveContainer width="100%" height="100%">
-            {chartType === "line" ? (
-              <LineChart
-                data={data}
+          <div className="min-w-[500px] h-full">
+            <ResponsiveContainer width="100%" height="100%">
+              {chartType === "line" ? (
+                <LineChart
+                  data={data}
                 margin={{ top: 10, right: 10, left: -10, bottom: 0 }}
               >
                 <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
@@ -326,6 +327,7 @@ export const AiChartCard: React.FC<AiChartCardProps> = ({
               </BarChart>
             )}
           </ResponsiveContainer>
+          </div>
         ) : (
           <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs">
             ไม่มีข้อมูลสำหรับแสดงกราฟ

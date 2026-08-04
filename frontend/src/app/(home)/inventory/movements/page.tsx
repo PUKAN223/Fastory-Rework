@@ -6,6 +6,8 @@ import {
   MinusCircle,
   Plus,
   PlusCircle,
+  ArrowRightLeft,
+  BarChart3,
   Search,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -60,7 +62,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  PageTabs,
+  PageTabsContent,
+  PageTabsList,
+  PageTabsTrigger,
+} from "@/components/ui/page-tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { fetchProducts } from "@/features/productsSlice";
 import { createMovement, fetchMovements } from "@/features/stockMovementsSlice";
@@ -255,13 +262,17 @@ export default function StockMovementsPage() {
         <Badge variant="outline">การเคลื่อนไหว {movements.length} รายการ</Badge>
       </PageHeaderCards>
 
-      <Tabs defaultValue="history">
-        <TabsList className="mb-2">
-          <TabsTrigger value="history">ประวัติสต็อก</TabsTrigger>
-          <TabsTrigger value="stats">สถิติการเคลื่อนไหว</TabsTrigger>
-        </TabsList>
+      <PageTabs defaultValue="movements" className="w-full">
+        <PageTabsList>
+          <PageTabsTrigger value="movements" icon={ArrowRightLeft}>
+            ความเคลื่อนไหว
+          </PageTabsTrigger>
+          <PageTabsTrigger value="stats" icon={BarChart3}>
+            สถิติ
+          </PageTabsTrigger>
+        </PageTabsList>
 
-        <TabsContent value="history">
+        <PageTabsContent value="movements" className="space-y-4">
           <EntityListCard
             title="รายการเปลี่ยนแปลงสต็อก"
             description="ดูรายการความเคลื่อนไหวสต็อกสินค้าล่าสุด"
@@ -557,11 +568,11 @@ export default function StockMovementsPage() {
               )}
             </div>
           </EntityListCard>
-        </TabsContent>
+        </PageTabsContent>
 
-        <TabsContent value="stats" className="space-y-4">
-          <div className="grid gap-3 md:grid-cols-3">
-            <Card className="border-border/60 py-3 shadow-none">
+        <PageTabsContent value="stats" className="space-y-4">
+          <div className="flex md:grid md:grid-cols-3 gap-3 overflow-x-auto md:overflow-visible pb-2 md:pb-0 snap-x snap-mandatory md:snap-none [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+            <Card className="border-border/60 py-3 shadow-none min-w-fit md:min-w-0 shrink-0 md:shrink snap-start md:snap-align-none">
               <CardContent className="space-y-1 px-4">
                 <p className="text-xs text-muted-foreground">
                   การเคลื่อนไหวทั้งหมด
@@ -572,7 +583,7 @@ export default function StockMovementsPage() {
                 <p className="text-xs text-muted-foreground">รายการ</p>
               </CardContent>
             </Card>
-            <Card className="border-border/60 py-3 shadow-none">
+            <Card className="border-border/60 py-3 shadow-none min-w-fit md:min-w-0 shrink-0 md:shrink snap-start md:snap-align-none">
               <CardContent className="space-y-1 px-4">
                 <p className="text-xs text-muted-foreground">รับเข้าทั้งหมด</p>
                 <p className="text-3xl font-semibold tracking-tight text-emerald-600">
@@ -581,7 +592,7 @@ export default function StockMovementsPage() {
                 <p className="text-xs text-muted-foreground">สต็อกยูนิต</p>
               </CardContent>
             </Card>
-            <Card className="border-border/60 py-3 shadow-none">
+            <Card className="border-border/60 py-3 shadow-none min-w-fit md:min-w-0 shrink-0 md:shrink snap-start md:snap-align-none">
               <CardContent className="space-y-1 px-4">
                 <p className="text-xs text-muted-foreground">จ่ายออกทั้งหมด</p>
                 <p className="text-3xl font-semibold tracking-tight text-rose-600">
@@ -593,8 +604,8 @@ export default function StockMovementsPage() {
           </div>
 
           <MovementCharts movements={movements} />
-        </TabsContent>
-      </Tabs>
+        </PageTabsContent>
+      </PageTabs>
     </Containers>
   );
 }

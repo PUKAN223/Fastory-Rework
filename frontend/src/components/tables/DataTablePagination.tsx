@@ -60,7 +60,7 @@ export function DataTablePagination({
         รายการ
       </div>
 
-      <div className="flex items-center gap-4">
+      <div className="flex flex-col-reverse sm:flex-row items-center gap-3 sm:gap-4 mt-2 sm:mt-0">
         {/* Page size selector */}
         <div className="flex items-center gap-2">
           <span className="text-xs text-muted-foreground whitespace-nowrap">
@@ -73,7 +73,7 @@ export function DataTablePagination({
               onPageChange(1);
             }}
           >
-            <SelectTrigger className="h-8 w-20 text-xs">
+            <SelectTrigger className="h-8 w-16 sm:w-20 text-xs">
               <SelectValue placeholder={String(pageSize)} />
             </SelectTrigger>
             <SelectContent>
@@ -91,7 +91,7 @@ export function DataTablePagination({
           <Button
             variant="outline"
             size="icon"
-            className="size-8"
+            className="hidden sm:flex size-8"
             disabled={safePage <= 1}
             onClick={() => onPageChange(1)}
             title="หน้าแรก"
@@ -126,7 +126,7 @@ export function DataTablePagination({
           <Button
             variant="outline"
             size="icon"
-            className="size-8"
+            className="hidden sm:flex size-8"
             disabled={safePage >= (totalPages || 1)}
             onClick={() => onPageChange(totalPages)}
             title="หน้าสุดท้าย"

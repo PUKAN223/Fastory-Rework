@@ -120,6 +120,7 @@ export default function POSPage() {
   const [promptpayPayload, setPromptpayPayload] = useState("");
   const [timeLeft, setTimeLeft] = useState(300); // 5 minutes countdown
   const [lastOrder, setLastOrder] = useState<any>(null);
+  const [isCartSheetOpen, setIsCartSheetOpen] = useState(false);
 
   // POS Pagination state
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -481,7 +482,11 @@ export default function POSPage() {
         <Button
           className="w-full h-11 text-base font-semibold"
           disabled={cartItems.length === 0}
-          onClick={() => setShowCheckoutDialog(true)}
+          onClick={() => {
+            setIsCartSheetOpen(false);
+            // Delay slightly to prevent Radix UI pointer-events lock conflict on mobile
+            setTimeout(() => setShowCheckoutDialog(true), 150);
+          }}
         >
           ชำระเงิน <ArrowRight className="ml-2 size-5" />
         </Button>
@@ -490,9 +495,9 @@ export default function POSPage() {
   );
 
   return (
-    <div className="flex flex-col md:flex-row h-[calc(100svh-5.5rem)] w-full gap-3 overflow-hidden">
+    <div className="flex flex-col lg:flex-row h-[calc(100svh-5.5rem)] w-full gap-3 overflow-hidden">
       {/* Left Column: Products Grid & Bottom Floating Search Dock */}
-      <div className="relative flex flex-1 flex-col gap-3 overflow-hidden rounded-xl border bg-card p-3 md:p-4 shadow-sm h-1/2 md:h-auto">
+      <div className="relative flex flex-1 flex-col gap-3 overflow-hidden rounded-xl border bg-card p-3 lg:p-4 shadow-sm h-full">
         {/* Top Barcode Scan Row (Original Position) */}
         <div className="flex flex-row items-center gap-3 rounded-xl border bg-muted/30 p-3">
           <form onSubmit={handleBarcodeSubmit} className="relative flex-1">
@@ -565,7 +570,7 @@ export default function POSPage() {
 
         {/* Product Grid */}
         <ScrollArea className="flex-1 -mx-1 px-1">
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 pb-20 p-1">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 pb-20 p-1">
             {paginatedProducts.map((p) => {
               const inCart =
                 cartItems.find((i) => i.product.id === p.id)?.quantity || 0;
@@ -634,12 +639,12 @@ export default function POSPage() {
         {/* FLOATING BOTTOM CENTER SEARCH & FILTER DOCK */}
         <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-30 flex max-w-[95%] items-center gap-2 rounded-full border border-border/80 bg-background/95 p-2 shadow-2xl backdrop-blur supports-backdrop-filter:bg-background/85">
           {/* Search Query Input */}
-          <div className="relative flex items-center">
+          <div className="relative flex items-center flex-1 min-w-[100px]">
             <Search className="absolute left-3 size-4 text-muted-foreground" />
             <Input
               type="text"
               placeholder="ค้นหาชื่อสินค้า..."
-              className="h-9 w-36 sm:w-48 pl-9 pr-7 rounded-full bg-muted/40 border-muted text-xs focus-visible:ring-primary"
+              className="h-9 w-full pl-9 pr-7 rounded-full bg-muted/40 border-muted text-xs focus-visible:ring-primary"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -656,7 +661,7 @@ export default function POSPage() {
 
           {/* Category Filter Dropdown */}
           <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-            <SelectTrigger className="h-9 w-32 sm:w-40 rounded-full border-muted bg-muted/40 text-xs">
+            <SelectTrigger className="h-9 w-24 sm:w-36 lg:w-28 xl:w-40 rounded-full border-muted bg-muted/40 text-xs shrink-0">
               <SelectValue placeholder="หมวดหมู่" />
             </SelectTrigger>
             <SelectContent align="center">
@@ -670,26 +675,28 @@ export default function POSPage() {
           </Select>
 
           {/* Items Per Page Select */}
-          <Select
-            value={String(pageSize)}
-            onValueChange={(val) => {
-              setPageSize(Number(val));
-              setCurrentPage(1);
-            }}
-          >
-            <SelectTrigger className="h-9 w-20 rounded-full border-muted bg-muted/40 text-xs">
-              <SelectValue placeholder={`${pageSize}/หน้า`} />
-            </SelectTrigger>
-            <SelectContent align="center">
-              <SelectItem value="12">12 / หน้า</SelectItem>
-              <SelectItem value="20">20 / หน้า</SelectItem>
-              <SelectItem value="40">40 / หน้า</SelectItem>
-              <SelectItem value="80">80 / หน้า</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="hidden md:block lg:hidden xl:block shrink-0">
+            <Select
+              value={String(pageSize)}
+              onValueChange={(val) => {
+                setPageSize(Number(val));
+                setCurrentPage(1);
+              }}
+            >
+              <SelectTrigger className="h-9 w-20 rounded-full border-muted bg-muted/40 text-xs">
+                <SelectValue placeholder={`${pageSize}/หน้า`} />
+              </SelectTrigger>
+              <SelectContent align="center">
+                <SelectItem value="12">12 / หน้า</SelectItem>
+                <SelectItem value="20">20 / หน้า</SelectItem>
+                <SelectItem value="40">40 / หน้า</SelectItem>
+                <SelectItem value="80">80 / หน้า</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
           {/* Pagination Navigation */}
-          <div className="flex items-center gap-1 pl-1">
+          <div className="flex items-center shrink-0">
             <Button
               variant="ghost"
               size="icon"
@@ -701,7 +708,7 @@ export default function POSPage() {
               <ChevronLeft className="size-4" />
             </Button>
 
-            <span className="text-xs font-semibold px-1 min-w-[2.5rem] text-center">
+            <span className="text-[10px] sm:text-xs font-semibold px-1 min-w-[2rem] text-center">
               {safeCurrentPage}/{totalPages}
             </span>
 
@@ -720,7 +727,7 @@ export default function POSPage() {
       </div>
 
       {/* Right Column: Cart */}
-      <div className="flex w-full md:w-[320px] lg:w-[400px] flex-col rounded-xl border bg-card shadow-sm overflow-hidden h-1/2 md:h-auto shrink-0">
+      <div className="hidden lg:flex w-[400px] flex-col rounded-xl border bg-card shadow-sm overflow-hidden h-full shrink-0">
         {/* Cart Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b bg-muted/20 shrink-0">
           <h2 className="font-semibold flex items-center gap-2">
@@ -747,8 +754,8 @@ export default function POSPage() {
       </div>
 
       {/* Floating Cart Button & Sheet (Mobile) */}
-      <div className="lg:hidden fixed bottom-[calc(1.5rem+env(safe-area-inset-bottom))] right-6 z-40">
-        <Sheet>
+      <div className="lg:hidden fixed bottom-[calc(6rem+env(safe-area-inset-bottom))] right-4 sm:right-6 z-40">
+        <Sheet open={isCartSheetOpen} onOpenChange={setIsCartSheetOpen}>
           <SheetTrigger asChild>
             <Button size="icon" className="rounded-full size-16 shadow-2xl relative">
               <ShoppingCart className="size-6" />

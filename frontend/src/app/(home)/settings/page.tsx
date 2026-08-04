@@ -348,7 +348,7 @@ NODE_ENV=${envNodeEnv}`;
                   </div>
                 </div>
               </CardContent>
-              <CardFooter className="border-t border-border/60 bg-muted/20 px-6 py-3.5 flex justify-between items-center">
+              <CardFooter className="border-t border-border/60 bg-muted/20 px-4 sm:px-6 py-4 sm:py-3.5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0">
                 <span className="text-[11px] text-muted-foreground flex items-center gap-1.5">
                   <Info className="w-3.5 h-3.5 shrink-0" />
                   กดบันทึกเพื่ออัปเดตข้อมูลไปยังเครื่อง POS
@@ -357,7 +357,7 @@ NODE_ENV=${envNodeEnv}`;
                   onClick={handleSaveProfile}
                   disabled={isSaving || !name.trim()}
                   size="sm"
-                  className="px-5 text-xs font-medium"
+                  className="w-full sm:w-auto px-5 text-xs font-medium"
                 >
                   <Save className="w-3.5 h-3.5 mr-1.5" />
                   {isSaving ? "กำลังบันทึก..." : "บันทึกการเปลี่ยนแปลง"}
@@ -505,15 +505,16 @@ NODE_ENV=${envNodeEnv}`;
                   </p>
                 </div>
               </CardContent>
-              <CardFooter className="border-t border-border/60 bg-muted/20 px-6 py-3.5 flex justify-between items-center">
-                <span className="text-[11px] text-muted-foreground">
+              <CardFooter className="border-t border-border/60 bg-muted/20 px-4 sm:px-6 py-4 sm:py-3.5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0">
+                <span className="text-[11px] text-muted-foreground flex items-center gap-1.5">
+                  <Info className="w-3.5 h-3.5 shrink-0" />
                   รองรับเครื่องพิมพ์สลิปความร้อน 58mm และ 80mm
                 </span>
                 <Button
                   onClick={handleSaveProfile}
                   disabled={isSaving || !name.trim()}
                   size="sm"
-                  className="px-5 text-xs font-medium"
+                  className="w-full sm:w-auto px-5 text-xs font-medium"
                 >
                   <Save className="w-3.5 h-3.5 mr-1.5" />
                   {isSaving ? "กำลังบันทึก..." : "บันทึกรูปแบบใบเสร็จ"}
@@ -681,7 +682,7 @@ NODE_ENV=${envNodeEnv}`;
                   </p>
                 </div>
               </CardContent>
-              <CardFooter className="border-t border-border/60 bg-muted/20 px-6 py-3.5 flex justify-between items-center">
+              <CardFooter className="border-t border-border/60 bg-muted/20 px-4 sm:px-6 py-4 sm:py-3.5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0">
                 <span className="text-[11px] text-muted-foreground flex items-center gap-1.5">
                   <Info className="w-3.5 h-3.5 shrink-0" />
                   การเปลี่ยนแปลงจะมีผลต่อหน้า POS ทันที
@@ -690,7 +691,7 @@ NODE_ENV=${envNodeEnv}`;
                   onClick={handleSaveProfile}
                   disabled={isSaving || !name.trim()}
                   size="sm"
-                  className="px-5 text-xs font-medium"
+                  className="w-full sm:w-auto px-5 text-xs font-medium"
                 >
                   <Save className="w-3.5 h-3.5 mr-1.5" />
                   {isSaving ? "กำลังบันทึก..." : "บันทึกข้อมูลพร้อมเพย์"}
@@ -727,7 +728,7 @@ NODE_ENV=${envNodeEnv}`;
                     const baseUrlWithPort = /:[0-9]+$/.test(cleanUrl) ? cleanUrl : `${cleanUrl}:8080`;
                     const webhookUrl = `${baseUrlWithPort}/api/v1/webhooks/promptpay/${promptpayId.replace(/\D/g, "") || "YOUR_PHONE_NUMBER"}`;
                     return (
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                         <Input
                           readOnly
                           value={webhookUrl}
@@ -737,7 +738,7 @@ NODE_ENV=${envNodeEnv}`;
                           type="button"
                           variant="outline"
                           size="sm"
-                          className="h-9 px-4 shrink-0 text-xs gap-1.5"
+                          className="w-full sm:w-auto h-9 px-4 shrink-0 text-xs gap-1.5"
                           onClick={() => {
                             navigator.clipboard.writeText(webhookUrl);
                             setCopiedWebhook(true);
@@ -824,7 +825,7 @@ NODE_ENV=${envNodeEnv}`;
                       <Button
                         variant="destructive"
                         size="sm"
-                        className="shrink-0 text-xs font-medium h-8 px-4"
+                        className="w-full sm:w-auto shrink-0 text-xs font-medium h-8 px-4"
                       >
                         ลบร้านค้าถาวร
                       </Button>

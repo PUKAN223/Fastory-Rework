@@ -256,7 +256,7 @@ export default function StaffPage() {
         }
       >
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogContent className="sm:max-w-[540px]">
+          <DialogContent className="w-[95vw] sm:max-w-[600px] h-[90vh] max-h-[90vh] sm:h-auto sm:max-h-[85vh]">
             <DialogHeader>
               <DialogTitle>
                 {editingId ? "แก้ไขสิทธิ์พนักงาน" : "เพิ่มพนักงานใหม่"}
@@ -268,8 +268,8 @@ export default function StaffPage() {
               </DialogDescription>
             </DialogHeader>
 
-            <form onSubmit={handleSubmit} className="flex flex-col min-h-0">
-              <DialogPanel className="space-y-4 max-h-[65vh] overflow-y-auto pr-1">
+            <form onSubmit={handleSubmit} className="flex flex-1 flex-col min-h-0 overflow-hidden">
+              <DialogPanel className="space-y-4">
                 {formError && (
                   <div className="p-3 rounded-xl border border-rose-500/30 bg-rose-500/10 text-rose-600 dark:text-rose-400 text-xs font-medium">
                     {formError}
@@ -352,7 +352,7 @@ export default function StaffPage() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[220px] overflow-y-auto p-2.5 rounded-xl border border-border/60 bg-muted/20">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 p-2.5 rounded-xl border border-border/60 bg-muted/20">
                     {PERMISSION_OPTIONS.map((opt) => (
                       <div
                         key={opt.id}
@@ -377,16 +377,17 @@ export default function StaffPage() {
                 </div>
               </DialogPanel>
 
-              <DialogFooter>
+              <DialogFooter className="pt-4 shrink-0 border-t border-border/40 mt-0">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => setDialogOpen(false)}
                   disabled={isSubmitting}
+                  className="w-full sm:w-auto"
                 >
                   ยกเลิก
                 </Button>
-                <Button type="submit" disabled={isSubmitting}>
+                <Button type="submit" disabled={isSubmitting} className="w-full sm:w-auto">
                   {isSubmitting ? "กำลังบันทึก..." : "บันทึกข้อมูล"}
                 </Button>
               </DialogFooter>

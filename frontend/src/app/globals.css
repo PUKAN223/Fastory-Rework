@@ -1,5 +1,20 @@
-@import url("https://cdn.jsdelivr.net/gh/lazywasabi/thai-web-fonts@main/fonts/LINESeedSansTH/LINESeedSansTH.css");
 @import "tailwindcss";
+
+/* LINE Seed Sans TH - self-hosted via preload to avoid render-blocking external CSS */
+@font-face {
+  font-family: "LINE Seed Sans TH";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("https://cdn.jsdelivr.net/gh/lazywasabi/thai-web-fonts@main/fonts/LINESeedSansTH/LINESeedSansTH-Regular.woff2") format("woff2");
+}
+@font-face {
+  font-family: "LINE Seed Sans TH";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("https://cdn.jsdelivr.net/gh/lazywasabi/thai-web-fonts@main/fonts/LINESeedSansTH/LINESeedSansTH-Bold.woff2") format("woff2");
+}
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 

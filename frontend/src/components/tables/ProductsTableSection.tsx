@@ -360,16 +360,33 @@ export function ProductsTableSection({
   return (
     <>
       <div className="max-w-full space-y-4 overflow-x-hidden">
-        <div className="grid grid-cols-1 gap-3 sm:flex sm:flex-wrap sm:items-center">
-          <div className="relative min-w-0 flex-1 sm:min-w-64">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+          <div className="relative flex-1 min-w-[200px]">
             <Search className="-translate-y-1/2 pointer-events-none absolute top-1/2 left-3 size-4 text-muted-foreground" />
             <Input
-              className="pl-9"
+              className="pl-9 text-xs sm:text-sm h-9 w-full"
               value={search}
               placeholder="ค้นหาสินค้าด้วยชื่อหรือ SKU..."
               onChange={(e) => onSearchChange(e.target.value)}
             />
           </div>
+
+          <ToggleGroup
+            type="single"
+            variant="outline"
+            className="shrink-0"
+            value={viewMode}
+            onValueChange={(value) => {
+              if (value) setViewMode(value as ProductViewMode);
+            }}
+          >
+            <ToggleGroupItem value="grid" className="size-9 p-0" title="มุมมองการ์ด">
+              <Grid2X2 className="size-4" />
+            </ToggleGroupItem>
+            <ToggleGroupItem value="table" className="size-9 p-0" title="มุมมองตาราง">
+              <Table2 className="size-4" />
+            </ToggleGroupItem>
+          </ToggleGroup>
 
           <Select
             value={statusFilter}
@@ -377,7 +394,7 @@ export function ProductsTableSection({
               setStatusFilter(value as ProductStatusFilter)
             }
           >
-            <SelectTrigger className="w-full sm:w-42.5">
+            <SelectTrigger className="w-full h-9 px-2 text-xs sm:w-[130px] lg:w-[150px] sm:px-3 sm:text-sm shrink-0">
               <SelectValue placeholder="สถานะ" />
             </SelectTrigger>
             <SelectContent>
@@ -388,7 +405,7 @@ export function ProductsTableSection({
           </Select>
 
           <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-            <SelectTrigger className="w-full sm:w-47.5">
+            <SelectTrigger className="w-full h-9 px-2 text-xs sm:w-[150px] lg:w-[170px] sm:px-3 sm:text-sm shrink-0">
               <SelectValue placeholder="หมวดหมู่" />
             </SelectTrigger>
             <SelectContent>
@@ -405,7 +422,7 @@ export function ProductsTableSection({
             value={sortBy}
             onValueChange={(value) => setSortBy(value as ProductSortOption)}
           >
-            <SelectTrigger className="w-full sm:w-42.5">
+            <SelectTrigger className="w-full h-9 px-2 text-xs sm:w-[130px] lg:w-[150px] sm:px-3 sm:text-sm shrink-0">
               <SelectValue placeholder="เรียงลำดับ" />
             </SelectTrigger>
             <SelectContent>
@@ -414,23 +431,6 @@ export function ProductsTableSection({
               <SelectItem value="price-asc">ราคาต่ำสุด</SelectItem>
             </SelectContent>
           </Select>
-
-          <ToggleGroup
-            type="single"
-            variant="outline"
-            className="justify-start"
-            value={viewMode}
-            onValueChange={(value) => {
-              if (value) setViewMode(value as ProductViewMode);
-            }}
-          >
-            <ToggleGroupItem value="grid">
-              <Grid2X2></Grid2X2>
-            </ToggleGroupItem>
-            <ToggleGroupItem value="table">
-              <Table2></Table2>
-            </ToggleGroupItem>
-          </ToggleGroup>
         </div>
 
         {isLoading && viewMode === "table" ? (
@@ -545,7 +545,7 @@ export function ProductsTableSection({
             </Empty>
           </div>
         ) : viewMode === "table" ? (
-          <div className="overflow-x-auto">
+          <div id="products-table" className="overflow-x-auto">
             <Table className="[&_th:first-child]:text-center [&_td:first-child]:text-center [&_tr]:border-border/40 [&_tbody_tr:hover]:bg-muted/25">
               <TableHeader>
                 <TableRow>

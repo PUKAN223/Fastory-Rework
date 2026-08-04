@@ -90,7 +90,7 @@ export function WarehouseCharts({ warehouses }: WarehouseChartsProps) {
 
   if (warehouses.length === 0) {
     return (
-      <Card className="border-border/60 shadow-none">
+      <Card className="border-border/60 shadow-none min-w-0 overflow-hidden">
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-medium">
             สถิติและกราฟวิเคราะห์คลังสินค้า
@@ -99,7 +99,7 @@ export function WarehouseCharts({ warehouses }: WarehouseChartsProps) {
             แสดงข้อมูลเชิงลึกเมื่อมีคลังสินค้าในระบบ
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-2 sm:p-6 pt-0 sm:pt-0">
           <EmptyChartContent message="ไม่พบข้อมูลคลังสินค้าในระบบเพื่อนำมาแสดงกราฟ" />
         </CardContent>
       </Card>
@@ -107,9 +107,9 @@ export function WarehouseCharts({ warehouses }: WarehouseChartsProps) {
   }
 
   return (
-    <div className="grid gap-4 md:grid-cols-2">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 min-w-0">
       {/* Chart 1: Dual Bar Chart (Used vs Max Capacity) */}
-      <Card className="border-border/60 shadow-none">
+      <Card className="border-border/60 shadow-none min-w-0 overflow-hidden">
         <CardHeader className="pb-2">
           <div className="flex items-center gap-2">
             <Building2 className="size-4 text-emerald-400" />
@@ -121,9 +121,10 @@ export function WarehouseCharts({ warehouses }: WarehouseChartsProps) {
             จำนวนสินค้าที่มีจริงในแต่ละคลังเทียบกับขีดความจุ
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="h-64 w-full pt-1">
-            <ResponsiveContainer width="100%" height="100%">
+        <CardContent className="p-2 sm:p-6 pt-0 sm:pt-0">
+          <div className="overflow-x-auto no-scrollbar pb-2">
+            <div className="h-64 min-w-[520px] sm:min-w-full pt-1">
+              <ResponsiveContainer width="100%" height="100%">
               <BarChart
                 data={chartData}
                 margin={{ top: 10, right: 10, left: -10, bottom: 20 }}
@@ -189,12 +190,13 @@ export function WarehouseCharts({ warehouses }: WarehouseChartsProps) {
                 />
               </BarChart>
             </ResponsiveContainer>
+            </div>
           </div>
         </CardContent>
       </Card>
 
       {/* Chart 2: Utilization % Bar Chart */}
-      <Card className="border-border/60 shadow-none">
+      <Card className="border-border/60 shadow-none min-w-0 overflow-hidden">
         <CardHeader className="pb-2">
           <div className="flex items-center gap-2">
             <Percent className="size-4 text-sky-400" />
@@ -206,9 +208,10 @@ export function WarehouseCharts({ warehouses }: WarehouseChartsProps) {
             เปอร์เซ็นต์การใช้งานพื้นที่จัดเก็บในแต่ละคลัง
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="h-64 w-full pt-1">
-            <ResponsiveContainer width="100%" height="100%">
+        <CardContent className="p-2 sm:p-6 pt-0 sm:pt-0">
+          <div className="overflow-x-auto no-scrollbar pb-2">
+            <div className="h-64 min-w-[520px] sm:min-w-full pt-1">
+              <ResponsiveContainer width="100%" height="100%">
               <BarChart
                 data={chartData}
                 margin={{ top: 10, right: 10, left: -10, bottom: 20 }}
@@ -255,6 +258,7 @@ export function WarehouseCharts({ warehouses }: WarehouseChartsProps) {
                 />
               </BarChart>
             </ResponsiveContainer>
+            </div>
           </div>
         </CardContent>
       </Card>

@@ -295,10 +295,10 @@ export default function ReportsPage() {
 
       {/* Filter Toolbar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl border border-border/60 bg-card shadow-none">
-        <div className="flex items-center gap-2">
-          <Filter className="w-4 h-4 text-muted-foreground" />
-          <span className="text-sm font-medium">ตัวกรองช่วงเวลา:</span>
-          <div className="flex items-center gap-1">
+        <div className="flex items-center gap-2 shrink-0">
+          <Filter className="w-4 h-4 text-muted-foreground shrink-0" />
+          <span className="text-sm font-medium shrink-0">ตัวกรองช่วงเวลา:</span>
+          <div className="flex items-center gap-1 overflow-x-auto hide-scrollbar w-full">
             <Button
               size="sm"
               variant={dateRange === "7d" ? "default" : "outline"}
@@ -326,13 +326,13 @@ export default function ReportsPage() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 w-full sm:w-auto">
           <Tabs
             value={activeTab}
             onValueChange={(v) => setActiveTab(v as any)}
-            className="w-auto"
+            className="w-full sm:w-auto"
           >
-            <TabsList className="h-8 bg-muted/60 p-1">
+            <TabsList className="h-8 bg-muted/60 p-1 w-full justify-start overflow-x-auto hide-scrollbar">
               <TabsTrigger value="overview" className="text-xs px-3">
                 ภาพรวม
               </TabsTrigger>
@@ -348,78 +348,49 @@ export default function ReportsPage() {
       </div>
 
       {/* KPI Stats Cards - Subtle Muted Dark Styling */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      {/* KPI Stats Cards */}
+      <div className="flex md:grid md:grid-cols-2 lg:grid-cols-4 gap-3 overflow-x-auto md:overflow-visible pb-2 md:pb-0 snap-x snap-mandatory md:snap-none [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
         {/* Card 1: Revenue */}
-        <Card className="border-border/60 shadow-none">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-              ยอดขายรวม
-            </CardTitle>
-            <div className="p-1.5 rounded-lg bg-muted/50 text-muted-foreground">
-              <TrendingUp className="h-4 w-4" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-foreground">
+        <Card className="border-border/60 py-3 shadow-none min-w-fit md:min-w-0 shrink-0 md:shrink snap-start md:snap-align-none">
+          <CardContent className="space-y-1 px-4">
+            <p className="text-xs text-muted-foreground">ยอดขายรวม</p>
+            <div className="text-2xl 2xl:text-3xl font-semibold tracking-tight text-foreground truncate" title={formatCurrency(metrics.totalRevenue)}>
               {formatCurrency(metrics.totalRevenue)}
             </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              จากทั้งหมด {metrics.totalOrders} ออเดอร์
-            </p>
+            <p className="text-xs text-muted-foreground">จากทั้งหมด {metrics.totalOrders} ออเดอร์</p>
           </CardContent>
         </Card>
 
         {/* Card 2: Orders */}
-        <Card className="border-border/60 shadow-none">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-              จำนวนคำสั่งซื้อ
-            </CardTitle>
-            <div className="p-1.5 rounded-lg bg-muted/50 text-muted-foreground">
-              <HandCoins className="h-4 w-4" />
+        <Card className="border-border/60 py-3 shadow-none min-w-fit md:min-w-0 shrink-0 md:shrink snap-start md:snap-align-none">
+          <CardContent className="space-y-1 px-4">
+            <p className="text-xs text-muted-foreground">จำนวนคำสั่งซื้อ</p>
+            <div className="text-2xl 2xl:text-3xl font-semibold tracking-tight text-foreground truncate" title={metrics.totalOrders.toString()}>
+              {metrics.totalOrders.toLocaleString()}
             </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-foreground">
-              {metrics.totalOrders.toLocaleString()} รายการ
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">สถานะเสร็จสมบูรณ์</p>
+            <p className="text-xs text-muted-foreground">รายการที่เสร็จสมบูรณ์</p>
           </CardContent>
         </Card>
 
         {/* Card 3: AOV */}
-        <Card className="border-border/60 shadow-none">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-              ยอดสั่งซื้อเฉลี่ย (AOV)
-            </CardTitle>
-            <div className="p-1.5 rounded-lg bg-muted/50 text-muted-foreground">
-              <Users className="h-4 w-4" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-foreground">
+        <Card className="border-border/60 py-3 shadow-none min-w-fit md:min-w-0 shrink-0 md:shrink snap-start md:snap-align-none">
+          <CardContent className="space-y-1 px-4">
+            <p className="text-xs text-muted-foreground">ยอดสั่งซื้อเฉลี่ย (AOV)</p>
+            <div className="text-2xl 2xl:text-3xl font-semibold tracking-tight text-foreground truncate" title={formatCurrency(metrics.aov)}>
               {formatCurrency(metrics.aov)}
             </div>
-            <p className="text-xs text-muted-foreground mt-1">เฉลี่ยต่อคำสั่งซื้อ</p>
+            <p className="text-xs text-muted-foreground">เฉลี่ยต่อคำสั่งซื้อ</p>
           </CardContent>
         </Card>
 
         {/* Card 4: Max Order Value */}
-        <Card className="border-border/60 shadow-none">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-              ยอดสั่งซื้อสูงสุดในบิลเดียว
-            </CardTitle>
-            <div className="p-1.5 rounded-lg bg-muted/50 text-muted-foreground">
-              <Award className="h-4 w-4" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-foreground">
+        <Card className="border-border/60 py-3 shadow-none min-w-fit md:min-w-0 shrink-0 md:shrink snap-start md:snap-align-none">
+          <CardContent className="space-y-1 px-4">
+            <p className="text-xs text-muted-foreground">ยอดสั่งซื้อสูงสุดในบิลเดียว</p>
+            <div className="text-2xl 2xl:text-3xl font-semibold tracking-tight text-foreground truncate" title={formatCurrency(metrics.maxOrderValue)}>
               {formatCurrency(metrics.maxOrderValue)}
             </div>
-            <p className="text-xs text-muted-foreground mt-1">มูลค่าบิลสูงสุด</p>
+            <p className="text-xs text-muted-foreground">มูลค่าบิลสูงสุด</p>
           </CardContent>
         </Card>
       </div>
@@ -430,7 +401,7 @@ export default function ReportsPage() {
         <TabsContent value="overview" className="space-y-4 mt-0">
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
             {/* Sales Bar Chart */}
-            <Card className="col-span-4 border-border/60 shadow-none">
+            <Card className="md:col-span-2 lg:col-span-4 border-border/60 shadow-none">
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <div>
                   <CardTitle className="flex items-center gap-2 text-sm font-medium">
@@ -447,7 +418,7 @@ export default function ReportsPage() {
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart
                       data={metrics.salesTrends}
-                      margin={{ top: 10, right: 10, left: -15, bottom: 15 }}
+                      margin={{ top: 10, right: 10, left: 0, bottom: 15 }}
                     >
                       <defs>
                         <linearGradient
@@ -513,7 +484,7 @@ export default function ReportsPage() {
             </Card>
 
             {/* Payment Methods Donut Chart */}
-            <Card className="col-span-3 border-border/60 shadow-none">
+            <Card className="md:col-span-2 lg:col-span-3 border-border/60 shadow-none">
               <CardHeader className="pb-2">
                 <CardTitle className="flex items-center gap-2 text-sm font-medium">
                   <PieIcon className="w-4 h-4 text-muted-foreground" />
@@ -523,10 +494,10 @@ export default function ReportsPage() {
                   เปรียบเทียบการชำระด้วยเงินสดและพร้อมเพย์
                 </CardDescription>
               </CardHeader>
-              <CardContent className="h-[270px]">
+              <CardContent className="h-[320px]">
                 {metrics.totalRevenue > 0 && paymentChartData.length > 0 ? (
                   <>
-                    <div className="relative h-[190px] w-full">
+                    <div className="relative h-[240px] w-full">
                       {/* Center Stat Number */}
                       <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none pb-1">
                         <span className="text-xl font-bold tracking-tight text-foreground">
@@ -616,7 +587,7 @@ export default function ReportsPage() {
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart
                     data={metrics.salesTrends}
-                    margin={{ top: 10, right: 20, left: -20, bottom: 10 }}
+                    margin={{ top: 10, right: 20, left: 0, bottom: 10 }}
                   >
                     <defs>
                       <linearGradient
@@ -695,7 +666,8 @@ export default function ReportsPage() {
             description="รายการสินค้าเรียงตามยอดขายรวมที่เกิดขึ้นจริงในระบบ"
           >
             {metrics.topProducts.length > 0 ? (
-              <Table>
+              <div className="overflow-x-auto hide-scrollbar">
+                <Table className="min-w-[600px]">
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-12 text-center">อันดับ</TableHead>
@@ -735,7 +707,8 @@ export default function ReportsPage() {
                     );
                   })}
                 </TableBody>
-              </Table>
+                </Table>
+              </div>
             ) : (
               <EmptyChartContent
                 message="ไม่พบข้อมูลสินค้าขายดีในช่วงเวลานี้"
