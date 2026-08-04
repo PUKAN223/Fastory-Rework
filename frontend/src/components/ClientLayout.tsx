@@ -141,7 +141,7 @@ export function ClientLayout({
       <SidebarProvider>
         <AppSidebar />
         <SidebarInset className="min-w-0 flex flex-col min-h-screen">
-        <header className="sticky top-0 z-10 flex h-14 shrink-0 items-center justify-between gap-2 border-b border-border/60 bg-background/85 backdrop-blur-md transition-[width,height] ease-linear px-4">
+        <header className="sticky top-0 z-10 flex h-14 shrink-0 items-center justify-between gap-2 border-b border-border/60 bg-background/85 backdrop-blur-md transition-colors ease-linear px-4">
           <div className="flex items-center gap-2 min-w-0">
             <SidebarTrigger id="sidebar-trigger" className="-ml-1" />
             <Separator
