@@ -24,9 +24,11 @@ const nextConfig: NextConfig = {
     formats: ["image/avif", "image/webp"],
   },
   allowedDevOrigins: ["172.20.10.2", "10.193.97.219", "192.168.1.203"],
+  compress: true,
   experimental: {
     webpackMemoryOptimizations: true,
     preloadEntriesOnStart: false,
+    optimizePackageImports: ["lucide-react", "@tabler/icons-react", "recharts", "date-fns"],
   },
   productionBrowserSourceMaps: false,
   async headers() {

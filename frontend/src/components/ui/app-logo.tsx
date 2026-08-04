@@ -26,7 +26,7 @@ export function AppLogo({
         {/* Light Mode Logo */}
         <div className="absolute inset-0 dark:hidden">
           <Image
-            src="/logo-light.png"
+            src="/logo-light.webp"
             alt="Fastory Logo"
             fill
             sizes={`${size}px`}
@@ -37,7 +37,7 @@ export function AppLogo({
         {/* Dark Mode Logo */}
         <div className="absolute inset-0 hidden dark:block">
           <Image
-            src="/logo-dark.png"
+            src="/logo-dark.webp"
             alt="Fastory Logo"
             fill
             sizes={`${size}px`}

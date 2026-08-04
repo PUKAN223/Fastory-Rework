@@ -66,6 +66,9 @@ export default function RootLayout({
           type="font/woff2"
           crossOrigin="anonymous"
         />
+        {/* Preload logo images for Instant LCP */}
+        <link rel="preload" href="/logo-light.webp" as="image" type="image/webp" />
+        <link rel="preload" href="/logo-dark.webp" as="image" type="image/webp" />
       </head>
       <body className="font-sans antialiased">
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
