@@ -1,7 +1,7 @@
 "use client";
 
 import { BrowserMultiFormatReader } from "@zxing/browser";
-import { NotFoundException } from "@zxing/library";
+import { DecodeHintType, NotFoundException } from "@zxing/library";
 import {
   AlertCircle,
   Camera,
@@ -42,6 +42,11 @@ export default function MobileScanPage() {
   const hasScannedRef = useRef(false);
   const mountedRef = useRef(true);
 
+  // For debounce/accuracy check
+  const lastScannedTextRef = useRef("");
+  const scanCountRef = useRef(0);
+  const lastScanTimeRef = useRef(0);
+
   // ── เปิดกล้องสแกน ─────────────────────────────────────────────────────────
   const startScanning = useCallback(async () => {
     if (!mountedRef.current) return;
@@ -71,15 +76,33 @@ export default function MobileScanPage() {
         return;
       }
 
-      const reader = new BrowserMultiFormatReader();
+      const hints = new Map();
+      hints.set(DecodeHintType.TRY_HARDER, true);
+
+      const reader = new BrowserMultiFormatReader(hints);
       const controls = await reader.decodeFromStream(
         stream,
         videoRef.current,
         (result, err) => {
           if (!mountedRef.current || hasScannedRef.current) return;
           if (result) {
-            hasScannedRef.current = true;
-            handleScan(result.getText());
+            const text = result.getText();
+            const now = Date.now();
+
+            if (text === lastScannedTextRef.current && now - lastScanTimeRef.current < 1500) {
+              scanCountRef.current += 1;
+            } else {
+              lastScannedTextRef.current = text;
+              scanCountRef.current = 1;
+              lastScanTimeRef.current = now;
+            }
+
+            // Require 2 consecutive reads to confirm accuracy
+            if (scanCountRef.current >= 2) {
+              hasScannedRef.current = true;
+              scanCountRef.current = 0; // reset
+              handleScan(text);
+            }
           }
           if (err && !(err instanceof NotFoundException)) {
             // NotFoundException ปกติขณะ scan
