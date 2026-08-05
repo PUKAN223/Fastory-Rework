@@ -1,6 +1,6 @@
 "use client";
 
-import { ImagePlus, Trash2 } from "lucide-react";
+import { ImagePlus, ScanLine, Trash2 } from "lucide-react";
 import Image from "next/image";
 import {
   type ChangeEvent,
@@ -35,6 +35,7 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import { BarcodeScannerDialog } from "@/components/ui/BarcodeScannerDialog";
 import { formatImageSrc } from "@/lib/formatImageSrc";
 import { prepareImageDataUrl } from "@/lib/prepareImageDataUrl";
 import type {
@@ -110,6 +111,7 @@ export function ProductFormModal({
   const [imageAction, setImageAction] = useState<"keep" | "replace" | "remove">(
     "keep",
   );
+  const [scannerOpen, setScannerOpen] = useState(false);
 
   const isEditMode = mode === "edit";
   const trimmedSku = sku.trim();
@@ -296,6 +298,7 @@ export function ProductFormModal({
       : modalText.submit;
 
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       {!isEditMode && triggerLabel ? (
         <DialogTrigger render={
@@ -319,13 +322,26 @@ export function ProductFormModal({
           >
             <div className="space-y-2">
               <Label htmlFor={`${mode}-product-sku`}>SKU</Label>
-              <Input
-                id={`${mode}-product-sku`}
-                placeholder="เช่น SKU-001"
-                required
-                value={sku}
-                onChange={(event) => setSku(event.target.value)}
-              />
+              <div className="flex gap-2">
+                <Input
+                  id={`${mode}-product-sku`}
+                  placeholder="เช่น SKU-001"
+                  required
+                  value={sku}
+                  onChange={(event) => setSku(event.target.value)}
+                  className="flex-1"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  className="shrink-0"
+                  title="สแกน Barcode"
+                  onClick={() => setScannerOpen(true)}
+                >
+                  <ScanLine className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor={`${mode}-product-name`}>ชื่อสินค้า</Label>
@@ -524,5 +540,15 @@ export function ProductFormModal({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+
+    <BarcodeScannerDialog
+      open={scannerOpen}
+      onOpenChange={setScannerOpen}
+      onScan={(barcode) => {
+        setSku(barcode);
+        setScannerOpen(false);
+      }}
+    />
+  </>
   );
 }
