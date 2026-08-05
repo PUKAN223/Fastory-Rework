@@ -34,6 +34,9 @@ export const metadata: Metadata = {
 export const viewport: import("next").Viewport = {
   width: "device-width",
   initialScale: 1,
+  minimumScale: 1,
+  maximumScale: 1,
+  userScalable: false,
   viewportFit: "cover",
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "white" },
@@ -66,9 +69,6 @@ export default function RootLayout({
           type="font/woff2"
           crossOrigin="anonymous"
         />
-        {/* Preload logo images for Instant LCP */}
-        <link rel="preload" href="/logo-light.webp" as="image" type="image/webp" />
-        <link rel="preload" href="/logo-dark.webp" as="image" type="image/webp" />
       </head>
       <body className="font-sans antialiased">
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>

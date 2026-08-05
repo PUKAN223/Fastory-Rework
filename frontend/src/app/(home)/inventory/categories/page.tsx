@@ -7,7 +7,7 @@ import { CategoryStatsCards } from "@/components/card/CategoryStatsCards";
 import { CategoryCharts } from "@/components/charts/CategoryCharts";
 import { EntityListCard } from "@/components/card/EntityListCard";
 import { PageHeaderCards } from "@/components/card/PageHeaderCards";
-import { CreateCategoryDrawer } from "@/components/drawers/CreateCategoryDrawer";
+import { CreateCategoryModal } from "@/components/drawers/CreateCategoryModal";
 import { CategoriesTableSection } from "@/components/tables/CategoriesTableSection";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -171,7 +171,7 @@ export default function InventoryCategoriesPage() {
             description="เพิ่ม ค้นหา และดูรายละเอียดของหมวดหมู่สินค้าได้ที่นี่"
             actions={
               <>
-                <CreateCategoryDrawer
+                <CreateCategoryModal
                   isSubmitting={createStatus === "loading"}
                   onCreate={handleCreateCategory}
                 />

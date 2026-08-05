@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { ProductFormDrawer } from "@/components/forms/ProductFormDrawer";
+import { ProductFormModal } from "@/components/forms/ProductFormModal";
 import { ConfirmDeleteDialog } from "@/components/dialogs/ConfirmDeleteDialog";
 import { DataTablePagination } from "@/components/tables/DataTablePagination";
 import { usePagination } from "@/hooks/usePagination";
@@ -910,7 +910,7 @@ export function ProductsTableSection({
       ) : null}
 
       {editingProduct && editInitialValues ? (
-        <ProductFormDrawer
+        <ProductFormModal
           mode="edit"
           open={editOpen}
           categories={categories}

@@ -6,11 +6,13 @@ import {
   ArrowUpRight,
   Award,
   BarChart3,
+  Download,
   Filter,
   HandCoins,
   LineChart as LineIcon,
   Percent,
   PieChart as PieIcon,
+  Printer,
   ShoppingBag,
   TrendingUp,
   Users,
@@ -249,6 +251,29 @@ export default function ReportsPage() {
     };
   }, [filteredOrders]);
 
+  const exportToCSV = () => {
+    if (metrics.salesTrends.length === 0) {
+      alert("ไม่มีข้อมูลสำหรับส่งออก");
+      return;
+    }
+    const headers = ["วันที่", "ยอดขาย (บาท)", "จำนวนออเดอร์"];
+    const rows = metrics.salesTrends.map(t => [t.date, t.revenue.toString(), t.orders.toString()]);
+    const csvContent = [headers, ...rows].map(e => e.join(",")).join("\n");
+    const blob = new Blob([new Uint8Array([0xEF, 0xBB, 0xBF]), csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `sales_report_${dateRange}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const printPDF = () => {
+    window.print();
+  };
+
   const paymentChartData = [
     { name: "เงินสด", value: metrics.cashTotal, color: "#a1a1aa" },
     { name: "พร้อมเพย์", value: metrics.promptpayTotal, color: "#64748b" },
@@ -278,19 +303,29 @@ export default function ReportsPage() {
         title="รายงานและการวิเคราะห์ยอดขาย"
         description="ภาพรวมประสิทธิภาพทางการเงิน ยอดขายรายวัน ช่องทางการชำระเงิน และอันดับสินค้าขายดี"
       >
-        {activeStore && (
-          <Badge variant="secondary" className="px-3 py-1 font-medium">
-            ร้าน: {activeStore.name}
+        <div className="flex items-center gap-2">
+          {activeStore && (
+            <Badge variant="secondary" className="px-3 py-1 font-medium">
+              ร้าน: {activeStore.name}
+            </Badge>
+          )}
+          <Badge variant="outline" className="px-3 py-1 hidden sm:flex">
+            ช่วงเวลา:{" "}
+            {dateRange === "7d"
+              ? "7 วันล่าสุด"
+              : dateRange === "30d"
+                ? "30 วันล่าสุด"
+                : "ทั้งหมด"}
           </Badge>
-        )}
-        <Badge variant="outline" className="px-3 py-1">
-          ช่วงเวลา:{" "}
-          {dateRange === "7d"
-            ? "7 วันล่าสุด"
-            : dateRange === "30d"
-              ? "30 วันล่าสุด"
-              : "ทั้งหมด"}
-        </Badge>
+          <Button variant="outline" size="sm" onClick={exportToCSV} className="h-7 text-xs px-2.5">
+            <Download className="w-3 h-3 mr-1" />
+            CSV
+          </Button>
+          <Button variant="default" size="sm" onClick={printPDF} className="h-7 text-xs px-2.5">
+            <Printer className="w-3 h-3 mr-1" />
+            พิมพ์
+          </Button>
+        </div>
       </PageHeaderCards>
 
       {/* Filter Toolbar */}

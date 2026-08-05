@@ -15,15 +15,15 @@ import {
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
-  Drawer,
-  DrawerClose,
-  DrawerContent,
-  DrawerDescription,
-  DrawerFooter,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerTrigger,
-} from "@/components/ui/drawer";
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -53,7 +53,7 @@ type ProductLocationOption = {
   name: string;
 };
 
-type ProductFormDrawerProps = {
+type ProductFormModalProps = {
   mode: ProductFormMode;
   open: boolean;
   categories: ProductCategoryOption[];
@@ -81,7 +81,7 @@ const emptyInitialValues: ProductFormInitialValues = {
   imageUrl: null,
 };
 
-export function ProductFormDrawer({
+export function ProductFormModal({
   mode,
   open,
   categories,
@@ -93,7 +93,7 @@ export function ProductFormDrawer({
   triggerLabel,
   triggerIcon = null,
   triggerClassName,
-}: ProductFormDrawerProps) {
+}: ProductFormModalProps) {
   const [sku, setSku] = useState("");
   const [name, setName] = useState("");
   const [categoryId, setCategoryId] = useState("");
@@ -139,7 +139,7 @@ export function ProductFormDrawer({
       ? ((parsedSellingPrice - parsedCostPrice) / parsedCostPrice) * 100
       : null;
 
-  const drawerText = useMemo(
+  const modalText = useMemo(
     () =>
       isEditMode
         ? {
@@ -293,24 +293,24 @@ export function ProductFormDrawer({
     ? "กำลังประมวลผลรูป..."
     : isSubmitting
       ? "กำลังบันทึก..."
-      : drawerText.submit;
+      : modalText.submit;
 
   return (
-    <Drawer direction="right" open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       {!isEditMode && triggerLabel ? (
-        <DrawerTrigger asChild>
+        <DialogTrigger render={
           <Button variant="default" className={triggerClassName}>
             {triggerIcon}
             {triggerLabel}
           </Button>
-        </DrawerTrigger>
+        } />
       ) : null}
-      <DrawerContent className="flex h-full sm:max-w-md">
-        <DrawerHeader>
-          <DrawerTitle>{drawerText.title}</DrawerTitle>
-          <DrawerDescription>{drawerText.description}</DrawerDescription>
-        </DrawerHeader>
-        <div className="flex-1 space-y-4 overflow-y-auto px-4 pb-4">
+      <DialogContent className="flex max-h-[85vh] flex-col sm:max-w-xl p-0">
+        <DialogHeader className="px-6 pt-6 pb-2">
+          <DialogTitle>{modalText.title}</DialogTitle>
+          <DialogDescription>{modalText.description}</DialogDescription>
+        </DialogHeader>
+        <div className="flex-1 space-y-4 overflow-y-auto px-6 pb-6">
           <form
             className="space-y-4"
             id={formId}
@@ -512,17 +512,17 @@ export function ProductFormDrawer({
             </div>
           </form>
         </div>
-        <DrawerFooter>
-          <DrawerClose asChild>
+        <DialogFooter className="px-6 pb-6 pt-2">
+          <DialogClose render={
             <Button disabled={isSubmitting} variant="outline">
               ยกเลิก
             </Button>
-          </DrawerClose>
+          } />
           <Button disabled={!canSubmit} form={formId} type="submit">
             {submitText}
           </Button>
-        </DrawerFooter>
-      </DrawerContent>
-    </Drawer>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

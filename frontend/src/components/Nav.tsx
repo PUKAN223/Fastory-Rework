@@ -59,7 +59,7 @@ export function NavMain({
                   asChild
                   isActive={isItemActive}
                   tooltip={item.title}
-                  className="text-sidebar-foreground/80 data-[active=true]:bg-sidebar-accent/45 data-[active=true]:shadow-none"
+                  className="text-sidebar-foreground/80 data-[active=true]:bg-primary/10 data-[active=true]:text-primary data-[active=true]:font-medium data-[active=true]:shadow-sm"
                 >
                   <Link href={item.url}>
                     {item.icon && <item.icon />}
@@ -89,7 +89,7 @@ export function NavMain({
                   <SidebarMenuButton
                     isActive={isItemActive || hasActiveSubItem}
                     tooltip={item.title}
-                    className="text-sidebar-foreground/80 data-[active=true]:bg-sidebar-accent/45 data-[active=true]:shadow-none"
+                    className="text-sidebar-foreground/80 data-[active=true]:bg-primary/10 data-[active=true]:text-primary data-[active=true]:font-medium data-[active=true]:shadow-sm"
                   >
                     {item.icon && <item.icon />}
                     <span>{item.title}</span>
@@ -108,7 +108,7 @@ export function NavMain({
                         <SidebarMenuSubButton
                           asChild
                           isActive={currentPath === subItem.url}
-                          className="text-sidebar-foreground/70 data-[active=true]:bg-sidebar-accent/45"
+                          className="text-sidebar-foreground/70 data-[active=true]:bg-primary/10 data-[active=true]:text-primary data-[active=true]:font-medium"
                         >
                           <Link href={subItem.url}>
                             <span>{subItem.title}</span>

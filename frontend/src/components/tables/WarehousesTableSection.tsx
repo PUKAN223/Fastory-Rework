@@ -13,14 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Drawer,
-  DrawerContent,
-  DrawerDescription,
-  DrawerFooter,
-  DrawerHeader,
-  DrawerTitle,
-} from "@/components/ui/drawer";
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -324,13 +317,13 @@ export function WarehousesTableSection({
         )}
       </div>
 
-      <Drawer open={editOpen} onOpenChange={setEditOpen} direction="right">
-        <DrawerContent className="flex h-full sm:max-w-md">
-          <DrawerHeader>
-            <DrawerTitle>แก้ไขคลังสินค้า</DrawerTitle>
-            <DrawerDescription>ปรับข้อมูลคลังสินค้า</DrawerDescription>
-          </DrawerHeader>
-          <div className="flex-1 space-y-4 overflow-y-auto px-4 pb-4">
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent className="flex max-h-[85vh] flex-col sm:max-w-xl p-0">
+          <DialogHeader className="px-6 pt-6 pb-2">
+            <DialogTitle>แก้ไขคลังสินค้า</DialogTitle>
+            <DialogDescription>ปรับข้อมูลคลังสินค้า</DialogDescription>
+          </DialogHeader>
+          <div className="flex-1 space-y-4 overflow-y-auto px-6 pb-6">
             <form
               className="space-y-4"
               id="edit-warehouse-form"
@@ -369,7 +362,7 @@ export function WarehousesTableSection({
               </div>
             </form>
           </div>
-          <DrawerFooter>
+          <DialogFooter className="px-6 pb-6 pt-2">
             <Button
               onClick={() => setEditOpen(false)}
               type="button"
@@ -384,9 +377,9 @@ export function WarehousesTableSection({
             >
               {isSavingEdit ? "กำลังบันทึก..." : "บันทึกการแก้ไข"}
             </Button>
-          </DrawerFooter>
-        </DrawerContent>
-      </Drawer>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Normal delete confirmation */}
       <ConfirmDeleteDialog

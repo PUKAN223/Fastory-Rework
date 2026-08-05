@@ -297,7 +297,7 @@ export function ProfileSettingsModal({
                     className={cn(
                       "transition-all",
                       !isEditingUsername &&
-                        "bg-muted/40 text-muted-foreground border-transparent cursor-not-allowed opacity-90",
+                      "bg-muted/40 text-muted-foreground border-transparent cursor-not-allowed opacity-90",
                     )}
                   />
                 </Field>
@@ -367,7 +367,7 @@ export function ProfileSettingsModal({
                     className={cn(
                       "flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs transition-colors placeholder:text-muted-foreground focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring",
                       !isEditingBio &&
-                        "bg-muted/40 text-muted-foreground border-transparent cursor-not-allowed opacity-90",
+                      "bg-muted/40 text-muted-foreground border-transparent cursor-not-allowed opacity-90",
                     )}
                   />
                 </Field>

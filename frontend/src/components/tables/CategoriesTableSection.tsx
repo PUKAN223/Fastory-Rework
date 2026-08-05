@@ -6,13 +6,13 @@ import { usePagination } from "@/hooks/usePagination";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  Drawer,
-  DrawerContent,
-  DrawerDescription,
-  DrawerFooter,
-  DrawerHeader,
-  DrawerTitle,
-} from "@/components/ui/drawer";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -275,13 +275,13 @@ export function CategoriesTableSection({
         )}
       </div>
 
-      <Drawer open={editOpen} onOpenChange={setEditOpen} direction="right">
-        <DrawerContent className="flex h-full sm:max-w-md">
-          <DrawerHeader>
-            <DrawerTitle>แก้ไขหมวดหมู่</DrawerTitle>
-            <DrawerDescription>ปรับข้อมูลหมวดหมู่สินค้า</DrawerDescription>
-          </DrawerHeader>
-          <div className="flex-1 space-y-4 overflow-y-auto px-4 pb-4">
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent className="flex max-h-[85vh] flex-col sm:max-w-xl p-0">
+          <DialogHeader className="px-6 pt-6 pb-2">
+            <DialogTitle>แก้ไขหมวดหมู่</DialogTitle>
+            <DialogDescription>ปรับข้อมูลหมวดหมู่สินค้า</DialogDescription>
+          </DialogHeader>
+          <div className="flex-1 space-y-4 overflow-y-auto px-6 pb-6">
             <form
               className="space-y-4"
               id="edit-category-form"
@@ -322,7 +322,7 @@ export function CategoriesTableSection({
               </div>
             </form>
           </div>
-          <DrawerFooter>
+          <DialogFooter className="px-6 pb-6 pt-2">
             <Button
               onClick={() => setEditOpen(false)}
               type="button"
@@ -337,9 +337,9 @@ export function CategoriesTableSection({
             >
               {isSavingEdit ? "กำลังบันทึก..." : "บันทึกการแก้ไข"}
             </Button>
-          </DrawerFooter>
-        </DrawerContent>
-      </Drawer>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <ConfirmDeleteDialog
         open={deleteOpen}

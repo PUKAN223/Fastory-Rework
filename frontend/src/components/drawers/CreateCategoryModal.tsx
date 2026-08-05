@@ -4,30 +4,30 @@ import { TicketPlus } from "lucide-react";
 import { type FormEvent, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
-  Drawer,
-  DrawerClose,
-  DrawerContent,
-  DrawerDescription,
-  DrawerFooter,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerTrigger,
-} from "@/components/ui/drawer";
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Icon, type IconName, IconPicker } from "@/components/ui/icon-picker";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import type { CreateCategoryPayload } from "@/types/categories";
 
-type CreateCategoryDrawerProps = {
+type CreateCategoryModalProps = {
   onCreate: (payload: CreateCategoryPayload) => Promise<boolean> | boolean;
   isSubmitting?: boolean;
 };
 
-export function CreateCategoryDrawer({
+export function CreateCategoryModal({
   onCreate,
   isSubmitting = false,
-}: CreateCategoryDrawerProps) {
+}: CreateCategoryModalProps) {
   const [open, setOpen] = useState(false);
   const [categoryName, setCategoryName] = useState("");
   const [categoryDescription, setCategoryDescription] = useState("");
@@ -59,21 +59,21 @@ export function CreateCategoryDrawer({
   };
 
   return (
-    <Drawer direction="right" open={open} onOpenChange={setOpen}>
-      <DrawerTrigger asChild>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger render={
         <Button variant="default">
           <TicketPlus className="size-4" />
           เพิ่มหมวดหมู่
         </Button>
-      </DrawerTrigger>
-      <DrawerContent className="flex h-full sm:max-w-md">
-        <DrawerHeader>
-          <DrawerTitle>เพิ่มหมวดหมู่ใหม่</DrawerTitle>
-          <DrawerDescription>
+      } />
+      <DialogContent className="flex max-h-[85vh] flex-col sm:max-w-xl p-0">
+        <DialogHeader className="px-6 pt-6 pb-2">
+          <DialogTitle>เพิ่มหมวดหมู่ใหม่</DialogTitle>
+          <DialogDescription>
             กรอกข้อมูลหมวดหมู่และเลือกไอคอนที่ต้องการ
-          </DrawerDescription>
-        </DrawerHeader>
-        <div className="flex-1 space-y-4 overflow-y-auto px-4 pb-4">
+          </DialogDescription>
+        </DialogHeader>
+        <div className="flex-1 space-y-4 overflow-y-auto px-6 pb-6">
           <form
             className="space-y-4"
             id="add-category-form"
@@ -115,21 +115,17 @@ export function CreateCategoryDrawer({
             </div>
           </form>
         </div>
-        <DrawerFooter>
-          <DrawerClose asChild>
+        <DialogFooter className="px-6 pb-6 pt-2">
+          <DialogClose render={
             <Button disabled={isSubmitting} variant="outline">
               ยกเลิก
             </Button>
-          </DrawerClose>
-          <Button
-            disabled={isSubmitting}
-            form="add-category-form"
-            type="submit"
-          >
-            {isSubmitting ? "กำลังบันทึก..." : "บันทึก"}
+          } />
+          <Button disabled={!categoryName} form="add-category-form" type="submit">
+            {isSubmitting ? "กำลังบันทึก..." : "บันทึกข้อมูล"}
           </Button>
-        </DrawerFooter>
-      </DrawerContent>
-    </Drawer>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

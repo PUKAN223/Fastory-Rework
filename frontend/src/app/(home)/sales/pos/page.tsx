@@ -570,7 +570,7 @@ export default function POSPage() {
 
         {/* Product Grid */}
         <ScrollArea className="flex-1 -mx-1 px-1">
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 pb-20 p-1">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 pb-20 p-1">
             {paginatedProducts.map((p) => {
               const inCart =
                 cartItems.find((i) => i.product.id === p.id)?.quantity || 0;
@@ -727,7 +727,7 @@ export default function POSPage() {
       </div>
 
       {/* Right Column: Cart */}
-      <div className="hidden lg:flex w-[400px] flex-col rounded-xl border bg-card shadow-sm overflow-hidden h-full shrink-0">
+      <div className="hidden lg:flex w-[340px] xl:w-[400px] flex-col rounded-xl border bg-card shadow-sm overflow-hidden h-full shrink-0">
         {/* Cart Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b bg-muted/20 shrink-0">
           <h2 className="font-semibold flex items-center gap-2">

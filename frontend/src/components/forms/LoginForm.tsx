@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { authLogin } from "@/features/authSlice";
+import { fetchStores } from "@/features/storeSlice";
 import { cn } from "@/lib/utils";
 import { useAppDispatch, useAppSelector } from "@/store/hook";
 
@@ -68,7 +69,8 @@ export function LoginForm({
       ).unwrap();
 
       toast.success("เข้าสู่ระบบสำเร็จ");
-      router.push("/stores");
+      await dispatch(fetchStores()).unwrap().catch(() => {});
+      router.push("/dashboard");
     } catch (error) {
       const message =
         typeof error === "string" ? error : "อีเมลหรือรหัสผ่านไม่ถูกต้อง";
@@ -90,7 +92,8 @@ export function LoginForm({
     try {
       await dispatch(authLogin({ email: "test@example.com", password: "123456" })).unwrap();
       toast.success("เข้าสู่ระบบทดลองใช้งานสำเร็จ");
-      router.push("/stores");
+      await dispatch(fetchStores()).unwrap().catch(() => {});
+      router.push("/dashboard");
     } catch (error) {
       const message = typeof error === "string" ? error : "ไม่สามารถเข้าสู่ระบบทดลองใช้งานได้";
       toast.error(message);

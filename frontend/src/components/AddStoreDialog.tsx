@@ -6,14 +6,14 @@ import * as React from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
-  Drawer,
-  DrawerClose,
-  DrawerContent,
-  DrawerDescription,
-  DrawerFooter,
-  DrawerHeader,
-  DrawerTitle,
-} from "@/components/ui/drawer";
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -85,32 +85,31 @@ export function CreateStoreSheet({
   }, [selectedIcon]);
 
   return (
-    <Drawer
+    <Dialog
       open={open}
       onOpenChange={(v) => {
         if (!v) reset();
         onOpenChange(v);
       }}
-      direction="right"
     >
-      <DrawerContent className="h-full border-l sm:max-w-md">
-        <DrawerHeader className="border-b border-border/50 pb-4">
+      <DialogContent className="flex max-h-[85vh] flex-col sm:max-w-xl p-0">
+        <DialogHeader className="px-6 pt-6 pb-2">
           <div className="flex items-center gap-3">
             <div className="bg-primary/10 flex size-11 items-center justify-center rounded-xl border border-primary/20 text-primary">
               <SelectedIconComponent className="size-5" />
             </div>
             <div>
-              <DrawerTitle className="text-base font-semibold">
+              <DialogTitle className="text-base font-semibold">
                 สร้างร้านค้าใหม่
-              </DrawerTitle>
-              <DrawerDescription className="text-xs">
+              </DialogTitle>
+              <DialogDescription className="text-xs">
                 ตั้งค่าข้อมูลร้านค้าของเพื่อเริ่มต้นใช้งานระบบ
-              </DrawerDescription>
+              </DialogDescription>
             </div>
           </div>
-        </DrawerHeader>
+        </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto p-5">
+        <div className="flex-1 overflow-y-auto px-6 pb-6">
           <form
             id="create-store-drawer-form"
             onSubmit={handleSubmit}
@@ -192,9 +191,9 @@ export function CreateStoreSheet({
           </form>
         </div>
 
-        <DrawerFooter className="border-t border-border/50 bg-muted/10 p-4">
-          <div className="flex gap-2">
-            <DrawerClose asChild>
+        <DialogFooter className="px-6 pb-6 pt-2">
+          <div className="flex gap-2 w-full">
+            <DialogClose render={
               <Button
                 type="button"
                 variant="outline"
@@ -204,7 +203,7 @@ export function CreateStoreSheet({
               >
                 ยกเลิก
               </Button>
-            </DrawerClose>
+            } />
             <Button
               type="submit"
               form="create-store-drawer-form"
@@ -215,9 +214,9 @@ export function CreateStoreSheet({
               {loading ? "กำลังสร้าง..." : "สร้างร้านค้า"}
             </Button>
           </div>
-        </DrawerFooter>
-      </DrawerContent>
-    </Drawer>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -274,25 +273,25 @@ export function EditStoreSheet({
   }, [selectedIcon]);
 
   return (
-    <Drawer open={open} onOpenChange={onOpenChange} direction="right">
-      <DrawerContent className="h-full border-l sm:max-w-md">
-        <DrawerHeader className="border-b border-border/50 pb-4">
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="flex max-h-[85vh] flex-col sm:max-w-xl p-0">
+        <DialogHeader className="px-6 pt-6 pb-2">
           <div className="flex items-center gap-3">
             <div className="bg-primary/10 flex size-11 items-center justify-center rounded-xl border border-primary/20 text-primary">
               <SelectedIconComponent className="size-5" />
             </div>
             <div>
-              <DrawerTitle className="text-base font-semibold">
+              <DialogTitle className="text-base font-semibold">
                 แก้ไขข้อมูลร้านค้า
-              </DrawerTitle>
-              <DrawerDescription className="text-xs">
+              </DialogTitle>
+              <DialogDescription className="text-xs">
                 ปรับปรุงข้อมูลทั่วไปของร้านค้าคุณ
-              </DrawerDescription>
+              </DialogDescription>
             </div>
           </div>
-        </DrawerHeader>
+        </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto p-5">
+        <div className="flex-1 overflow-y-auto px-6 pb-6">
           <form
             id="edit-store-drawer-form"
             onSubmit={handleSubmit}
@@ -373,9 +372,9 @@ export function EditStoreSheet({
           </form>
         </div>
 
-        <DrawerFooter className="border-t border-border/50 bg-muted/10 p-4">
-          <div className="flex gap-2">
-            <DrawerClose asChild>
+        <DialogFooter className="px-6 pb-6 pt-2">
+          <div className="flex gap-2 w-full">
+            <DialogClose render={
               <Button
                 type="button"
                 variant="outline"
@@ -385,7 +384,7 @@ export function EditStoreSheet({
               >
                 ยกเลิก
               </Button>
-            </DrawerClose>
+            } />
             <Button
               type="submit"
               form="edit-store-drawer-form"
@@ -396,8 +395,8 @@ export function EditStoreSheet({
               {loading ? "กำลังบันทึก..." : "บันทึกการแก้ไข"}
             </Button>
           </div>
-        </DrawerFooter>
-      </DrawerContent>
-    </Drawer>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

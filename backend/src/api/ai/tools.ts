@@ -430,9 +430,9 @@ function checkToolPermission(name: string, userPermissions: Record<string, boole
     updateLocation: ["locations:write"],
     deleteLocation: ["locations:write"],
     adjustStock: ["stocks:write"],
-    getTodaySales: ["sales:read", "reports:read"],
-    getSalesReportByDate: ["sales:read", "reports:read"],
-    getCategorySalesBreakdown: ["sales:read", "reports:read"],
+    getTodaySales: ["reports:read"],
+    getSalesReportByDate: ["reports:read"],
+    getCategorySalesBreakdown: ["reports:read"],
     voidOrder: ["sales:write"],
   };
 

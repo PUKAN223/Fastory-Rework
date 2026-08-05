@@ -250,14 +250,28 @@ class ProductsRoutes extends BaseRouter {
             return { success: false, message: "Invalid product ID" };
           }
 
-          const product = await prisma.products.findFirst({ where: { id, store_id: storeId } });
+          const product = await prisma.products.findFirst({ 
+            where: { id, store_id: storeId },
+            include: { order_items: { take: 1 } }
+          });
           if (!product) {
             req.set.status = 404;
             return { success: false, message: "Product not found" };
           }
 
-          await prisma.products.delete({ where: { id } });
-          return { success: true, message: "Product deleted successfully" };
+          if (product.order_items.length > 0) {
+            req.set.status = 400;
+            return { success: false, message: "ไม่สามารถลบสินค้าที่มีประวัติการขายได้ กรุณาเปลี่ยนสถานะเป็นปิดการใช้งานแทน" };
+          }
+
+          try {
+            await prisma.product_stock_movements.deleteMany({ where: { product_id: id } });
+            await prisma.products.delete({ where: { id } });
+            return { success: true, message: "Product deleted successfully" };
+          } catch (e) {
+            req.set.status = 500;
+            return { success: false, message: "เกิดข้อผิดพลาดในการลบสินค้า" };
+          }
         }),
     );
 

@@ -281,9 +281,10 @@ export default function EmployeeLogsPage() {
         </Card>
       </div>
 
-      {/* Filter Toolbar — same pattern as Reports page filter bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-xl border border-border/60 bg-card shadow-none">
-        <div className="relative w-full sm:max-w-sm shrink-0">
+      {/* Filter Toolbar */}
+      <div className="flex flex-col gap-3 p-4 rounded-xl border border-border/60 bg-card shadow-none">
+        {/* Search — full width */}
+        <div className="relative w-full">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="ค้นหาเลขคำสั่งซื้อ, สินค้า, ชื่อพนักงาน..."
@@ -293,11 +294,12 @@ export default function EmployeeLogsPage() {
           />
         </div>
 
-        <div className="flex overflow-x-auto sm:overflow-visible pb-1 sm:pb-0 gap-2 items-center [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-          <div className="flex items-center gap-1.5 shrink-0">
-            <Users className="w-3.5 h-3.5 text-muted-foreground" />
+        {/* Filters row — wraps on small screens */}
+        <div className="flex flex-wrap gap-2 items-center">
+          <div className="flex items-center gap-1.5">
+            <Users className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
             <Select value={selectedUser} onValueChange={setSelectedUser}>
-              <SelectTrigger className="h-8 text-xs w-[140px] sm:w-[150px]">
+              <SelectTrigger className="h-8 text-xs w-[150px]">
                 <SelectValue placeholder="พนักงานทุกคน" />
               </SelectTrigger>
               <SelectContent>
@@ -311,10 +313,10 @@ export default function EmployeeLogsPage() {
             </Select>
           </div>
 
-          <div className="flex items-center gap-1.5 shrink-0">
-            <Filter className="w-3.5 h-3.5 text-muted-foreground" />
+          <div className="flex items-center gap-1.5">
+            <Filter className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
             <Select value={selectedType} onValueChange={setSelectedType}>
-              <SelectTrigger className="h-8 text-xs w-[130px] sm:w-[140px]">
+              <SelectTrigger className="h-8 text-xs w-[140px]">
                 <SelectValue placeholder="ทุกกิจกรรม" />
               </SelectTrigger>
               <SelectContent>
@@ -327,10 +329,10 @@ export default function EmployeeLogsPage() {
             </Select>
           </div>
 
-          <div className="flex items-center gap-1.5 shrink-0">
-            <Calendar className="w-3.5 h-3.5 text-muted-foreground" />
+          <div className="flex items-center gap-1.5">
+            <Calendar className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
             <Select value={selectedDays} onValueChange={setSelectedDays}>
-              <SelectTrigger className="h-8 text-xs w-[110px] sm:w-[120px]">
+              <SelectTrigger className="h-8 text-xs w-[120px]">
                 <SelectValue placeholder="7 วันล่าสุด" />
               </SelectTrigger>
               <SelectContent>
@@ -343,6 +345,7 @@ export default function EmployeeLogsPage() {
           </div>
         </div>
       </div>
+
 
       {/* Logs Table Card — EntityListCard pattern */}
       <Card className="border-border/60 shadow-none overflow-hidden">

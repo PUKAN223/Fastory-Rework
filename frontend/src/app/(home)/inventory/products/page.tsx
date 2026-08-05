@@ -10,7 +10,7 @@ import { PageHeaderCards } from "@/components/card/PageHeaderCards";
 import { ProductStatsCards } from "@/components/card/ProductStatsCards";
 import { ProductsCharts } from "@/components/charts/ProductsCharts";
 import { BulkScannerModal } from "@/components/forms/BulkScannerModal";
-import { ProductFormDrawer } from "@/components/forms/ProductFormDrawer";
+import { ProductFormModal } from "@/components/forms/ProductFormModal";
 import { ProductsTableSection } from "@/components/tables/ProductsTableSection";
 import {
   Alert,
@@ -423,7 +423,7 @@ export default function InventoryProductsPage() {
         </PageTabs>
       </div>
       <BulkScannerModal open={scannerOpen} onOpenChange={setScannerOpen} />
-      <ProductFormDrawer
+      <ProductFormModal
         mode="create"
         open={createDrawerOpen}
         categories={categoryOptions}

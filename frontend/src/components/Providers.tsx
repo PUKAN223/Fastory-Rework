@@ -48,8 +48,11 @@ function AuthBootstrap() {
 function PwaBootstrap() {
   React.useEffect(() => {
     if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("/sw.js").catch((err) => {
-        console.error("Service worker registration failed", err);
+      // Unregister all service workers
+      navigator.serviceWorker.getRegistrations().then((registrations) => {
+        for (const registration of registrations) {
+          registration.unregister();
+        }
       });
     }
   }, []);

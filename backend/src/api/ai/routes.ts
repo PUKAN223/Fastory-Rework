@@ -11,7 +11,7 @@ class AIRoutes extends BaseRouter {
   public override getRouter() {
     const router = super.getRouter();
 
-    router.guard({ beforeHandle: requireStorePermission("sales:read") }, (app) =>
+    router.guard({ beforeHandle: requireStorePermission() }, (app) =>
       app.post("/chat", async (req) => {
         const storeId = Number((req as any).params.storeId);
         
@@ -385,7 +385,25 @@ class AIRoutes extends BaseRouter {
           };
         }
 
-        const result = await executeTool(toolName, { ...args, storeId });
+        let userPermissions: Record<string, boolean> = {};
+        let userRole = "ผู้ใช้";
+
+        if (userId && userId === store?.owner_id) {
+          userPermissions = { "*": true };
+          userRole = "เจ้าของร้าน";
+        } else if (userId) {
+          const membership = await prisma.store_members.findUnique({
+            where: {
+              store_id_user_id: { store_id: storeId, user_id: userId },
+            }
+          });
+          if (membership) {
+            userPermissions = (membership.permissions ?? {}) as Record<string, boolean>;
+            userRole = membership.job_title || "พนักงาน";
+          }
+        }
+
+        const result = await executeTool(toolName, { ...args, storeId }, userPermissions, userRole);
         const reply = result.error
           ? `⚠️ **ทำรายการไม่สำเร็จ:** ${result.error}`
           : `✅ **ดำเนินการสำเร็จ:** ${result.message || "ทำรายการเรียบร้อยแล้วครับ"}`;

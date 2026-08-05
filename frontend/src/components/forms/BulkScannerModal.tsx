@@ -4,7 +4,7 @@
  * 1. กรอก / สแกน Barcode หรือ SKU ที่ input บนสุด
  *    → มี autocomplete dropdown แสดงสินค้าที่ตรงกัน (ชื่อ + SKU)
  * 2. ถ้าเจอสินค้าในสต๊อก → เพิ่มเข้า Table (สแกนซ้ำ = +1)
- * 3. ถ้าไม่เจอ → เปิด ProductFormDrawer (Create mode) พร้อม SKU pre-fill
+ * 3. ถ้าไม่เจอ → เปิด ProductFormModal (Create mode) พร้อม SKU pre-fill
  * 4. กด "ยืนยัน" → dispatch createMovement สำหรับทุก Row ใน Table
  */
 
@@ -24,7 +24,7 @@ import {
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import { ProductFormDrawer } from "@/components/forms/ProductFormDrawer";
+import { ProductFormModal } from "@/components/forms/ProductFormModal";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -592,7 +592,7 @@ export function BulkScannerModal({
       </Dialog>
 
       {/* Create product form — opens when SKU not found */}
-      <ProductFormDrawer
+      <ProductFormModal
         mode="create"
         open={productFormOpen}
         categories={categoryOptions}

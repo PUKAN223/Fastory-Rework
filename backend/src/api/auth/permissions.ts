@@ -78,12 +78,14 @@ export const requireStorePermission = (...requiredPermissions: string[]) => {
       return { success: false, message: "You are not a member of this store" };
     }
 
-    const permissions = (membership.permissions ?? {}) as NestedPermissionMap;
-    const hasAny = requiredPermissions.some((perm) => hasPermission(permissions, perm));
+    if (requiredPermissions.length > 0) {
+      const permissions = (membership.permissions ?? {}) as NestedPermissionMap;
+      const hasAny = requiredPermissions.some((perm) => hasPermission(permissions, perm));
 
-    if (!hasAny) {
-      set.status = 403;
-      return { success: false, message: "Permission denied" };
+      if (!hasAny) {
+        set.status = 403;
+        return { success: false, message: "Permission denied" };
+      }
     }
   };
 };

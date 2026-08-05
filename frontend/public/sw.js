@@ -1,14 +1,14 @@
-self.addEventListener("install", (event) => {
-  console.log("Service Worker installed.");
+// Fastory Service Worker - Passthrough only, no caching or fetch interception
+
+self.addEventListener("install", () => {
+  // Skip waiting so the new SW activates immediately
   self.skipWaiting();
 });
 
 self.addEventListener("activate", (event) => {
-  console.log("Service Worker activated.");
-  return self.clients.claim();
+  // Claim all clients immediately
+  event.waitUntil(self.clients.claim());
 });
 
-self.addEventListener("fetch", (event) => {
-  // Pass through all requests - caching can be added later if needed
-  event.respondWith(fetch(event.request));
-});
+// Do NOT add a fetch event listener - this lets the browser handle all requests
+// natively without any SW interception, preventing redirect loops with manifest.json

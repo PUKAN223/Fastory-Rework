@@ -28,31 +28,9 @@ const nextConfig: NextConfig = {
   experimental: {
     webpackMemoryOptimizations: true,
     preloadEntriesOnStart: false,
-    optimizePackageImports: ["lucide-react", "@tabler/icons-react", "recharts", "date-fns"],
+    optimizePackageImports: ["lucide-react", "@tabler/icons-react", "recharts", "date-fns"]
   },
   productionBrowserSourceMaps: false,
-  async headers() {
-    return [
-      {
-        source: "/_next/static/(.*)",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "public, max-age=31536000, immutable",
-          },
-        ],
-      },
-      {
-        source: "/(.*)\\.(png|jpg|jpeg|webp|avif|svg|ico|woff2|woff)",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "public, max-age=604800, stale-while-revalidate=86400",
-          },
-        ],
-      },
-    ];
-  },
 };
 
 export default nextConfig;

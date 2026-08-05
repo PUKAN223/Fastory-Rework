@@ -6,7 +6,7 @@ import { EntityListCard } from "@/components/card/EntityListCard";
 import { PageHeaderCards } from "@/components/card/PageHeaderCards";
 import { WarehouseStatsCards } from "@/components/card/WarehouseStatsCards";
 import { WarehouseCharts } from "@/components/charts/WarehouseCharts";
-import { CreateWarehouseDrawer } from "@/components/drawers/CreateWarehouseDrawer";
+import { CreateWarehouseModal } from "@/components/drawers/CreateWarehouseModal";
 import { WarehousesTableSection } from "@/components/tables/WarehousesTableSection";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -191,7 +191,7 @@ export default function InventoryWarehousesPage() {
             title="รายการคลังสินค้า"
             description="เพิ่ม ค้นหา แก้ไข และลบข้อมูลคลังสินค้าได้ที่นี่"
             actions={
-              <CreateWarehouseDrawer
+              <CreateWarehouseModal
                 isSubmitting={createStatus === "loading"}
                 onCreate={handleCreateWarehouse}
               />

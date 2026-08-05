@@ -907,7 +907,7 @@ export default function AssistantPage() {
       return (
         <div
           key={idx}
-          className="markdown-body prose prose-sm dark:prose-invert max-w-none text-sm leading-relaxed my-1"
+          className="markdown-body prose prose-sm dark:prose-invert max-w-none text-sm leading-relaxed my-1 min-w-0 break-words"
         >
           <ReactMarkdown
             remarkPlugins={[remarkGfm]}
@@ -1098,11 +1098,11 @@ export default function AssistantPage() {
                 </div>
 
                 {/* Message Box */}
-                <div className={`group relative space-y-1 min-w-0 ${msg.role === "user" ? "" : "flex-1 md:flex-none"}`}>
+                <div className={`group relative space-y-1 min-w-0 ${msg.role === "user" ? "" : "flex-1"}`}>
                   <div
-                    className={`p-3 md:p-4 rounded-2xl text-sm shadow-xs overflow-x-auto ${msg.role === "user"
+                    className={`p-3 md:p-4 rounded-2xl text-sm shadow-xs overflow-x-auto break-words whitespace-pre-wrap ${msg.role === "user"
                         ? "bg-primary text-primary-foreground rounded-tr-none"
-                        : "bg-muted/60 border border-border/60 text-foreground rounded-tl-none w-full"
+                        : "bg-muted/60 border border-border/60 text-foreground rounded-tl-none w-full prose prose-sm dark:prose-invert max-w-none"
                       }`}
                   >
                     {renderContent(cleanContent)}

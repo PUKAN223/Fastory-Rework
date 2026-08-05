@@ -28,15 +28,15 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
-  Drawer,
-  DrawerClose,
-  DrawerContent,
-  DrawerDescription,
-  DrawerFooter,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerTrigger,
-} from "@/components/ui/drawer";
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import {
   Empty,
   EmptyDescription,
@@ -277,159 +277,161 @@ export default function StockMovementsPage() {
             title="รายการเปลี่ยนแปลงสต็อก"
             description="ดูรายการความเคลื่อนไหวสต็อกสินค้าล่าสุด"
             actions={
-              <Drawer
+              <Dialog
                 open={drawerOpen}
                 onOpenChange={setDrawerOpen}
-                direction="right"
               >
-                <DrawerTrigger asChild>
+                <DialogTrigger render={
                   <Button className="px-5 shadow-xs">
                     <Plus className="mr-2 size-4" />
                     ปรับสต็อกด่วน
                   </Button>
-                </DrawerTrigger>
-                <DrawerContent className="flex h-full sm:max-w-md">
-                  <DrawerHeader>
-                    <DrawerTitle>ปรับสต็อกด่วน</DrawerTitle>
-                    <DrawerDescription>
+                } />
+                <DialogContent className="flex max-h-[85vh] flex-col sm:max-w-xl p-0">
+                  <DialogHeader className="px-6 pt-6 pb-2">
+                    <DialogTitle>ปรับสต็อกด่วน</DialogTitle>
+                    <DialogDescription>
                       บันทึกประวัติการปรับเพิ่มหรือลดสต็อกสินค้าด้วยตนเอง
-                    </DrawerDescription>
-                  </DrawerHeader>
+                    </DialogDescription>
+                  </DialogHeader>
 
-                  <form
-                    onSubmit={handleAdjustStock}
-                    className="flex-1 space-y-4 overflow-y-auto px-4 pb-4"
-                  >
-                    <div className="space-y-2">
-                      <Label>สินค้า</Label>
-                      <Select
-                        value={selectedProductId}
-                        onValueChange={setSelectedProductId}
-                      >
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="เลือกสินค้าที่ต้องการปรับสต็อก" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {products.map((p) => (
-                            <SelectItem key={p.id} value={p.id}>
-                              {p.name} (SKU: {p.sku || "-"}) - คลัง:{" "}
-                              {p.stockOnHand}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      {selectedLocationInfo && (
-                        <div
-                          className={`mt-2 rounded-lg border p-2.5 text-xs flex items-start gap-2 ${
-                            selectedLocationInfo.isFull
-                              ? "border-red-500/40 bg-red-500/10 text-red-400"
-                              : selectedLocationInfo.remainingCap <= 10
-                                ? "border-amber-500/40 bg-amber-500/10 text-amber-400"
-                                : "border-border/60 bg-muted/30 text-muted-foreground"
-                          }`}
+                  <div className="flex-1 overflow-y-auto px-6 pb-6">
+                    <form
+                      onSubmit={handleAdjustStock}
+                      className="space-y-4"
+                      id="adjust-stock-form"
+                    >
+                      <div className="space-y-2">
+                        <Label>สินค้า</Label>
+                        <Select
+                          value={selectedProductId}
+                          onValueChange={setSelectedProductId}
                         >
-                          <AlertTriangle className="size-4 shrink-0 mt-0.5" />
-                          <div>
-                            <p className="font-semibold text-foreground">
-                              📍 {selectedLocationInfo.locationName}
-                            </p>
-                            <p className="mt-0.5">
-                              ความจุคลัง:{" "}
-                              <span className="font-bold text-foreground">
-                                {selectedLocationInfo.usedStock} /{" "}
-                                {selectedLocationInfo.maxCapacity} ชิ้น
-                              </span>
-                              {selectedLocationInfo.isFull ? (
-                                <span className="ml-1 font-bold text-red-400">
-                                  (คลังเต็มแล้ว ⚠️)
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="เลือกสินค้าที่ต้องการปรับสต็อก" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {products.map((p) => (
+                              <SelectItem key={p.id} value={p.id}>
+                                {p.name} (SKU: {p.sku || "-"}) - คลัง:{" "}
+                                {p.stockOnHand}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        {selectedLocationInfo && (
+                          <div
+                            className={`mt-2 rounded-lg border p-2.5 text-xs flex items-start gap-2 ${
+                              selectedLocationInfo.isFull
+                                ? "border-red-500/40 bg-red-500/10 text-red-400"
+                                : selectedLocationInfo.remainingCap <= 10
+                                  ? "border-amber-500/40 bg-amber-500/10 text-amber-400"
+                                  : "border-border/60 bg-muted/30 text-muted-foreground"
+                            }`}
+                          >
+                            <AlertTriangle className="size-4 shrink-0 mt-0.5" />
+                            <div>
+                              <p className="font-semibold text-foreground">
+                                📍 {selectedLocationInfo.locationName}
+                              </p>
+                              <p className="mt-0.5">
+                                ความจุคลัง:{" "}
+                                <span className="font-bold text-foreground">
+                                  {selectedLocationInfo.usedStock} /{" "}
+                                  {selectedLocationInfo.maxCapacity} ชิ้น
                                 </span>
-                              ) : (
-                                <span className="ml-1 text-emerald-400">
-                                  (เหลือใส่ได้อีก{" "}
-                                  {selectedLocationInfo.remainingCap} ชิ้น)
-                                </span>
-                              )}
-                            </p>
+                                {selectedLocationInfo.isFull ? (
+                                  <span className="ml-1 font-bold text-red-400">
+                                    (คลังเต็มแล้ว ⚠️)
+                                  </span>
+                                ) : (
+                                  <span className="ml-1 text-emerald-400">
+                                    (เหลือใส่ได้อีก{" "}
+                                    {selectedLocationInfo.remainingCap} ชิ้น)
+                                  </span>
+                                )}
+                              </p>
+                            </div>
                           </div>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label>ประเภทการปรับสต็อก</Label>
-                      <div className="grid grid-cols-2 gap-2">
-                        <Button
-                          type="button"
-                          variant={deltaType === "in" ? "default" : "outline"}
-                          onClick={() => setDeltaType("in")}
-                          className="w-full"
-                        >
-                          <PlusCircle className="mr-2 size-4 text-emerald-500" />
-                          รับเข้า (+)
-                        </Button>
-                        <Button
-                          type="button"
-                          variant={deltaType === "out" ? "default" : "outline"}
-                          onClick={() => setDeltaType("out")}
-                          className="w-full"
-                        >
-                          <MinusCircle className="mr-2 size-4 text-rose-500" />
-                          จ่ายออก (-)
-                        </Button>
+                        )}
                       </div>
-                    </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="adjust-amount">จำนวนสินค้า</Label>
-                      <Input
-                        id="adjust-amount"
-                        type="number"
-                        min={1}
-                        placeholder="ใส่จำนวนสินค้า"
-                        value={amount}
-                        onChange={(e) => setAmount(e.target.value)}
-                        required
-                      />
-                    </div>
+                      <div className="space-y-2">
+                        <Label>ประเภทการปรับสต็อก</Label>
+                        <div className="grid grid-cols-2 gap-2">
+                          <Button
+                            type="button"
+                            variant={deltaType === "in" ? "default" : "outline"}
+                            onClick={() => setDeltaType("in")}
+                            className="w-full"
+                          >
+                            <PlusCircle className="mr-2 size-4 text-emerald-500" />
+                            รับเข้า (+)
+                          </Button>
+                          <Button
+                            type="button"
+                            variant={deltaType === "out" ? "default" : "outline"}
+                            onClick={() => setDeltaType("out")}
+                            className="w-full"
+                          >
+                            <MinusCircle className="mr-2 size-4 text-rose-500" />
+                            จ่ายออก (-)
+                          </Button>
+                        </div>
+                      </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="adjust-reason">เหตุผล</Label>
-                      <Input
-                        id="adjust-reason"
-                        placeholder="เช่น เติมสินค้าหน้าร้าน, สินค้าชำรุด"
-                        value={reason}
-                        onChange={(e) => setReason(e.target.value)}
-                        required
-                      />
-                    </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="adjust-amount">จำนวนสินค้า</Label>
+                        <Input
+                          id="adjust-amount"
+                          type="number"
+                          min={1}
+                          placeholder="ใส่จำนวนสินค้า"
+                          value={amount}
+                          onChange={(e) => setAmount(e.target.value)}
+                          required
+                        />
+                      </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="adjust-note">บันทึกข้อความเพิ่มเติม</Label>
-                      <Textarea
-                        id="adjust-note"
-                        placeholder="ข้อความหมายเหตุเพิ่มเติม (ไม่จำเป็น)"
-                        value={note}
-                        onChange={(e) => setNote(e.target.value)}
-                      />
-                    </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="adjust-reason">เหตุผล</Label>
+                        <Input
+                          id="adjust-reason"
+                          placeholder="เช่น เติมสินค้าหน้าร้าน, สินค้าชำรุด"
+                          value={reason}
+                          onChange={(e) => setReason(e.target.value)}
+                          required
+                        />
+                      </div>
 
-                    <DrawerFooter className="pt-4">
-                      <DrawerClose asChild>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          disabled={isSubmitting}
-                        >
-                          ยกเลิก
-                        </Button>
-                      </DrawerClose>
-                      <Button type="submit" disabled={isSubmitting}>
-                        {isSubmitting ? "กำลังบันทึก..." : "บันทึกข้อมูล"}
+                      <div className="space-y-2">
+                        <Label htmlFor="adjust-note">บันทึกข้อความเพิ่มเติม</Label>
+                        <Textarea
+                          id="adjust-note"
+                          placeholder="ข้อความหมายเหตุเพิ่มเติม (ไม่จำเป็น)"
+                          value={note}
+                          onChange={(e) => setNote(e.target.value)}
+                        />
+                      </div>
+                    </form>
+                  </div>
+
+                  <DialogFooter className="px-6 pb-6 pt-2">
+                    <DialogClose render={
+                      <Button
+                        type="button"
+                        variant="outline"
+                        disabled={isSubmitting}
+                      >
+                        ยกเลิก
                       </Button>
-                    </DrawerFooter>
-                  </form>
-                </DrawerContent>
-              </Drawer>
+                    } />
+                    <Button type="submit" form="adjust-stock-form" disabled={isSubmitting}>
+                      {isSubmitting ? "กำลังบันทึก..." : "บันทึกข้อมูล"}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             }
           >
             <div className="space-y-4">

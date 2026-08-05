@@ -4,29 +4,29 @@ import { Building2 } from "lucide-react";
 import { type FormEvent, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
-  Drawer,
-  DrawerClose,
-  DrawerContent,
-  DrawerDescription,
-  DrawerFooter,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerTrigger,
-} from "@/components/ui/drawer";
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import type { CreateWarehousePayload } from "@/types/locations";
 
-type CreateWarehouseDrawerProps = {
+type CreateWarehouseModalProps = {
   onCreate: (payload: CreateWarehousePayload) => Promise<boolean> | boolean;
   isSubmitting?: boolean;
 };
 
-export function CreateWarehouseDrawer({
+export function CreateWarehouseModal({
   onCreate,
   isSubmitting = false,
-}: CreateWarehouseDrawerProps) {
+}: CreateWarehouseModalProps) {
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -60,19 +60,19 @@ export function CreateWarehouseDrawer({
   };
 
   return (
-    <Drawer direction="right" open={open} onOpenChange={setOpen}>
-      <DrawerTrigger asChild>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger render={
         <Button variant="default">
           <Building2 className="size-4" />
           เพิ่มคลังสินค้า
         </Button>
-      </DrawerTrigger>
-      <DrawerContent className="flex h-full sm:max-w-md">
-        <DrawerHeader>
-          <DrawerTitle>เพิ่มคลังสินค้าใหม่</DrawerTitle>
-          <DrawerDescription>กรอกข้อมูลคลังสินค้าและความจุสูงสุด</DrawerDescription>
-        </DrawerHeader>
-        <div className="flex-1 space-y-4 overflow-y-auto px-4 pb-4">
+      } />
+      <DialogContent className="flex max-h-[85vh] flex-col sm:max-w-xl p-0">
+        <DialogHeader className="px-6 pt-6 pb-2">
+          <DialogTitle>เพิ่มคลังสินค้าใหม่</DialogTitle>
+          <DialogDescription>กรอกข้อมูลคลังสินค้าและความจุสูงสุด</DialogDescription>
+        </DialogHeader>
+        <div className="flex-1 space-y-4 overflow-y-auto px-6 pb-6">
           <form
             className="space-y-4"
             id="add-warehouse-form"
@@ -111,21 +111,17 @@ export function CreateWarehouseDrawer({
             </div>
           </form>
         </div>
-        <DrawerFooter>
-          <DrawerClose asChild>
+        <DialogFooter className="px-6 pb-6 pt-2">
+          <DialogClose render={
             <Button disabled={isSubmitting} variant="outline">
               ยกเลิก
             </Button>
-          </DrawerClose>
-          <Button
-            disabled={isSubmitting}
-            form="add-warehouse-form"
-            type="submit"
-          >
-            {isSubmitting ? "กำลังบันทึก..." : "บันทึก"}
+          } />
+          <Button disabled={!name || isSubmitting} form="add-warehouse-form" type="submit">
+            {isSubmitting ? "กำลังบันทึก..." : "บันทึกข้อมูล"}
           </Button>
-        </DrawerFooter>
-      </DrawerContent>
-    </Drawer>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

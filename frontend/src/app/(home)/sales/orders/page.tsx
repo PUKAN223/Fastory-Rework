@@ -5,8 +5,10 @@ import {
   Banknote,
   Calendar,
   Coins,
+  Download,
   Eye,
   FileText,
+  MoreHorizontal,
   Printer,
   ReceiptText,
   Trash2,
@@ -20,6 +22,7 @@ import { DataTablePagination } from "@/components/tables/DataTablePagination";
 import { usePagination } from "@/hooks/usePagination";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogContent,
@@ -44,9 +47,17 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { fetchOrders, type Order, voidOrder } from "@/features/salesSlice";
 import type { Store } from "@/features/storeSlice";
 import { handlePrintReceipt } from "@/lib/printReceipt";
+import { hasStorePermission } from "@/lib/permissions";
 import { useAppDispatch, useAppSelector } from "@/store/hook";
 
 export default function OrdersPage() {
@@ -60,6 +71,9 @@ export default function OrdersPage() {
   );
 
   const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [paymentFilter, setPaymentFilter] = useState("all");
+  const [dateFilter, setDateFilter] = useState("all");
 
   const [orderToVoid, setOrderToVoid] = useState<Order | null>(null);
   const [orderToView, setOrderToView] = useState<Order | null>(null);
@@ -71,11 +85,104 @@ export default function OrdersPage() {
   }, [dispatch, fetchOrdersStatus]);
 
   const filteredOrders = orders.filter((o) => {
-    return (
-      o.orderNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      o.status.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    const matchesSearch = o.orderNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      o.status.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    const matchesStatus = statusFilter === "all" || o.status === statusFilter;
+    const matchesPayment = paymentFilter === "all" || o.paymentMethod === paymentFilter;
+    
+    let matchesDate = true;
+    if (dateFilter !== "all") {
+      const orderDate = new Date(o.createdAt);
+      const today = new Date();
+      if (dateFilter === "today") {
+        matchesDate = orderDate.toDateString() === today.toDateString();
+      } else if (dateFilter === "7days") {
+        const sevenDaysAgo = new Date(today);
+        sevenDaysAgo.setDate(today.getDate() - 7);
+        matchesDate = orderDate >= sevenDaysAgo;
+      } else if (dateFilter === "30days") {
+        const thirtyDaysAgo = new Date(today);
+        thirtyDaysAgo.setDate(today.getDate() - 30);
+        matchesDate = orderDate >= thirtyDaysAgo;
+      }
+    }
+    
+    return matchesSearch && matchesStatus && matchesPayment && matchesDate;
   });
+
+  const handleExportCsv = () => {
+    if (filteredOrders.length === 0) {
+      toast.error("ไม่มีข้อมูลสำหรับส่งออก");
+      return;
+    }
+    const headers = [
+      "เลขที่ออเดอร์",
+      "วันที่",
+      "เวลา",
+      "พนักงานขาย",
+      "วิธีชำระเงิน",
+      "สถานะ",
+      "รหัสสินค้า (SKU)",
+      "ชื่อสินค้า",
+      "จำนวน",
+      "ราคา/ชิ้น",
+      "ราคารวม"
+    ];
+    const rows: (string | number)[][] = [];
+
+    filteredOrders.forEach((o) => {
+      const date = new Date(o.createdAt);
+      const dateStr = date.toLocaleDateString("th-TH");
+      const timeStr = date.toLocaleTimeString("th-TH");
+      const creatorStr = o.creator?.username || "Unknown";
+      const paymentStr = o.paymentMethod === "cash" ? "เงินสด" : "PromptPay";
+      const statusStr = o.status === "completed" ? "สำเร็จ" : o.status === "pending" ? "รอชำระเงิน" : "ยกเลิกแล้ว";
+
+      if (o.items && o.items.length > 0) {
+        o.items.forEach((item) => {
+          rows.push([
+            o.orderNumber,
+            dateStr,
+            timeStr,
+            creatorStr,
+            paymentStr,
+            statusStr,
+            item.productSku || "-",
+            item.productName || "-",
+            item.quantity || 0,
+            item.unitPrice || 0,
+            item.totalPrice || 0
+          ]);
+        });
+      } else {
+        rows.push([
+          o.orderNumber,
+          dateStr,
+          timeStr,
+          creatorStr,
+          paymentStr,
+          statusStr,
+          "-",
+          "-",
+          0,
+          0,
+          o.total || 0
+        ]);
+      }
+    });
+    
+    const csvContent = "\uFEFF" + [headers, ...rows].map(e => e.map(item => `"${String(item).replace(/"/g, '""')}"`).join(",")).join("\n");
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `sales_history_${new Date().getTime()}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success("ดาวน์โหลดไฟล์ CSV สำเร็จ");
+  };
 
   const {
     pageSize,
@@ -118,6 +225,65 @@ export default function OrdersPage() {
         title="รายการออเดอร์"
         description="ค้นหาและดูรายละเอียดรายการออเดอร์ทั้งหมด"
       >
+        <div className="flex flex-col sm:flex-row gap-3 mb-4 items-end">
+          <div className="w-full sm:w-[220px] space-y-1.5">
+            <label className="text-xs font-medium text-muted-foreground">ค้นหา</label>
+            <Input
+              placeholder="ค้นหาเลขที่ออเดอร์..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="h-9"
+            />
+          </div>
+          <div className="w-full sm:w-[150px] space-y-1.5">
+            <label className="text-xs font-medium text-muted-foreground">สถานะ</label>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="h-9">
+                <SelectValue placeholder="ทุกสถานะ" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">ทุกสถานะ</SelectItem>
+                <SelectItem value="completed">สำเร็จ</SelectItem>
+                <SelectItem value="pending">รอชำระเงิน</SelectItem>
+                <SelectItem value="voided">ยกเลิกแล้ว</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="w-full sm:w-[150px] space-y-1.5">
+            <label className="text-xs font-medium text-muted-foreground">ช่องทางชำระเงิน</label>
+            <Select value={paymentFilter} onValueChange={setPaymentFilter}>
+              <SelectTrigger className="h-9">
+                <SelectValue placeholder="ทุกช่องทาง" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">ทุกช่องทาง</SelectItem>
+                <SelectItem value="cash">เงินสด</SelectItem>
+                <SelectItem value="promptpay">PromptPay</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="w-full sm:w-[160px] space-y-1.5">
+            <label className="text-xs font-medium text-muted-foreground">วันที่</label>
+            <Select value={dateFilter} onValueChange={setDateFilter}>
+              <SelectTrigger className="h-9">
+                <SelectValue placeholder="ทุกช่วงเวลา" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">ทุกช่วงเวลา</SelectItem>
+                <SelectItem value="today">วันนี้</SelectItem>
+                <SelectItem value="7days">7 วันที่ผ่านมา</SelectItem>
+                <SelectItem value="30days">30 วันที่ผ่านมา</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="w-full sm:w-auto ml-auto">
+            <Button variant="outline" size="sm" className="h-9 w-full sm:w-auto" onClick={handleExportCsv}>
+              <Download className="mr-2 h-4 w-4" />
+              Export CSV
+            </Button>
+          </div>
+        </div>
+
         <div className="rounded-md border overflow-x-auto">
           <Table>
             <TableHeader>
@@ -128,7 +294,7 @@ export default function OrdersPage() {
                 <TableHead className="hidden sm:table-cell whitespace-nowrap">วิธีชำระเงิน</TableHead>
                 <TableHead className="text-right whitespace-nowrap">ยอดรวม (บาท)</TableHead>
                 <TableHead className="whitespace-nowrap">สถานะ</TableHead>
-                <TableHead className="text-right whitespace-nowrap">จัดการ</TableHead>
+                <TableHead className="text-right whitespace-nowrap w-12">จัดการ</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -194,31 +360,33 @@ export default function OrdersPage() {
                         <Badge variant="destructive">ยกเลิกแล้ว</Badge>
                       )}
                     </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setOrderToView(order)}
-                        >
-                          <Eye className="h-4 w-4 mr-1" />
-                          ดูรายละเอียด
-                        </Button>
-                        {(order.status === "completed" ||
-                          order.status === "pending") && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                            onClick={() => setOrderToVoid(order)}
-                          >
-                            <Trash2 className="h-4 w-4 mr-1" />
-                            {order.status === "pending"
-                              ? "ยกเลิกรายการ"
-                              : "Void"}
+                    <TableCell className="text-right w-12">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <MoreHorizontal className="h-4 w-4" />
                           </Button>
-                        )}
-                      </div>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => setOrderToView(order)}>
+                            <Eye className="h-4 w-4 mr-2" />
+                            ดูรายละเอียด
+                          </DropdownMenuItem>
+                          {(order.status === "completed" ||
+                            order.status === "pending") && hasStorePermission(activeStore?.permissions, "sales:void") && (
+                            <>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem
+                                className="text-destructive focus:text-destructive focus:bg-destructive/10"
+                                onClick={() => setOrderToVoid(order)}
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                ยกเลิกรายการ
+                              </DropdownMenuItem>
+                            </>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </TableCell>
                   </TableRow>
                 ))
@@ -505,7 +673,7 @@ export default function OrdersPage() {
               <div className="flex items-center justify-between pt-4 border-t">
                 <div>
                   {(orderToView.status === "pending" ||
-                    orderToView.status === "completed") && (
+                    orderToView.status === "completed") && hasStorePermission(activeStore?.permissions, "sales:void") && (
                     <Button
                       variant="destructive"
                       size="sm"
@@ -517,9 +685,7 @@ export default function OrdersPage() {
                       }}
                     >
                       <Trash2 className="size-3.5" />
-                      {orderToView.status === "pending"
-                        ? "ยกเลิกออเดอร์นี้"
-                        : "Void ออเดอร์นี้"}
+                      ยกเลิกรายการ
                     </Button>
                   )}
                 </div>
@@ -549,7 +715,7 @@ export default function OrdersPage() {
               ยืนยันการยกเลิกออเดอร์
             </DialogTitle>
             <DialogDescription>
-              คุณกำลังจะยกเลิก (Void) ออเดอร์ <b>{orderToVoid?.orderNumber}</b>
+              คุณกำลังจะยกเลิกรายการออเดอร์ <b>{orderToVoid?.orderNumber}</b>
               <br />
               <br />
               การกระทำนี้จะคืนสต็อกสินค้าทั้งหมดกลับเข้าระบบ แต่จะไม่ลบข้อมูลออเดอร์ออกจากประวัติ

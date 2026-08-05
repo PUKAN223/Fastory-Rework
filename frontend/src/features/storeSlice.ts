@@ -25,6 +25,7 @@ type StoreState = {
   stores: Store[];
   activeStoreId: number | null;
   loading: boolean;
+  loaded: boolean;
   error: string | null;
 };
 
@@ -55,6 +56,7 @@ const init: StoreState = {
   stores: [],
   activeStoreId: null,
   loading: false,
+  loaded: false,
   error: null,
 };
 
@@ -173,6 +175,7 @@ const slice = createSlice({
     b.addCase(fetchStores.fulfilled, (s, a) => {
       s.stores = a.payload;
       s.loading = false;
+      s.loaded = true;
       const savedId = loadActiveStoreId();
       if (savedId && a.payload.some((st) => st.id === savedId)) {
         s.activeStoreId = savedId;
@@ -184,6 +187,7 @@ const slice = createSlice({
     });
     b.addCase(fetchStores.rejected, (s, a) => {
       s.loading = false;
+      s.loaded = true;
       s.error = a.payload ?? a.error.message ?? "Failed to fetch stores";
     });
 

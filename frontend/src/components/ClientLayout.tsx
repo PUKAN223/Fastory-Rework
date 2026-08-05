@@ -4,7 +4,8 @@ import React, { useEffect } from "react";
 import { ShieldAlert } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { hasStorePermission } from "@/lib/permissions";
-import { useAppSelector } from "@/store/hook";
+import { useAppDispatch, useAppSelector } from "@/store/hook";
+import { fetchStores } from "@/features/storeSlice";
 import { AppLogo } from "@/components/ui/app-logo";
 import { ChangelogModal } from "@/components/modals/ChangelogModal";
 import { TutorialProvider } from "@/components/tutorial/TutorialProvider";
@@ -57,11 +58,13 @@ export function ClientLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const dispatch = useAppDispatch();
   const pathname = usePathname();
   const router = useRouter();
   const activeStoreId = useAppSelector((state) => state.stores.activeStoreId);
   const authStatus = useAppSelector((state) => state.auth.status);
   const stores = useAppSelector((state) => state.stores.stores);
+  const storesLoaded = useAppSelector((state) => state.stores.loaded);
   const activeStore = stores.find((s) => s.id === activeStoreId);
   const permissions = activeStore?.permissions;
 
@@ -72,11 +75,18 @@ export function ClientLayout({
     !matchedRoute || hasStorePermission(permissions, matchedRoute.permission);
 
   useEffect(() => {
+    if (authStatus === "authed" && !storesLoaded) {
+      dispatch(fetchStores());
+    }
+  }, [authStatus, storesLoaded, dispatch]);
+
+  useEffect(() => {
     if (authStatus === "guest") {
       window.location.href = "/login";
     } else if (
       authStatus === "authed" &&
       activeStoreId === null &&
+      storesLoaded &&
       pathname !== "/stores"
     ) {
       router.push("/stores");
@@ -89,7 +99,7 @@ export function ClientLayout({
     ) {
       router.push("/sales/pos");
     }
-  }, [authStatus, activeStoreId, pathname, permissions, router]);
+  }, [authStatus, activeStoreId, storesLoaded, pathname, permissions, router]);
 
   if (authStatus === "idle" || authStatus === "loading") {
     return (
@@ -117,8 +127,11 @@ export function ClientLayout({
     );
   }
 
+  // Show a non-blocking redirect loader only if we are 100% sure we need to redirect
+  // (stores are loaded but there's no active store, and we're not already on /stores)
   if (
     authStatus === "authed" &&
+    storesLoaded &&
     activeStoreId === null &&
     pathname !== "/stores"
   ) {

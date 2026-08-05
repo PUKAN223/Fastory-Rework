@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ProductFormDrawer } from "@/components/forms/ProductFormDrawer";
+import { ProductFormModal } from "@/components/forms/ProductFormModal";
 import type { CreateProductPayload } from "@/types/products";
 
 type ProductCategoryOption = {
@@ -9,21 +9,21 @@ type ProductCategoryOption = {
   name: string;
 };
 
-type CreateProductDrawerProps = {
+type CreateProductModalProps = {
   categories: ProductCategoryOption[];
   onCreate: (payload: CreateProductPayload) => Promise<boolean> | boolean;
   isSubmitting?: boolean;
 };
 
-export function CreateProductDrawer({
+export function CreateProductModal({
   categories,
   onCreate,
   isSubmitting = false,
-}: CreateProductDrawerProps) {
+}: CreateProductModalProps) {
   const [open, setOpen] = useState(false);
 
   return (
-    <ProductFormDrawer
+    <ProductFormModal
       mode="create"
       open={open}
       categories={categories}

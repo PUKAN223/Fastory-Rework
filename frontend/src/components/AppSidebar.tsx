@@ -91,13 +91,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const products = useAppSelector((state) => state.products.items);
   const dispatch = useAppDispatch();
 
+  const storesLoaded = useAppSelector((state) => state.stores.loaded);
   const hasActiveStore = activeStoreId !== null;
 
   useEffect(() => {
-    if (auth.status === "authed") {
+    if (auth.status === "authed" && !storesLoaded) {
       dispatch(fetchStores());
     }
-  }, [auth.status, dispatch]);
+  }, [auth.status, storesLoaded, dispatch]);
 
   // Count products where stock is at or below the reorder point
   const lowStockCount = useMemo(

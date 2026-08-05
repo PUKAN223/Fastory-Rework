@@ -2,6 +2,7 @@
 
 import { Check, ChevronsUpDown, Plus, Store } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import * as React from "react";
 import {
   DropdownMenu,
@@ -24,6 +25,7 @@ import { CreateStoreSheet } from "./AddStoreDialog";
 
 export function StoreSwitcher() {
   const { isMobile } = useSidebar();
+  const router = useRouter();
   const dispatch = useAppDispatch();
   const stores = useAppSelector((state) => state.stores.stores);
   const activeStoreId = useAppSelector((state) => state.stores.activeStoreId);
@@ -113,7 +115,10 @@ export function StoreSwitcher() {
                   <DropdownMenuItem
                     key={s.id}
                     onClick={() => {
-                      dispatch(setActiveStore(s.id));
+                      if (s.id !== activeStoreId) {
+                        dispatch(setActiveStore(s.id));
+                        router.push("/dashboard");
+                      }
                       setOpen(false);
                     }}
                     className="gap-2 p-2"
