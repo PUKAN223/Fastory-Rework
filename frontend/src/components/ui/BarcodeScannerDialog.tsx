@@ -63,6 +63,7 @@ export function BarcodeScannerDialog({
   const [cameraError, setCameraError] = useState("");
   const videoRef = useRef<HTMLVideoElement>(null);
   const controlsRef = useRef<ScannerControls | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
   const hasScannedRef = useRef(false);
 
   // Remote mode
@@ -77,12 +78,12 @@ export function BarcodeScannerDialog({
   // ── Helpers ──────────────────────────────────────────────────────────────
 
   const stopCamera = useCallback(() => {
-    try {
-      controlsRef.current?.stop();
-    } catch {
-      // ignore
-    }
+    try { controlsRef.current?.stop(); } catch {}
     controlsRef.current = null;
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((t) => t.stop());
+      streamRef.current = null;
+    }
   }, []);
 
   const closeSession = useCallback((token: string) => {
@@ -119,30 +120,32 @@ export function BarcodeScannerDialog({
     controlsRef.current = null;
 
     try {
-      const devices = await BrowserMultiFormatReader.listVideoInputDevices();
-      if (signal?.aborted) return;
-      
-      if (devices.length === 0) {
-        setCameraState("no-permission");
+      // iOS fix: ใช้ getUserMedia โดยตรง ไม่ผ่าน listVideoInputDevices
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: "environment" } },
+        audio: false,
+      });
+
+      if (signal?.aborted) {
+        stream.getTracks().forEach((t) => t.stop());
         return;
       }
 
-      // Prefer back/environment camera
-      const backCamera =
-        devices.find(
-          (d) =>
-            d.label.toLowerCase().includes("back") ||
-            d.label.toLowerCase().includes("rear") ||
-            d.label.toLowerCase().includes("environment"),
-        ) ?? devices[devices.length - 1];
-
-      if (signal?.aborted) return;
+      streamRef.current = stream;
       setCameraState("scanning");
 
+      // รอ 1 frame ให้ React render <video> ก่อน ZXing จะใช้ videoRef
+      await new Promise((resolve) => requestAnimationFrame(resolve));
+
+      if (signal?.aborted || !videoRef.current) {
+        stream.getTracks().forEach((t) => t.stop());
+        return;
+      }
+
       const reader = new BrowserMultiFormatReader();
-      const controls = await reader.decodeFromVideoDevice(
-        backCamera.deviceId,
-        videoRef.current!,
+      const controls = await reader.decodeFromStream(
+        stream,
+        videoRef.current,
         (result, err) => {
           if (hasScannedRef.current) return;
           if (result) {
@@ -153,17 +156,16 @@ export function BarcodeScannerDialog({
             handleSuccess(text);
           }
           if (err && !(err instanceof NotFoundException)) {
-            console.warn("ZXing scan error:", err);
+            // NotFoundException เป็นปกติขณะ scan ยังไม่เจอ barcode
           }
         },
       );
-      
+
       if (signal?.aborted) {
         controls.stop();
         return;
       }
-      
-      // store IScannerControls so we can stop later
+
       controlsRef.current = controls as unknown as ScannerControls;
     } catch (err: unknown) {
       if (signal?.aborted) return;
@@ -171,7 +173,7 @@ export function BarcodeScannerDialog({
       if (
         msg.toLowerCase().includes("permission") ||
         msg.toLowerCase().includes("denied") ||
-        msg.toLowerCase().includes("notallowederror")
+        msg.toLowerCase().includes("notallowed")
       ) {
         setCameraState("no-permission");
       } else {
@@ -368,32 +370,34 @@ export function BarcodeScannerDialog({
                 </div>
               )}
 
-              {cameraState === "scanning" && (
-                <div className="w-full flex flex-col items-center gap-3">
-                  <div className="relative w-full aspect-video max-h-60 rounded-xl overflow-hidden bg-black border border-border">
-                    <video
-                      ref={videoRef}
-                      className="w-full h-full object-cover"
-                      autoPlay
-                      muted
-                      playsInline
-                    />
-                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                      <div className="w-2/3 h-1/2 relative">
-                        <div className="absolute top-0 left-0 w-6 h-6 border-t-2 border-l-2 border-primary" />
-                        <div className="absolute top-0 right-0 w-6 h-6 border-t-2 border-r-2 border-primary" />
-                        <div className="absolute bottom-0 left-0 w-6 h-6 border-b-2 border-l-2 border-primary" />
-                        <div className="absolute bottom-0 right-0 w-6 h-6 border-b-2 border-r-2 border-primary" />
-                        <div
-                          className="absolute inset-x-0 h-px bg-primary/80"
-                          style={{ animation: "scan-line 2s ease-in-out infinite" }}
-                        />
-                      </div>
+              {/* video รันดางตลอด (hidden เมื่อไม่สแกน) เพื่อให้ videoRef.current ไม่เป็น null เมื่อ ZXing เรียกใช้ */}
+              <div className={`w-full flex flex-col items-center gap-3 ${
+                cameraState === "scanning" ? "block" : "hidden"
+              }`}>
+                <div className="relative w-full aspect-video max-h-60 rounded-xl overflow-hidden bg-black border border-border">
+                  <video
+                    ref={videoRef}
+                    className="w-full h-full object-cover"
+                    autoPlay
+                    muted
+                    playsInline
+                    {...({ "webkit-playsinline": "true" } as any)}
+                  />
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <div className="w-2/3 h-1/2 relative">
+                      <div className="absolute top-0 left-0 w-6 h-6 border-t-2 border-l-2 border-primary" />
+                      <div className="absolute top-0 right-0 w-6 h-6 border-t-2 border-r-2 border-primary" />
+                      <div className="absolute bottom-0 left-0 w-6 h-6 border-b-2 border-l-2 border-primary" />
+                      <div className="absolute bottom-0 right-0 w-6 h-6 border-b-2 border-r-2 border-primary" />
+                      <div
+                        className="absolute inset-x-0 h-px bg-primary/80"
+                        style={{ animation: "scan-line 2s ease-in-out infinite" }}
+                      />
                     </div>
                   </div>
-                  <p className="text-xs text-muted-foreground">จ่อกล้องไปที่ Barcode บนสินค้า</p>
                 </div>
-              )}
+                <p className="text-xs text-muted-foreground">จ่อกล้องไปที่ Barcode บนสินค้า</p>
+              </div>
 
               {cameraState === "success" && (
                 <SuccessState value={scannedValue} onClose={handleClose} />
