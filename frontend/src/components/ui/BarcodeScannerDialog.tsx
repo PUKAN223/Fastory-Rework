@@ -113,13 +113,15 @@ export function BarcodeScannerDialog({
 
   // ── Camera Mode ───────────────────────────────────────────────────────────
 
-  const startCamera = useCallback(async () => {
+  const startCamera = useCallback(async (signal?: AbortSignal) => {
     setCameraState("initializing");
     hasScannedRef.current = false;
     controlsRef.current = null;
 
     try {
       const devices = await BrowserMultiFormatReader.listVideoInputDevices();
+      if (signal?.aborted) return;
+      
       if (devices.length === 0) {
         setCameraState("no-permission");
         return;
@@ -134,6 +136,7 @@ export function BarcodeScannerDialog({
             d.label.toLowerCase().includes("environment"),
         ) ?? devices[devices.length - 1];
 
+      if (signal?.aborted) return;
       setCameraState("scanning");
 
       const reader = new BrowserMultiFormatReader();
@@ -154,9 +157,16 @@ export function BarcodeScannerDialog({
           }
         },
       );
+      
+      if (signal?.aborted) {
+        controls.stop();
+        return;
+      }
+      
       // store IScannerControls so we can stop later
       controlsRef.current = controls as unknown as ScannerControls;
     } catch (err: unknown) {
+      if (signal?.aborted) return;
       const msg = err instanceof Error ? err.message : String(err);
       if (
         msg.toLowerCase().includes("permission") ||
@@ -263,7 +273,7 @@ export function BarcodeScannerDialog({
     const abortController = new AbortController();
 
     if (mode === "camera") {
-      startCamera();
+      startCamera(abortController.signal);
     } else if (mode === "remote") {
       startRemote(abortController.signal);
     }
