@@ -29,21 +29,26 @@ export default function MobileScanPage() {
   const [scannedValue, setScannedValue] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
 
+  // ── video element ถูก render ตลอดเวลา (hidden เมื่อไม่ scan) ──────────
+  // เพราะ setState("scanning") เป็น async — ถ้า render video เฉพาะตอน scanning
+  // videoRef.current จะยังเป็น null ตอนที่ ZXing เรียกใช้
   const videoRef = useRef<HTMLVideoElement>(null);
   const controlsRef = useRef<{ stop: () => void } | null>(null);
   const hasScannedRef = useRef(false);
+  const streamRef = useRef<MediaStream | null>(null);
 
   const submitBarcode = useCallback(
     async (barcode: string) => {
       if (hasScannedRef.current) return;
       hasScannedRef.current = true;
 
-      // Stop scanner
       if (controlsRef.current) {
-        try {
-          controlsRef.current.stop();
-        } catch {}
+        try { controlsRef.current.stop(); } catch {}
         controlsRef.current = null;
+      }
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((t) => t.stop());
+        streamRef.current = null;
       }
 
       setScannedValue(barcode);
@@ -55,7 +60,6 @@ export default function MobileScanPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ barcode }),
         });
-
         if (!res.ok) {
           const data = await res.json().catch(() => ({}));
           if (data?.error?.includes("expired") || res.status === 404) {
@@ -73,40 +77,51 @@ export default function MobileScanPage() {
     if (!token) return;
 
     let mounted = true;
-    const reader = new BrowserMultiFormatReader();
 
     (async () => {
       try {
-        // ── iOS Fix: ต้องเรียก getUserMedia ก่อนเสมอ ──────────────────
-        // iOS Safari จะ return device labels ว่างถ้าไม่มี active stream
-        // ดังนั้นขอ permission ผ่าน getUserMedia ก่อน แล้วปล่อย stream นั้นทิ้ง
-        // จากนั้น ZXing จะเปิด stream ใหม่เองผ่าน decodeFromConstraints
-        const tempStream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: { ideal: "environment" } },
+        // ── Step 1: ขอ permission + รับ stream ──────────────────────────
+        // iOS: getUserMedia ต้องถูกเรียกก่อน ไม่หยุด stream แล้ว
+        // เราส่ง stream ตรงๆ ให้ ZXing ผ่าน decodeFromStream
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: { ideal: "environment" },
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
+          },
           audio: false,
         });
-        tempStream.getTracks().forEach((t) => t.stop());
 
-        if (!mounted) return;
+        if (!mounted) {
+          stream.getTracks().forEach((t) => t.stop());
+          return;
+        }
+
+        streamRef.current = stream;
         setState("scanning");
 
-        // ── ใช้ facingMode แทน deviceId เพื่อรองรับ iOS ──────────────
-        // iOS ไม่รองรับ deviceId ใน constraints ได้ดี
-        const controls = await reader.decodeFromConstraints(
-          {
-            video: {
-              facingMode: { ideal: "environment" },
-            },
-          },
-          videoRef.current!,
+        // ── Step 2: รอ 1 frame ให้ React re-render ก่อน ────────────────
+        // setState เป็น async — ต้องรอให้ video element mount ก่อนที่ ZXing จะใช้
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+
+        if (!mounted || !videoRef.current) {
+          stream.getTracks().forEach((t) => t.stop());
+          return;
+        }
+
+        // ── Step 3: ใช้ decodeFromStream (iOS-safe) ─────────────────────
+        // ส่ง stream โดยตรง — ZXing จะ assign srcObject + play() เอง
+        const reader = new BrowserMultiFormatReader();
+        const controls = await reader.decodeFromStream(
+          stream,
+          videoRef.current,
           (result, err) => {
             if (!mounted || hasScannedRef.current) return;
             if (result) {
-              const text = result.getText();
-              submitBarcode(text);
+              submitBarcode(result.getText());
             }
             if (err && !(err instanceof NotFoundException)) {
-              // NotFoundException เป็นปกติขณะ scan ยังไม่เจอ barcode
+              // NotFoundException เป็นปกติขณะยังไม่เจอ barcode
             }
           },
         );
@@ -116,7 +131,7 @@ export default function MobileScanPage() {
           return;
         }
 
-        controlsRef.current = controls as any;
+        controlsRef.current = controls as unknown as { stop: () => void };
       } catch (err: unknown) {
         if (!mounted) return;
         const msg = err instanceof Error ? err.message : String(err);
@@ -136,10 +151,12 @@ export default function MobileScanPage() {
     return () => {
       mounted = false;
       if (controlsRef.current) {
-        try {
-          controlsRef.current.stop();
-        } catch {}
+        try { controlsRef.current.stop(); } catch {}
         controlsRef.current = null;
+      }
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((t) => t.stop());
+        streamRef.current = null;
       }
     };
   }, [token, submitBarcode]);
@@ -150,11 +167,40 @@ export default function MobileScanPage() {
       <div className="mb-8 text-center">
         <div className="flex items-center justify-center gap-2 mb-2">
           <ScanLine className="w-6 h-6 text-primary" />
-          <span className="text-lg font-semibold tracking-tight">
-            Fastory Scanner
-          </span>
+          <span className="text-lg font-semibold tracking-tight">Fastory Scanner</span>
         </div>
         <p className="text-sm text-zinc-400">สแกน Barcode เพื่อกรอก SKU</p>
+      </div>
+
+      {/* ── Video element render ตลอดเวลา (ซ่อนเมื่อไม่ scanning) ── */}
+      {/* สำคัญมาก: ต้องอยู่ใน DOM ก่อน ZXing เรียกใช้ */}
+      <div
+        className={`w-full max-w-sm flex flex-col items-center gap-4 ${
+          state === "scanning" ? "block" : "hidden"
+        }`}
+      >
+        <div className="relative w-full aspect-square rounded-2xl overflow-hidden border-2 border-primary/50 shadow-lg shadow-primary/20">
+          <video
+            ref={videoRef}
+            className="w-full h-full object-cover"
+            autoPlay
+            muted
+            playsInline
+            // iOS Safari ต้องการ webkit-playsinline เพื่อป้องกัน fullscreen
+            {...({ "webkit-playsinline": "true" } as any)}
+          />
+          {/* Scan overlay */}
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <div className="w-3/4 h-3/4 relative">
+              <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-primary rounded-tl-lg" />
+              <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-primary rounded-tr-lg" />
+              <div className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-primary rounded-bl-lg" />
+              <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-primary rounded-br-lg" />
+              <div className="absolute inset-x-0 h-0.5 bg-primary/80 shadow-[0_0_8px_2px] shadow-primary animate-[scan-line_2s_ease-in-out_infinite]" />
+            </div>
+          </div>
+        </div>
+        <p className="text-sm text-zinc-400 text-center">จ่อกล้องไปที่ Barcode บนสินค้า</p>
       </div>
 
       {/* States */}
@@ -165,47 +211,6 @@ export default function MobileScanPage() {
         </div>
       )}
 
-      {state === "scanning" && (
-        <div className="w-full max-w-sm flex flex-col items-center gap-4">
-          {/* Camera viewfinder */}
-          <div className="relative w-full aspect-square rounded-2xl overflow-hidden border-2 border-primary/50 shadow-lg shadow-primary/20">
-            {/* 
-              iOS requires:
-              1. autoPlay
-              2. muted  
-              3. playsInline (JSX prop)
-              4. webkit-playsinline (HTML attr via ref — ใส่ไว้ใน useEffect ด้านล่าง)
-            */}
-            <video
-              ref={(el) => {
-                (videoRef as any).current = el;
-                // webkit-playsinline สำคัญมากบน iOS เพื่อป้องกันวิดีโอเปิดแบบ fullscreen
-                if (el) el.setAttribute("webkit-playsinline", "true");
-              }}
-              className="w-full h-full object-cover"
-              autoPlay
-              muted
-              playsInline
-            />
-            {/* Scan overlay */}
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="w-3/4 h-3/4 relative">
-                {/* Corner brackets */}
-                <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-primary rounded-tl-lg" />
-                <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-primary rounded-tr-lg" />
-                <div className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-primary rounded-bl-lg" />
-                <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-primary rounded-br-lg" />
-                {/* Scan line animation */}
-                <div className="absolute inset-x-0 h-0.5 bg-primary/80 shadow-[0_0_8px_2px] shadow-primary animate-[scan-line_2s_ease-in-out_infinite]" />
-              </div>
-            </div>
-          </div>
-          <p className="text-sm text-zinc-400 text-center">
-            จ่อกล้องไปที่ Barcode บนสินค้า
-          </p>
-        </div>
-      )}
-
       {state === "success" && (
         <div className="flex flex-col items-center gap-5 text-center">
           <div className="w-20 h-20 rounded-full bg-emerald-500/15 flex items-center justify-center">
@@ -213,9 +218,7 @@ export default function MobileScanPage() {
           </div>
           <div>
             <p className="text-lg font-semibold text-emerald-400">สแกนสำเร็จ!</p>
-            <p className="text-sm text-zinc-400 mt-1">
-              ค่าที่สแกนได้ถูกส่งไปยังคอมพิวเตอร์แล้ว
-            </p>
+            <p className="text-sm text-zinc-400 mt-1">ค่าที่สแกนได้ถูกส่งไปยังคอมพิวเตอร์แล้ว</p>
           </div>
           <div className="bg-zinc-800 rounded-xl px-6 py-3 border border-zinc-700">
             <p className="text-xs text-zinc-500 mb-1">Barcode</p>
@@ -223,9 +226,7 @@ export default function MobileScanPage() {
               {scannedValue}
             </p>
           </div>
-          <p className="text-xs text-zinc-600">
-            คุณสามารถปิดหน้านี้ได้แล้ว
-          </p>
+          <p className="text-xs text-zinc-600">คุณสามารถปิดหน้านี้ได้แล้ว</p>
         </div>
       )}
 
@@ -236,9 +237,7 @@ export default function MobileScanPage() {
           </div>
           <div>
             <p className="text-lg font-semibold text-amber-400">Session หมดอายุ</p>
-            <p className="text-sm text-zinc-400 mt-1">
-              กลับไปกดปุ่มสแกนใหม่อีกครั้ง
-            </p>
+            <p className="text-sm text-zinc-400 mt-1">กลับไปกดปุ่มสแกนใหม่อีกครั้ง</p>
           </div>
         </div>
       )}
