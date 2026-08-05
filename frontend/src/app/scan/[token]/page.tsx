@@ -30,7 +30,7 @@ export default function MobileScanPage() {
   const [errorMsg, setErrorMsg] = useState("");
 
   const videoRef = useRef<HTMLVideoElement>(null);
-  const readerRef = useRef<BrowserMultiFormatReader | null>(null);
+  const controlsRef = useRef<{ stop: () => void } | null>(null);
   const hasScannedRef = useRef(false);
 
   const submitBarcode = useCallback(
@@ -39,7 +39,12 @@ export default function MobileScanPage() {
       hasScannedRef.current = true;
 
       // Stop scanner
-      readerRef.current?.reset();
+      if (controlsRef.current) {
+        try {
+          controlsRef.current.stop();
+        } catch {}
+        controlsRef.current = null;
+      }
 
       setScannedValue(barcode);
       setState("success");
@@ -69,7 +74,6 @@ export default function MobileScanPage() {
 
     let mounted = true;
     const reader = new BrowserMultiFormatReader();
-    readerRef.current = reader;
 
     (async () => {
       try {
@@ -93,7 +97,7 @@ export default function MobileScanPage() {
 
         setState("scanning");
 
-        await reader.decodeFromVideoDevice(
+        const controls = await reader.decodeFromVideoDevice(
           backCamera.deviceId,
           videoRef.current!,
           (result, err) => {
@@ -107,6 +111,13 @@ export default function MobileScanPage() {
             }
           },
         );
+        
+        if (!mounted) {
+          controls.stop();
+          return;
+        }
+        
+        controlsRef.current = controls as any;
       } catch (err: unknown) {
         if (!mounted) return;
         const msg = err instanceof Error ? err.message : String(err);
@@ -121,7 +132,12 @@ export default function MobileScanPage() {
 
     return () => {
       mounted = false;
-      reader.reset();
+      if (controlsRef.current) {
+        try {
+          controlsRef.current.stop();
+        } catch {}
+        controlsRef.current = null;
+      }
     };
   }, [token, submitBarcode]);
 
