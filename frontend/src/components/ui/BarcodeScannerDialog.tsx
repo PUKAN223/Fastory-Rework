@@ -18,7 +18,6 @@ import {
   MonitorSmartphone,
   RefreshCw,
   ScanLine,
-  X,
 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -37,17 +36,17 @@ type CameraState =
   | "success"
   | "error"
   | "no-permission";
-type RemoteState =
-  | "creating"
-  | "waiting"
-  | "success"
-  | "expired"
-  | "error";
+type RemoteState = "creating" | "waiting" | "success" | "expired" | "error";
 
 interface BarcodeScannerDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onScan: (barcode: string) => void;
+}
+
+// IScannerControls returned by decodeFromVideoDevice
+interface ScannerControls {
+  stop: () => void;
 }
 
 const SESSION_TTL = 120; // seconds
@@ -59,14 +58,14 @@ export function BarcodeScannerDialog({
 }: BarcodeScannerDialogProps) {
   const [mode, setMode] = useState<ScannerMode>("detecting");
 
-  // Camera mode state
+  // Camera mode
   const [cameraState, setCameraState] = useState<CameraState>("initializing");
   const [cameraError, setCameraError] = useState("");
   const videoRef = useRef<HTMLVideoElement>(null);
-  const readerRef = useRef<BrowserMultiFormatReader | null>(null);
+  const controlsRef = useRef<ScannerControls | null>(null);
   const hasScannedRef = useRef(false);
 
-  // Remote mode state
+  // Remote mode
   const [remoteState, setRemoteState] = useState<RemoteState>("creating");
   const [sessionToken, setSessionToken] = useState("");
   const [scanUrl, setScanUrl] = useState("");
@@ -78,8 +77,12 @@ export function BarcodeScannerDialog({
   // ── Helpers ──────────────────────────────────────────────────────────────
 
   const stopCamera = useCallback(() => {
-    readerRef.current?.reset();
-    readerRef.current = null;
+    try {
+      controlsRef.current?.stop();
+    } catch {
+      // ignore
+    }
+    controlsRef.current = null;
   }, []);
 
   const closeSession = useCallback((token: string) => {
@@ -104,9 +107,8 @@ export function BarcodeScannerDialog({
       setScannedValue(barcode);
       onScan(barcode);
       stopCamera();
-      closeSession(sessionToken);
     },
-    [onScan, stopCamera, closeSession, sessionToken],
+    [onScan, stopCamera],
   );
 
   // ── Camera Mode ───────────────────────────────────────────────────────────
@@ -114,9 +116,7 @@ export function BarcodeScannerDialog({
   const startCamera = useCallback(async () => {
     setCameraState("initializing");
     hasScannedRef.current = false;
-
-    const reader = new BrowserMultiFormatReader();
-    readerRef.current = reader;
+    controlsRef.current = null;
 
     try {
       const devices = await BrowserMultiFormatReader.listVideoInputDevices();
@@ -136,7 +136,8 @@ export function BarcodeScannerDialog({
 
       setCameraState("scanning");
 
-      await reader.decodeFromVideoDevice(
+      const reader = new BrowserMultiFormatReader();
+      const controls = await reader.decodeFromVideoDevice(
         backCamera.deviceId,
         videoRef.current!,
         (result, err) => {
@@ -153,11 +154,14 @@ export function BarcodeScannerDialog({
           }
         },
       );
+      // store IScannerControls so we can stop later
+      controlsRef.current = controls as unknown as ScannerControls;
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
       if (
         msg.toLowerCase().includes("permission") ||
-        msg.toLowerCase().includes("denied")
+        msg.toLowerCase().includes("denied") ||
+        msg.toLowerCase().includes("notallowederror")
       ) {
         setCameraState("no-permission");
       } else {
@@ -169,13 +173,20 @@ export function BarcodeScannerDialog({
 
   // ── Remote Mode ───────────────────────────────────────────────────────────
 
-  const startRemote = useCallback(async () => {
+  const startRemote = useCallback(async (signal?: AbortSignal) => {
     setRemoteState("creating");
     setCountdown(SESSION_TTL);
 
     try {
-      const res = await fetch("/api/scan-session", { method: "POST" });
+      const res = await fetch("/api/scan-session", { method: "POST", signal });
       const data = await res.json();
+      if (signal?.aborted) {
+        if (data.token) {
+          fetch(`/api/scan-session?token=${data.token}`, { method: "DELETE" }).catch(() => {});
+        }
+        return;
+      }
+      
       const token: string = data.token;
       setSessionToken(token);
 
@@ -185,7 +196,6 @@ export function BarcodeScannerDialog({
       setScanUrl(url);
       setRemoteState("waiting");
 
-      // Start SSE
       const es = new EventSource(`/api/scan-session?token=${token}`);
       eventSourceRef.current = es;
 
@@ -207,7 +217,6 @@ export function BarcodeScannerDialog({
         closeSession(token);
       };
 
-      // Countdown timer
       countdownRef.current = setInterval(() => {
         setCountdown((prev) => {
           if (prev <= 1) {
@@ -217,7 +226,8 @@ export function BarcodeScannerDialog({
           return prev - 1;
         });
       }, 1000);
-    } catch {
+    } catch (err: unknown) {
+      if (err instanceof DOMException && err.name === "AbortError") return;
       setRemoteState("error");
     }
   }, [handleSuccess, closeSession]);
@@ -235,63 +245,76 @@ export function BarcodeScannerDialog({
       return;
     }
 
-    // Try to detect camera
     (async () => {
       try {
         const devices = await navigator.mediaDevices.enumerateDevices();
         const hasVideo = devices.some((d) => d.kind === "videoinput");
-        if (hasVideo) {
-          setMode("camera");
-        } else {
-          setMode("remote");
-        }
+        setMode(hasVideo ? "camera" : "remote");
       } catch {
-        // Fallback to remote if enumeration fails
         setMode("remote");
       }
     })();
-  }, [open, stopCamera, closeSession, sessionToken]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
-  // ── Start camera/remote when mode resolves ────────────────────────────────
   useEffect(() => {
     if (!open) return;
-    if (mode === "camera") startCamera();
-    if (mode === "remote") startRemote();
-  }, [mode, open, startCamera, startRemote]);
+    
+    const abortController = new AbortController();
 
-  // ── UI ────────────────────────────────────────────────────────────────────
+    if (mode === "camera") {
+      startCamera();
+    } else if (mode === "remote") {
+      startRemote(abortController.signal);
+    }
+
+    return () => {
+      abortController.abort();
+      if (mode === "camera") stopCamera();
+      if (mode === "remote") {
+        if (eventSourceRef.current) {
+          eventSourceRef.current.close();
+          eventSourceRef.current = null;
+        }
+      }
+    };
+  }, [mode, open, startCamera, startRemote, stopCamera]);
+
+  // ── Helpers ───────────────────────────────────────────────────────────────
+
+  const switchToCamera = useCallback(() => {
+    closeSession(sessionToken);
+    setScannedValue("");
+    setCameraState("initializing");
+    setMode("camera");
+  }, [closeSession, sessionToken]);
+
+  const switchToRemote = useCallback(() => {
+    stopCamera();
+    setScannedValue("");
+    setRemoteState("creating");
+    setMode("remote");
+  }, [stopCamera]);
 
   const formatCountdown = (s: number) =>
     `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md p-0 overflow-hidden gap-0">
+      {/* showCloseButton=false เพราะเราจัดการปุ่มปิดเองใน header */}
+      <DialogContent showCloseButton={false} className="sm:max-w-md p-0 overflow-hidden gap-0">
         <DialogHeader className="px-5 pt-5 pb-3 border-b">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <ScanLine className="w-4 h-4 text-primary" />
               <DialogTitle className="text-base">สแกน Barcode</DialogTitle>
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-7 w-7 rounded-full"
-              onClick={handleClose}
-            >
-              <X className="w-4 h-4" />
-            </Button>
           </div>
           {/* Mode toggle */}
           <div className="flex gap-1 mt-2">
             <button
               type="button"
-              onClick={() => {
-                stopCamera();
-                closeSession(sessionToken);
-                setScannedValue("");
-                setMode("camera");
-              }}
+              onClick={switchToCamera}
               className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium transition-colors ${
                 mode === "camera"
                   ? "bg-primary text-primary-foreground"
@@ -303,12 +326,7 @@ export function BarcodeScannerDialog({
             </button>
             <button
               type="button"
-              onClick={() => {
-                stopCamera();
-                closeSession(sessionToken);
-                setScannedValue("");
-                setMode("remote");
-              }}
+              onClick={switchToRemote}
               className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium transition-colors ${
                 mode === "remote"
                   ? "bg-primary text-primary-foreground"
@@ -321,7 +339,15 @@ export function BarcodeScannerDialog({
           </div>
         </DialogHeader>
 
-        <div className="p-5 min-h-[340px] flex flex-col items-center justify-center">
+        <div className="p-5 min-h-[320px] flex flex-col items-center justify-center">
+          {/* ── Detecting ── */}
+          {mode === "detecting" && (
+            <div className="flex flex-col items-center gap-3">
+              <Loader2 className="w-8 h-8 animate-spin text-primary" />
+              <p className="text-sm text-muted-foreground">กำลังตรวจสอบอุปกรณ์...</p>
+            </div>
+          )}
+
           {/* ── Camera Mode ── */}
           {mode === "camera" && (
             <>
@@ -334,7 +360,7 @@ export function BarcodeScannerDialog({
 
               {cameraState === "scanning" && (
                 <div className="w-full flex flex-col items-center gap-3">
-                  <div className="relative w-full aspect-video max-h-64 rounded-xl overflow-hidden bg-black border border-border">
+                  <div className="relative w-full aspect-video max-h-60 rounded-xl overflow-hidden bg-black border border-border">
                     <video
                       ref={videoRef}
                       className="w-full h-full object-cover"
@@ -342,7 +368,6 @@ export function BarcodeScannerDialog({
                       muted
                       playsInline
                     />
-                    {/* Scan overlay */}
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                       <div className="w-2/3 h-1/2 relative">
                         <div className="absolute top-0 left-0 w-6 h-6 border-t-2 border-l-2 border-primary" />
@@ -351,16 +376,12 @@ export function BarcodeScannerDialog({
                         <div className="absolute bottom-0 right-0 w-6 h-6 border-b-2 border-r-2 border-primary" />
                         <div
                           className="absolute inset-x-0 h-px bg-primary/80"
-                          style={{
-                            animation: "scan-line 2s ease-in-out infinite",
-                          }}
+                          style={{ animation: "scan-line 2s ease-in-out infinite" }}
                         />
                       </div>
                     </div>
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    จ่อกล้องไปที่ Barcode บนสินค้า
-                  </p>
+                  <p className="text-xs text-muted-foreground">จ่อกล้องไปที่ Barcode บนสินค้า</p>
                 </div>
               )}
 
@@ -373,31 +394,13 @@ export function BarcodeScannerDialog({
                   <AlertCircle className="w-10 h-10 text-amber-500" />
                   <div>
                     <p className="font-medium text-sm">ไม่สามารถเข้าถึงกล้องได้</p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      กรุณาอนุญาตการเข้าถึงกล้องในเบราว์เซอร์
-                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">กรุณาอนุญาตการเข้าถึงกล้องในเบราว์เซอร์</p>
                   </div>
                   <div className="flex gap-2 mt-1">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="gap-1.5 text-xs"
-                      onClick={() => {
-                        setCameraState("initializing");
-                        startCamera();
-                      }}
-                    >
+                    <Button size="sm" variant="outline" className="gap-1.5 text-xs" onClick={() => { setCameraState("initializing"); startCamera(); }}>
                       <RefreshCw className="w-3 h-3" /> ลองใหม่
                     </Button>
-                    <Button
-                      size="sm"
-                      variant="default"
-                      className="gap-1.5 text-xs"
-                      onClick={() => {
-                        stopCamera();
-                        setMode("remote");
-                      }}
-                    >
+                    <Button size="sm" variant="default" className="gap-1.5 text-xs" onClick={switchToRemote}>
                       <MonitorSmartphone className="w-3 h-3" /> ใช้อุปกรณ์อื่น
                     </Button>
                   </div>
@@ -409,14 +412,7 @@ export function BarcodeScannerDialog({
                   <AlertCircle className="w-10 h-10 text-destructive" />
                   <p className="text-sm font-medium">เกิดข้อผิดพลาด</p>
                   <p className="text-xs text-muted-foreground">{cameraError}</p>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => {
-                      setCameraState("initializing");
-                      startCamera();
-                    }}
-                  >
+                  <Button size="sm" variant="outline" onClick={() => { setCameraState("initializing"); startCamera(); }}>
                     <RefreshCw className="w-3 h-3 mr-1" /> ลองใหม่
                   </Button>
                 </div>
@@ -427,7 +423,7 @@ export function BarcodeScannerDialog({
           {/* ── Remote Mode ── */}
           {mode === "remote" && (
             <>
-              {(remoteState === "creating") && (
+              {remoteState === "creating" && (
                 <div className="flex flex-col items-center gap-3">
                   <Loader2 className="w-8 h-8 animate-spin text-primary" />
                   <p className="text-sm text-muted-foreground">กำลังสร้าง QR code...</p>
@@ -437,31 +433,21 @@ export function BarcodeScannerDialog({
               {remoteState === "waiting" && scanUrl && (
                 <div className="flex flex-col items-center gap-4 w-full">
                   <div className="bg-white p-3 rounded-xl shadow-sm">
-                    <QRCodeSVG value={scanUrl} size={180} level="M" />
+                    <QRCodeSVG value={scanUrl} size={176} level="M" />
                   </div>
                   <div className="text-center space-y-1">
                     <p className="text-sm font-medium">สแกน QR code ด้วยมือถือ</p>
-                    <p className="text-xs text-muted-foreground">
-                      จากนั้นเปิดกล้องสแกน Barcode สินค้าบนมือถือ
-                    </p>
+                    <p className="text-xs text-muted-foreground">จากนั้นเปิดกล้องสแกน Barcode สินค้าบนมือถือ</p>
                   </div>
-                  {/* Countdown */}
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
                     <div className="w-16 h-1 bg-muted rounded-full overflow-hidden">
                       <div
                         className="h-full bg-primary transition-all duration-1000"
-                        style={{
-                          width: `${(countdown / SESSION_TTL) * 100}%`,
-                        }}
+                        style={{ width: `${(countdown / SESSION_TTL) * 100}%` }}
                       />
                     </div>
-                    <span className="tabular-nums">
-                      {formatCountdown(countdown)}
-                    </span>
+                    <span className="tabular-nums">{formatCountdown(countdown)}</span>
                   </div>
-                  <p className="text-[10px] text-muted-foreground/60 break-all text-center max-w-xs">
-                    {scanUrl}
-                  </p>
                 </div>
               )}
 
@@ -474,18 +460,9 @@ export function BarcodeScannerDialog({
                   <AlertCircle className="w-10 h-10 text-amber-500" />
                   <div>
                     <p className="font-medium text-sm">QR code หมดอายุ</p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      กรุณาสร้าง QR code ใหม่
-                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">กรุณาสร้าง QR code ใหม่</p>
                   </div>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => {
-                      setRemoteState("creating");
-                      startRemote();
-                    }}
-                  >
+                  <Button size="sm" variant="outline" onClick={() => { setRemoteState("creating"); startRemote(); }}>
                     <RefreshCw className="w-3 h-3 mr-1" /> สร้างใหม่
                   </Button>
                 </div>
@@ -495,27 +472,12 @@ export function BarcodeScannerDialog({
                 <div className="flex flex-col items-center gap-3 text-center">
                   <AlertCircle className="w-10 h-10 text-destructive" />
                   <p className="text-sm font-medium">เชื่อมต่อไม่ได้</p>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => {
-                      setRemoteState("creating");
-                      startRemote();
-                    }}
-                  >
+                  <Button size="sm" variant="outline" onClick={() => { setRemoteState("creating"); startRemote(); }}>
                     <RefreshCw className="w-3 h-3 mr-1" /> ลองใหม่
                   </Button>
                 </div>
               )}
             </>
-          )}
-
-          {/* Detecting */}
-          {mode === "detecting" && (
-            <div className="flex flex-col items-center gap-3">
-              <Loader2 className="w-8 h-8 animate-spin text-primary" />
-              <p className="text-sm text-muted-foreground">กำลังตรวจสอบอุปกรณ์...</p>
-            </div>
           )}
         </div>
 
@@ -531,37 +493,21 @@ export function BarcodeScannerDialog({
   );
 }
 
-// ── Success shared UI ─────────────────────────────────────────────────────
-
-function SuccessState({
-  value,
-  onClose,
-}: {
-  value: string;
-  onClose: () => void;
-}) {
+function SuccessState({ value, onClose }: { value: string; onClose: () => void }) {
   return (
     <div className="flex flex-col items-center gap-4 text-center">
       <div className="w-16 h-16 rounded-full bg-emerald-500/15 flex items-center justify-center">
         <CheckCircle2 className="w-8 h-8 text-emerald-500" />
       </div>
       <div>
-        <p className="font-semibold text-emerald-600 dark:text-emerald-400">
-          สแกนสำเร็จ!
-        </p>
-        <p className="text-xs text-muted-foreground mt-0.5">
-          กรอก SKU ในฟอร์มเรียบร้อยแล้ว
-        </p>
+        <p className="font-semibold text-emerald-600 dark:text-emerald-400">สแกนสำเร็จ!</p>
+        <p className="text-xs text-muted-foreground mt-0.5">กรอกค่าในฟอร์มเรียบร้อยแล้ว</p>
       </div>
       <div className="bg-muted rounded-lg px-4 py-2 border border-border">
         <p className="text-xs text-muted-foreground mb-0.5">Barcode</p>
-        <p className="font-mono text-sm font-semibold tracking-wider break-all">
-          {value}
-        </p>
+        <p className="font-mono text-sm font-semibold tracking-wider break-all">{value}</p>
       </div>
-      <Button size="sm" onClick={onClose} className="mt-1">
-        ปิด
-      </Button>
+      <Button size="sm" onClick={onClose} className="mt-1">ปิด</Button>
     </div>
   );
 }

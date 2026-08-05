@@ -18,6 +18,7 @@ import {
   Package,
   PackageCheck,
   Plus,
+  ScanLine,
   Search,
   Trash2,
   X,
@@ -48,6 +49,7 @@ import { cn } from "@/lib/utils";
 import { createProductService } from "@/services/inventory/product.service";
 import { useAppDispatch, useAppSelector } from "@/store/hook";
 import type { CreateProductPayload, Product } from "@/types/products";
+import { BarcodeScannerDialog } from "@/components/ui/BarcodeScannerDialog";
 
 /* ── Types ── */
 type ScanRow = {
@@ -78,6 +80,7 @@ export function BulkScannerModal({
   // Product form (for new item discovered)
   const [productFormOpen, setProductFormOpen] = useState(false);
   const [prefillSku, setPrefillSku] = useState("");
+  const [cameraScanOpen, setCameraScanOpen] = useState(false);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -351,21 +354,32 @@ export function BulkScannerModal({
                   if (suggestions.length > 0) setDropdownOpen(true);
                 }}
                 placeholder="สแกน Barcode, พิมพ์ SKU หรือชื่อสินค้า…"
-                className="pl-9 pr-20 h-11 text-sm bg-muted/30 border-border/70 focus:bg-background"
+                className="pl-9 pr-28 h-11 text-sm bg-muted/30 border-border/70 focus:bg-background"
                 autoComplete="off"
                 autoCorrect="off"
                 spellCheck={false}
               />
-              <Button
-                size="sm"
-                variant="secondary"
-                className="absolute right-1.5 top-1/2 -translate-y-1/2 h-8 px-3 text-xs"
-                onClick={() => processSku(scanInput)}
-                disabled={!scanInput.trim()}
-              >
-                เพิ่ม
-                <ChevronRight className="size-3.5 ml-1" />
-              </Button>
+              <div className="absolute right-1.5 top-1/2 -translate-y-1/2 flex gap-1">
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
+                  title="สแกนกล้อง"
+                  onClick={() => setCameraScanOpen(true)}
+                >
+                  <ScanLine className="size-4" />
+                </Button>
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  className="h-8 px-3 text-xs"
+                  onClick={() => processSku(scanInput)}
+                  disabled={!scanInput.trim()}
+                >
+                  เพิ่ม
+                  <ChevronRight className="size-3.5 ml-1" />
+                </Button>
+              </div>
 
               {/* Autocomplete Dropdown */}
               {dropdownOpen && (
@@ -612,6 +626,17 @@ export function BulkScannerModal({
           imageUrl: null,
         }}
         triggerLabel=""
+      />
+
+      <BarcodeScannerDialog
+        open={cameraScanOpen}
+        onOpenChange={setCameraScanOpen}
+        onScan={(barcode) => {
+          setCameraScanOpen(false);
+          setScanInput(barcode);
+          // auto-process after small delay so input state settles
+          setTimeout(() => processSku(barcode), 50);
+        }}
       />
     </>
   );
