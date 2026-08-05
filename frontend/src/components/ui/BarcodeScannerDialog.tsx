@@ -42,6 +42,8 @@ interface BarcodeScannerDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onScan: (barcode: string) => void;
+  /** single = สแกนครั้งเดียวแล้วปิด | multi = สแกนหลายรอบจนกว่าจะปิดเอง */
+  scanMode?: "single" | "multi";
 }
 
 // IScannerControls returned by decodeFromVideoDevice
@@ -49,12 +51,13 @@ interface ScannerControls {
   stop: () => void;
 }
 
-const SESSION_TTL = 120; // seconds
+const SESSION_TTL = 300; // seconds (5 minutes สำหรับ multi-scan)
 
 export function BarcodeScannerDialog({
   open,
   onOpenChange,
   onScan,
+  scanMode = "single",
 }: BarcodeScannerDialogProps) {
   const [mode, setMode] = useState<ScannerMode>("detecting");
 
@@ -107,9 +110,12 @@ export function BarcodeScannerDialog({
     (barcode: string) => {
       setScannedValue(barcode);
       onScan(barcode);
-      stopCamera();
+      if (scanMode === "single") {
+        stopCamera();
+      }
+      // multi mode: กล้อง/session ยังเปิดอยู่ สแกนต่อได้เลย
     },
-    [onScan, stopCamera],
+    [onScan, stopCamera, scanMode],
   );
 
   // ── Camera Mode ───────────────────────────────────────────────────────────
@@ -213,11 +219,15 @@ export function BarcodeScannerDialog({
 
       es.addEventListener("scan", (e) => {
         const { barcode } = JSON.parse(e.data);
-        setRemoteState("success");
         setScannedValue(barcode);
         handleSuccess(barcode);
-        closeSession(token);
+        if (scanMode === "single") {
+          setRemoteState("success");
+          closeSession(token);
+        }
+        // multi mode: session ยังเปิดอยู่ มือถือสแกนต่อได้เลย
       });
+
 
       es.addEventListener("expired", () => {
         setRemoteState("expired");
@@ -447,12 +457,26 @@ export function BarcodeScannerDialog({
               {remoteState === "waiting" && scanUrl && (
                 <div className="flex flex-col items-center gap-4 w-full">
                   <div className="bg-white p-3 rounded-xl shadow-sm">
-                    <QRCodeSVG value={scanUrl} size={176} level="M" />
+                    <QRCodeSVG value={scanUrl} size={160} level="M" />
                   </div>
                   <div className="text-center space-y-1">
                     <p className="text-sm font-medium">สแกน QR code ด้วยมือถือ</p>
-                    <p className="text-xs text-muted-foreground">จากนั้นเปิดกล้องสแกน Barcode สินค้าบนมือถือ</p>
+                    <p className="text-xs text-muted-foreground">
+                      {scanMode === "multi"
+                        ? "สแกน Barcode ได้หลายครั้งจนกว่าจะกดปิด"
+                        : "จากนั้นเปิดกล้องสแกน Barcode สินค้าบนมือถือ"}
+                    </p>
                   </div>
+                  {/* แสดง barcode ล่าสุดที่สแกน (multi mode) */}
+                  {scanMode === "multi" && scannedValue && (
+                    <div className="w-full bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-lg px-3 py-2 flex items-center gap-2">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                      <div className="min-w-0">
+                        <p className="text-xs text-emerald-600 dark:text-emerald-400">สแกนล่าสุด</p>
+                        <p className="font-mono text-xs font-medium truncate">{scannedValue}</p>
+                      </div>
+                    </div>
+                  )}
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
                     <div className="w-16 h-1 bg-muted rounded-full overflow-hidden">
                       <div
@@ -464,6 +488,7 @@ export function BarcodeScannerDialog({
                   </div>
                 </div>
               )}
+
 
               {remoteState === "success" && (
                 <SuccessState value={scannedValue} onClose={handleClose} />

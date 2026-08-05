@@ -3,17 +3,16 @@
  *
  * POST   /api/scan-session          — สร้าง session token ใหม่
  * GET    /api/scan-session?token=x  — SSE stream รอรับ barcode (Desktop)
- * PUT    /api/scan-session?token=x  — ส่ง barcode จาก mobile
+ * PUT    /api/scan-session?token=x  — ส่ง barcode จาก mobile (multi-scan ได้)
  * DELETE /api/scan-session?token=x  — ยกเลิก session
  */
 
 import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "crypto";
 
-const SESSION_TTL_MS = 2 * 60 * 1000; // 2 minutes
+const SESSION_TTL_MS = 5 * 60 * 1000; // 5 minutes (เพิ่มเวลาสำหรับ multi-scan)
 
 interface ScanSession {
-  barcode: string | null;
   controller: ReadableStreamDefaultController | null;
   expiresAt: number;
   timer: ReturnType<typeof setTimeout>;
@@ -60,7 +59,6 @@ export async function POST() {
   }, SESSION_TTL_MS);
 
   sessions.set(token, {
-    barcode: null,
     controller: null,
     expiresAt: Date.now() + SESSION_TTL_MS,
     timer,
@@ -115,7 +113,7 @@ export async function GET(req: NextRequest) {
   });
 }
 
-// PUT — mobile sends scanned barcode
+// PUT — mobile sends scanned barcode (ไม่ปิด session หลัง scan — รองรับ multi-scan)
 export async function PUT(req: NextRequest) {
   const token = req.nextUrl.searchParams.get("token");
   if (!token)
@@ -133,19 +131,15 @@ export async function PUT(req: NextRequest) {
   if (!barcode)
     return NextResponse.json({ error: "Missing barcode" }, { status: 400 });
 
-  session.barcode = barcode;
-
-  // Push to Desktop via SSE
+  // Push scan event to Desktop via SSE — ไม่ปิด session ให้สแกนได้หลายรอบ
   if (session.controller) {
     try {
       sendSSE(session.controller, "scan", { barcode });
-      session.controller.close();
     } catch {
       // connection already closed
     }
   }
 
-  cleanupSession(token);
   return NextResponse.json({ success: true });
 }
 

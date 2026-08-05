@@ -544,6 +544,7 @@ export function ProductFormModal({
     <BarcodeScannerDialog
       open={scannerOpen}
       onOpenChange={setScannerOpen}
+      scanMode="single"
       onScan={(barcode) => {
         setSku(barcode);
         setScannerOpen(false);

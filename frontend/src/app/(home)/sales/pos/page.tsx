@@ -22,6 +22,7 @@ import { QRCodeSVG } from "qrcode.react";
 import type React from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
+import { BarcodeScannerDialog } from "@/components/ui/BarcodeScannerDialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -121,6 +122,7 @@ export default function POSPage() {
   const [timeLeft, setTimeLeft] = useState(300); // 5 minutes countdown
   const [lastOrder, setLastOrder] = useState<any>(null);
   const [isCartSheetOpen, setIsCartSheetOpen] = useState(false);
+  const [isScannerOpen, setIsScannerOpen] = useState(false);
 
   // POS Pagination state
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -254,10 +256,7 @@ export default function POSPage() {
     return () => clearInterval(timer);
   }, [showPromptpayDialog, timeLeft]);
 
-  // Handle Barcode Scan / Enter Key Submit
-  const handleBarcodeSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const query = barcodeInput.trim();
+  const processBarcode = (query: string) => {
     if (!query) return;
 
     const exactMatch = products.find(
@@ -279,6 +278,12 @@ export default function POSPage() {
       setSearchQuery(query);
       toast.info(`ไม่พบ SKU "${query}" ตรงเป๊ะ กำลังค้นหา...`);
     }
+  };
+
+  // Handle Barcode Scan / Enter Key Submit
+  const handleBarcodeSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    processBarcode(barcodeInput.trim());
   };
 
   const filteredProducts = useMemo(() => {
@@ -530,6 +535,14 @@ export default function POSPage() {
               </Button>
             )}
           </form>
+          <Button
+            variant="outline"
+            className="shrink-0 gap-2 bg-primary/10 hover:bg-primary/20 text-primary border-primary/20"
+            onClick={() => setIsScannerOpen(true)}
+          >
+            <QrCode className="size-4" />
+            สแกนกล้อง
+          </Button>
           <Button
             variant="outline"
             className="shrink-0 gap-2 text-primary"
@@ -1089,6 +1102,16 @@ export default function POSPage() {
           </DialogPanel>
         </DialogContent>
       </Dialog>
+
+      <BarcodeScannerDialog
+        open={isScannerOpen}
+        onOpenChange={setIsScannerOpen}
+        scanMode="multi"
+        onScan={(barcode) => {
+          setBarcodeInput(barcode);
+          setTimeout(() => processBarcode(barcode), 50);
+        }}
+      />
     </div>
   );
 }

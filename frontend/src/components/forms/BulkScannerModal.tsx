@@ -631,10 +631,10 @@ export function BulkScannerModal({
       <BarcodeScannerDialog
         open={cameraScanOpen}
         onOpenChange={setCameraScanOpen}
+        scanMode="multi"
         onScan={(barcode) => {
-          setCameraScanOpen(false);
           setScanInput(barcode);
-          // auto-process after small delay so input state settles
+          // auto-process ทุกครั้งที่สแกน (ไม่ปิด dialog)
           setTimeout(() => processSku(barcode), 50);
         }}
       />
