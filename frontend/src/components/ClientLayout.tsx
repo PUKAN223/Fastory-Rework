@@ -21,6 +21,8 @@ import {
 import { Button } from "./ui/button";
 import { Separator } from "./ui/separator";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "./ui/sidebar";
+import { GlobalScannerProvider } from "./providers/GlobalScannerProvider";
+import { GlobalScannerWidget } from "./ui/GlobalScannerWidget";
 
 const ROUTE_PERMISSIONS: { prefix: string; permission: string }[] = [
   { prefix: "/inventory/products", permission: "products:read" },
@@ -151,8 +153,9 @@ export function ClientLayout({
 
   return (
     <TutorialProvider>
-      <SidebarProvider>
-        <AppSidebar />
+      <GlobalScannerProvider>
+        <SidebarProvider>
+          <AppSidebar />
         <SidebarInset className="min-w-0 flex flex-col min-h-screen">
         <header className="sticky top-0 z-10 flex h-14 shrink-0 items-center justify-between gap-2 border-b border-border/60 bg-background/85 backdrop-blur-md transition-colors ease-linear px-4">
           <div className="flex items-center gap-2 min-w-0">
@@ -196,6 +199,9 @@ export function ClientLayout({
               </BreadcrumbList>
             </Breadcrumb>
           </div>
+          <div className="flex items-center gap-2">
+            <GlobalScannerWidget />
+          </div>
         </header>
         <div
           className={`flex min-w-0 flex-1 flex-col gap-5 overflow-x-clip pb-[env(safe-area-inset-bottom)] ${pathname === "/sales/pos" ? "p-2 pt-2" : "p-4 sm:p-6 pt-4 sm:pt-6"}`}
@@ -230,6 +236,7 @@ export function ClientLayout({
       </SidebarInset>
       <ChangelogModal />
     </SidebarProvider>
+      </GlobalScannerProvider>
     </TutorialProvider>
   );
 }

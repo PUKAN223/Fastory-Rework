@@ -50,6 +50,7 @@ import { createProductService } from "@/services/inventory/product.service";
 import { useAppDispatch, useAppSelector } from "@/store/hook";
 import type { CreateProductPayload, Product } from "@/types/products";
 import { BarcodeScannerDialog } from "@/components/ui/BarcodeScannerDialog";
+import { useGlobalScanner } from "@/hooks/useGlobalScanner";
 
 /* ── Types ── */
 type ScanRow = {
@@ -173,6 +174,14 @@ export function BulkScannerModal({
     },
     [products, addProductToTable],
   );
+
+  /* ── Global Scanner integration ── */
+  useGlobalScanner((barcode) => {
+    if (open && !productFormOpen) {
+      setScanInput(barcode);
+      setTimeout(() => processSku(barcode), 50);
+    }
+  });
 
   /* ── Keyboard navigation for dropdown ── */
   const handleInputKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {

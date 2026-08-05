@@ -22,6 +22,7 @@
     "@tanstack/react-table": "^8.21.3",
     "@tanstack/react-virtual": "^3.13.18",
     "@tauri-apps/api": "^2.11.1",
+    "@types/uuid": "^11.0.0",
     "@zxing/browser": "^0.2.1",
     "@zxing/library": "^0.23.0",
     "class-variance-authority": "^0.7.1",
@@ -44,6 +45,7 @@
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.4.1",
     "usehooks-ts": "^3.1.1",
+    "uuid": "^14.0.1",
     "vaul": "^1.1.2",
     "zod": "^4.3.6"
   },

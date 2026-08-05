@@ -35,9 +35,10 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { BarcodeScannerDialog } from "@/components/ui/BarcodeScannerDialog";
 import { formatImageSrc } from "@/lib/formatImageSrc";
 import { prepareImageDataUrl } from "@/lib/prepareImageDataUrl";
+import { useGlobalScanner } from "@/hooks/useGlobalScanner";
+import { BarcodeScannerDialog } from "@/components/ui/BarcodeScannerDialog";
 import type {
   CreateProductPayload,
   ProductFormInitialValues,
@@ -175,7 +176,14 @@ export function ProductFormModal({
     );
     setImageAction("keep");
     setImageInputKey((key) => key + 1);
-  }, [open, initialValues]);
+  }, [open, mode, initialValues]);
+
+  // Global scanner support
+  useGlobalScanner((barcode) => {
+    if (open) {
+      setSku(barcode);
+    }
+  });
 
   const handleRemoveImage = () => {
     setImageDataUrl(null);

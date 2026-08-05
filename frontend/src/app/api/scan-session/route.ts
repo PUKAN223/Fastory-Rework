@@ -1,30 +1,31 @@
 /**
  * Barcode Scan Session API — Server-Sent Events (SSE)
  *
- * POST   /api/scan-session          — สร้าง session token ใหม่
  * GET    /api/scan-session?token=x  — SSE stream รอรับ barcode (Desktop)
- * PUT    /api/scan-session?token=x  — ส่ง barcode จาก mobile (multi-scan ได้)
- * DELETE /api/scan-session?token=x  — ยกเลิก session
+ * PUT    /api/scan-session?token=x  — ส่ง barcode หรือ ping จาก mobile
+ * DELETE /api/scan-session?token=x  — ปิด session
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { randomUUID } from "crypto";
-
-const SESSION_TTL_MS = 5 * 60 * 1000; // 5 minutes (เพิ่มเวลาสำหรับ multi-scan)
 
 interface ScanSession {
   controller: ReadableStreamDefaultController | null;
-  expiresAt: number;
-  timer: ReturnType<typeof setTimeout>;
 }
 
-// In-memory store — resets on server restart (acceptable for this use-case)
+// In-memory store
+// Note: In development, Next.js fast refresh may clear this. The desktop client handles auto-reconnect.
 const sessions = new Map<string, ScanSession>();
+
+function getOrCreateSession(token: string) {
+  if (!sessions.has(token)) {
+    sessions.set(token, { controller: null });
+  }
+  return sessions.get(token)!;
+}
 
 function cleanupSession(token: string) {
   const s = sessions.get(token);
   if (!s) return;
-  clearTimeout(s.timer);
   try {
     s.controller?.close();
   } catch {
@@ -42,63 +43,38 @@ function sendSSE(
   controller.enqueue(new TextEncoder().encode(payload));
 }
 
-// POST — create session
-export async function POST() {
-  const token = randomUUID();
-  const timer = setTimeout(() => {
-    const s = sessions.get(token);
-    if (s?.controller) {
-      try {
-        sendSSE(s.controller, "expired", { message: "Session expired" });
-        s.controller.close();
-      } catch {
-        // ignore
-      }
-    }
-    sessions.delete(token);
-  }, SESSION_TTL_MS);
-
-  sessions.set(token, {
-    controller: null,
-    expiresAt: Date.now() + SESSION_TTL_MS,
-    timer,
-  });
-
-  return NextResponse.json({ token, expiresAt: Date.now() + SESSION_TTL_MS });
-}
-
 // GET — SSE stream (Desktop listens here)
 export async function GET(req: NextRequest) {
   const token = req.nextUrl.searchParams.get("token");
   if (!token)
     return NextResponse.json({ error: "Missing token" }, { status: 400 });
 
-  const session = sessions.get(token);
-  if (!session)
-    return NextResponse.json(
-      { error: "Session not found or expired" },
-      { status: 404 },
-    );
+  const session = getOrCreateSession(token);
 
   const stream = new ReadableStream({
     start(controller) {
       session.controller = controller;
 
-      // Heartbeat every 15s to keep connection alive
+      // Heartbeat every 15s to keep connection alive and prevent timeout
       const heartbeat = setInterval(() => {
         try {
-          sendSSE(controller, "ping", { ts: Date.now() });
+          sendSSE(controller, "heartbeat", { ts: Date.now() });
         } catch {
           clearInterval(heartbeat);
         }
       }, 15000);
 
       // Initial ready event
-      sendSSE(controller, "ready", { token, expiresAt: session.expiresAt });
+      sendSSE(controller, "ready", { token });
 
       req.signal.addEventListener("abort", () => {
         clearInterval(heartbeat);
-        cleanupSession(token);
+        // We only clear the controller, not the session itself, 
+        // so that if mobile sends a payload before desktop reconnects, the session exists.
+        // Actually, just clearing controller is safer.
+        if (session.controller === controller) {
+          session.controller = null;
+        }
       });
     },
   });
@@ -113,30 +89,32 @@ export async function GET(req: NextRequest) {
   });
 }
 
-// PUT — mobile sends scanned barcode (ไม่ปิด session หลัง scan — รองรับ multi-scan)
+// PUT — mobile sends scanned barcode or ping
 export async function PUT(req: NextRequest) {
   const token = req.nextUrl.searchParams.get("token");
   if (!token)
     return NextResponse.json({ error: "Missing token" }, { status: 400 });
 
-  const session = sessions.get(token);
-  if (!session)
-    return NextResponse.json(
-      { error: "Session not found or expired" },
-      { status: 404 },
-    );
-
+  const session = getOrCreateSession(token);
   const body = await req.json().catch(() => null);
-  const barcode = body?.barcode?.trim();
-  if (!barcode)
-    return NextResponse.json({ error: "Missing barcode" }, { status: 400 });
 
-  // Push scan event to Desktop via SSE — ไม่ปิด session ให้สแกนได้หลายรอบ
+  const type = body?.type || "scan"; // default to scan
+  const barcode = body?.barcode?.trim();
+
+  if (type === "scan" && !barcode) {
+    return NextResponse.json({ error: "Missing barcode" }, { status: 400 });
+  }
+
+  // Push event to Desktop via SSE
   if (session.controller) {
     try {
-      sendSSE(session.controller, "scan", { barcode });
+      if (type === "scan") {
+        sendSSE(session.controller, "scan", { barcode });
+      } else if (type === "ping") {
+        sendSSE(session.controller, "ping", { ts: Date.now() });
+      }
     } catch {
-      // connection already closed
+      // connection might be closed
     }
   }
 

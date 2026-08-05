@@ -24,6 +24,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { BarcodeScannerDialog } from "@/components/ui/BarcodeScannerDialog";
 import { Badge } from "@/components/ui/badge";
+import { useGlobalScanner } from "@/hooks/useGlobalScanner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -279,6 +280,12 @@ export default function POSPage() {
       toast.info(`ไม่พบ SKU "${query}" ตรงเป๊ะ กำลังค้นหา...`);
     }
   };
+
+  // Global scanner support (listen to paired mobile phone)
+  useGlobalScanner((barcode) => {
+    setBarcodeInput(barcode);
+    setTimeout(() => processBarcode(barcode), 50);
+  });
 
   // Handle Barcode Scan / Enter Key Submit
   const handleBarcodeSubmit = (e: React.FormEvent) => {

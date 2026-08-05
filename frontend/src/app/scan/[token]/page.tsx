@@ -129,18 +129,11 @@ export default function MobileScanPage() {
     setState("scanned");
 
     try {
-      const res = await fetch(`/api/scan-session?token=${token}`, {
+      await fetch(`/api/scan-session?token=${token}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ barcode }),
+        body: JSON.stringify({ type: "scan", barcode }),
       });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        if (data?.error?.includes("expired") || res.status === 404) {
-          setState("expired");
-          return;
-        }
-      }
     } catch {
       // network error — show success locally
     }
@@ -154,6 +147,22 @@ export default function MobileScanPage() {
   useEffect(() => {
     if (!token) return;
     mountedRef.current = true;
+    
+    // Save token for persistent pairing (optional future use for auto-redirect)
+    localStorage.setItem("fastory_scanner_token_mobile", token);
+
+    // Ping desktop periodically to keep connection active
+    const pingDesktop = () => {
+      fetch(`/api/scan-session?token=${token}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "ping" }),
+      }).catch(() => {});
+    };
+
+    pingDesktop();
+    const pingInterval = setInterval(pingDesktop, 10000);
+
     startScanning();
 
     return () => {
@@ -166,6 +175,7 @@ export default function MobileScanPage() {
         streamRef.current.getTracks().forEach((t) => t.stop());
         streamRef.current = null;
       }
+      clearInterval(pingInterval);
     };
   }, [token]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -258,18 +268,7 @@ export default function MobileScanPage() {
         </div>
       )}
 
-      {/* Expired */}
-      {state === "expired" && (
-        <div className="flex-1 flex flex-col items-center justify-center gap-4 px-6 text-center">
-          <div className="w-16 h-16 rounded-full bg-amber-500/15 flex items-center justify-center">
-            <AlertCircle className="w-8 h-8 text-amber-400" />
-          </div>
-          <div>
-            <p className="font-semibold text-amber-400">Session หมดอายุ</p>
-            <p className="text-sm text-zinc-400 mt-1">กลับไปกดปุ่มสแกนใหม่บนคอมพิวเตอร์</p>
-          </div>
-        </div>
-      )}
+      {/* Expired state removed — we now use persistent tokens */}
 
       {/* Error */}
       {state === "error" && (
