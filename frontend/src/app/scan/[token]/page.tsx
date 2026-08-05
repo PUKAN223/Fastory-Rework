@@ -77,28 +77,27 @@ export default function MobileScanPage() {
 
     (async () => {
       try {
-        // Check camera access
-        const devices = await BrowserMultiFormatReader.listVideoInputDevices();
+        // ── iOS Fix: ต้องเรียก getUserMedia ก่อนเสมอ ──────────────────
+        // iOS Safari จะ return device labels ว่างถ้าไม่มี active stream
+        // ดังนั้นขอ permission ผ่าน getUserMedia ก่อน แล้วปล่อย stream นั้นทิ้ง
+        // จากนั้น ZXing จะเปิด stream ใหม่เองผ่าน decodeFromConstraints
+        const tempStream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { ideal: "environment" } },
+          audio: false,
+        });
+        tempStream.getTracks().forEach((t) => t.stop());
+
         if (!mounted) return;
-
-        if (devices.length === 0) {
-          setState("no-camera");
-          return;
-        }
-
-        // Prefer back camera on mobile
-        const backCamera =
-          devices.find(
-            (d) =>
-              d.label.toLowerCase().includes("back") ||
-              d.label.toLowerCase().includes("rear") ||
-              d.label.toLowerCase().includes("environment"),
-          ) ?? devices[devices.length - 1];
-
         setState("scanning");
 
-        const controls = await reader.decodeFromVideoDevice(
-          backCamera.deviceId,
+        // ── ใช้ facingMode แทน deviceId เพื่อรองรับ iOS ──────────────
+        // iOS ไม่รองรับ deviceId ใน constraints ได้ดี
+        const controls = await reader.decodeFromConstraints(
+          {
+            video: {
+              facingMode: { ideal: "environment" },
+            },
+          },
           videoRef.current!,
           (result, err) => {
             if (!mounted || hasScannedRef.current) return;
@@ -107,21 +106,25 @@ export default function MobileScanPage() {
               submitBarcode(text);
             }
             if (err && !(err instanceof NotFoundException)) {
-              console.warn("Scan error:", err);
+              // NotFoundException เป็นปกติขณะ scan ยังไม่เจอ barcode
             }
           },
         );
-        
+
         if (!mounted) {
           controls.stop();
           return;
         }
-        
+
         controlsRef.current = controls as any;
       } catch (err: unknown) {
         if (!mounted) return;
         const msg = err instanceof Error ? err.message : String(err);
-        if (msg.toLowerCase().includes("permission")) {
+        if (
+          msg.toLowerCase().includes("permission") ||
+          msg.toLowerCase().includes("denied") ||
+          msg.toLowerCase().includes("notallowed")
+        ) {
           setState("no-camera");
         } else {
           setState("error");
@@ -166,8 +169,19 @@ export default function MobileScanPage() {
         <div className="w-full max-w-sm flex flex-col items-center gap-4">
           {/* Camera viewfinder */}
           <div className="relative w-full aspect-square rounded-2xl overflow-hidden border-2 border-primary/50 shadow-lg shadow-primary/20">
+            {/* 
+              iOS requires:
+              1. autoPlay
+              2. muted  
+              3. playsInline (JSX prop)
+              4. webkit-playsinline (HTML attr via ref — ใส่ไว้ใน useEffect ด้านล่าง)
+            */}
             <video
-              ref={videoRef}
+              ref={(el) => {
+                (videoRef as any).current = el;
+                // webkit-playsinline สำคัญมากบน iOS เพื่อป้องกันวิดีโอเปิดแบบ fullscreen
+                if (el) el.setAttribute("webkit-playsinline", "true");
+              }}
               className="w-full h-full object-cover"
               autoPlay
               muted
@@ -259,6 +273,13 @@ export default function MobileScanPage() {
             <p className="text-lg font-semibold text-red-400">เกิดข้อผิดพลาด</p>
             <p className="text-sm text-zinc-400 mt-1">{errorMsg || "ไม่สามารถเปิดกล้องได้"}</p>
           </div>
+          <button
+            type="button"
+            onClick={() => window.location.reload()}
+            className="mt-2 px-5 py-2.5 rounded-xl bg-zinc-700 text-white text-sm font-medium active:scale-95 transition-transform"
+          >
+            ลองใหม่
+          </button>
         </div>
       )}
 
