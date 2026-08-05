@@ -38,7 +38,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { formatImageSrc } from "@/lib/formatImageSrc";
 import { prepareImageDataUrl } from "@/lib/prepareImageDataUrl";
 import { useGlobalScanner } from "@/hooks/useGlobalScanner";
-import { BarcodeScannerDialog } from "@/components/ui/BarcodeScannerDialog";
 import type {
   CreateProductPayload,
   ProductFormInitialValues,
@@ -339,16 +338,6 @@ export function ProductFormModal({
                   onChange={(event) => setSku(event.target.value)}
                   className="flex-1"
                 />
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="icon"
-                  className="shrink-0"
-                  title="สแกน Barcode"
-                  onClick={() => setScannerOpen(true)}
-                >
-                  <ScanLine className="h-4 w-4" />
-                </Button>
               </div>
             </div>
             <div className="space-y-2">
@@ -548,16 +537,6 @@ export function ProductFormModal({
         </DialogFooter>
       </DialogContent>
     </Dialog>
-
-    <BarcodeScannerDialog
-      open={scannerOpen}
-      onOpenChange={setScannerOpen}
-      scanMode="single"
-      onScan={(barcode) => {
-        setSku(barcode);
-        setScannerOpen(false);
-      }}
-    />
   </>
   );
 }

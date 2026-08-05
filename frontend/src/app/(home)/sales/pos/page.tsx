@@ -22,7 +22,6 @@ import { QRCodeSVG } from "qrcode.react";
 import type React from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import { BarcodeScannerDialog } from "@/components/ui/BarcodeScannerDialog";
 import { Badge } from "@/components/ui/badge";
 import { useGlobalScanner } from "@/hooks/useGlobalScanner";
 import { Button } from "@/components/ui/button";
@@ -123,7 +122,6 @@ export default function POSPage() {
   const [timeLeft, setTimeLeft] = useState(300); // 5 minutes countdown
   const [lastOrder, setLastOrder] = useState<any>(null);
   const [isCartSheetOpen, setIsCartSheetOpen] = useState(false);
-  const [isScannerOpen, setIsScannerOpen] = useState(false);
 
   // POS Pagination state
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -542,14 +540,6 @@ export default function POSPage() {
               </Button>
             )}
           </form>
-          <Button
-            variant="outline"
-            className="shrink-0 gap-2 bg-primary/10 hover:bg-primary/20 text-primary border-primary/20"
-            onClick={() => setIsScannerOpen(true)}
-          >
-            <QrCode className="size-4" />
-            สแกนกล้อง
-          </Button>
           <Button
             variant="outline"
             className="shrink-0 gap-2 text-primary"
@@ -1109,16 +1099,6 @@ export default function POSPage() {
           </DialogPanel>
         </DialogContent>
       </Dialog>
-
-      <BarcodeScannerDialog
-        open={isScannerOpen}
-        onOpenChange={setIsScannerOpen}
-        scanMode="multi"
-        onScan={(barcode) => {
-          setBarcodeInput(barcode);
-          setTimeout(() => processBarcode(barcode), 50);
-        }}
-      />
     </div>
   );
 }

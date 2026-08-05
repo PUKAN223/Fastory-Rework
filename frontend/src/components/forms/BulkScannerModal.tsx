@@ -49,7 +49,6 @@ import { cn } from "@/lib/utils";
 import { createProductService } from "@/services/inventory/product.service";
 import { useAppDispatch, useAppSelector } from "@/store/hook";
 import type { CreateProductPayload, Product } from "@/types/products";
-import { BarcodeScannerDialog } from "@/components/ui/BarcodeScannerDialog";
 import { useGlobalScanner } from "@/hooks/useGlobalScanner";
 
 /* ── Types ── */
@@ -81,7 +80,6 @@ export function BulkScannerModal({
   // Product form (for new item discovered)
   const [productFormOpen, setProductFormOpen] = useState(false);
   const [prefillSku, setPrefillSku] = useState("");
-  const [cameraScanOpen, setCameraScanOpen] = useState(false);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -371,15 +369,6 @@ export function BulkScannerModal({
               <div className="absolute right-1.5 top-1/2 -translate-y-1/2 flex gap-1">
                 <Button
                   size="sm"
-                  variant="ghost"
-                  className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
-                  title="สแกนกล้อง"
-                  onClick={() => setCameraScanOpen(true)}
-                >
-                  <ScanLine className="size-4" />
-                </Button>
-                <Button
-                  size="sm"
                   variant="secondary"
                   className="h-8 px-3 text-xs"
                   onClick={() => processSku(scanInput)}
@@ -635,17 +624,6 @@ export function BulkScannerModal({
           imageUrl: null,
         }}
         triggerLabel=""
-      />
-
-      <BarcodeScannerDialog
-        open={cameraScanOpen}
-        onOpenChange={setCameraScanOpen}
-        scanMode="multi"
-        onScan={(barcode) => {
-          setScanInput(barcode);
-          // auto-process ทุกครั้งที่สแกน (ไม่ปิด dialog)
-          setTimeout(() => processSku(barcode), 50);
-        }}
       />
     </>
   );
